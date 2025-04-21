@@ -190,7 +190,7 @@ if ($result) {
     <a href="login.php">
     <button type="button">Admin Login</button>
 </a></form>
-</button>
+</button>   
 <div style="display: flex; gap: 20px; margin: 20px 0;">
     <div style="background-color: #22c55e; padding: 10px 20px; border-radius: 10px; color: white;">
         Completed: <?= $status_counts['Completed'] ?>
