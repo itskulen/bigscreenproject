@@ -29,6 +29,6 @@ $sql = "UPDATE gallery SET project_image = ?, material_image = ?, description = 
 $stmt = $pdo->prepare($sql);
 $stmt->execute([$project, $material, $desc, $id]);
 
-header("Location: admin.php");
+header("Location: mascot_admin.php");
 exit;
 ?>

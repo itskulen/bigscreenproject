@@ -20,6 +20,6 @@ move_uploaded_file($_FILES['material_image']['tmp_name'], "uploads/materials/$ma
 $stmt = $pdo->prepare("INSERT INTO gallery (project_name, project_status, project_image, material_image, description, deadline) VALUES (?, ?, ?, ?, ?, ?)");
 $stmt->execute([$projectName, $projectStatus, $projectImg, $materialImg, $desc, $deadline]);
 
-header("Location: admin.php");
+header("Location: mascot_admin.php");
 exit;
 ?>

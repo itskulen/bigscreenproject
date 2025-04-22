@@ -18,7 +18,7 @@ if (isset($_GET['id'])) {
         $deleteStmt = $pdo->prepare("DELETE FROM gallery WHERE id = ?");
         $deleteStmt->execute([$id]);
 
-        header("Location: admin.php"); // Redirect kembali ke halaman admin
+        header("Location: mascot_admin.php"); // Redirect kembali ke halaman admin
         exit;
     } else {
         echo "Data tidak ditemukan.";
