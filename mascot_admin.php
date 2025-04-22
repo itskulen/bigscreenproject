@@ -53,7 +53,7 @@ $result = $pdo->query($sql);
             <a href="logout.php">
                 <button type="button" class="btn btn-danger">Logout</button>
             </a>
-            <a href="mascot_index.php" class="ml-2" target="_blank">
+            <a href="index.php" class="ml-2" target="_blank">
                 <button type="button" class="btn btn-success">View Mascot Projects</button>
             </a>
         </div>

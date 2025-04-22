@@ -296,27 +296,27 @@ $username = $isLoggedIn ? $_SESSION : null;
         </div>
     </form>
     <div style="display: flex; gap: 20px;">
-        <form method="GET" action="mascot_index.php">
+        <form method="GET" action="index.php">
             <button type="submit" name="project_status" value="" class="btn btn-secondary">
                 All Project: <?= isset($total_projects) ? $total_projects : 0 ?>
             </button>
         </form>
-        <form method="GET" action="mascot_index.php">
+        <form method="GET" action="index.php">
             <button type="submit" name="project_status" value="Completed" class="btn btn-success">
                 Completed: <?= $status_counts['Completed'] ?>
             </button>
         </form>
-        <form method="GET" action="mascot_index.php">
+        <form method="GET" action="index.php">
             <button type="submit" name="project_status" value="In Progress" class="btn btn-warning text-dark">
                 In Progress: <?= $status_counts['In Progress'] ?>
             </button>
         </form>
-        <form method="GET" action="mascot_index.php">
+        <form method="GET" action="index.php">
             <button type="submit" name="project_status" value="Revision" class="btn btn-primary">
                 Revision: <?= $status_counts['Revision'] ?>
             </button>
         </form>
-        <form method="GET" action="mascot_index.php">
+        <form method="GET" action="index.php">
             <button type="submit" name="project_status" value="Not Started" class="btn btn-danger">
                 Not Started: <?= $status_counts['Not Started'] ?>
             </button>
