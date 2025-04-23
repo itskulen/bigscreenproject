@@ -7,8 +7,8 @@ include 'db.php';
 $search = $_GET['search'] ?? '';
 $filter = $_GET['project_status'] ?? '';
 
-// Filter berdasarkan kategori costume
-$sql = "SELECT * FROM gallery WHERE category = 'costume' AND project_name LIKE ?";
+// Filter berdasarkan kategori mascot
+$sql = "SELECT * FROM gallery WHERE category = 'mascot' AND project_name LIKE ?";
 $params = ["%$search%"];
 
 if ($filter !== '') {
@@ -37,11 +37,11 @@ function getStatusClass($status)
             return 'background-color: #d1d5db;'; // light gray
     }
 }
-$stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'costume'");
+$stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'mascot'");
 $stmt->execute();
 $total_projects = $stmt->fetchColumn();
 
-// Hitung jumlah proyek berdasarkan status untuk kategori costume
+// Hitung jumlah proyek berdasarkan status untuk kategori mascot
 $status_counts = [
     'Completed' => 0,
     'In Progress' => 0,
@@ -50,7 +50,7 @@ $status_counts = [
 ];
 
 foreach ($status_counts as $status => &$count) {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM gallery WHERE project_status = ? AND category = 'costume'");
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM gallery WHERE project_status = ? AND category = 'mascot'");
     $stmt->execute([$status]);
     $count = $stmt->fetchColumn();
 }
@@ -66,7 +66,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
 <head>
     <meta charset="UTF-8">
-    <title>Costume Project List</title>
+    <title>Mascot Project List</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -273,13 +273,13 @@ $username = $isLoggedIn ? $_SESSION : null;
 <body>
     <!-- Tombol Login atau Dashboard -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mx-auto">Costume Project List</h1>
+        <h1 class="mx-auto">Mascot Project List</h1>
         <div>
             <button id="toggleDarkMode" class="btn btn-outline-secondary">
                 <i class="bi bi-moon"></i> Dark Mode
             </button>
             <?php if ($isLoggedIn): ?>
-            <a href="costume_admin.php" class="btn btn-primary">
+            <a href="mascot_admin.php" class="btn btn-primary">
                 Dashboard
             </a>
             <?php else: ?>
@@ -300,27 +300,27 @@ $username = $isLoggedIn ? $_SESSION : null;
         </div>
     </form>
     <div style="display: flex; gap: 20px;">
-        <form method="GET" action="costume_index.php">
+        <form method="GET" action="mascot_index.php">
             <button type="submit" name="project_status" value="" class="btn btn-secondary">
                 All Project: <?= isset($total_projects) ? $total_projects : 0 ?>
             </button>
         </form>
-        <form method="GET" action="costume_index.php">
+        <form method="GET" action="mascot_index.php">
             <button type="submit" name="project_status" value="Completed" class="btn btn-success">
                 Completed: <?= $status_counts['Completed'] ?>
             </button>
         </form>
-        <form method="GET" action="costume_index.php">
+        <form method="GET" action="mascot_index.php">
             <button type="submit" name="project_status" value="In Progress" class="btn btn-warning text-dark">
                 In Progress: <?= $status_counts['In Progress'] ?>
             </button>
         </form>
-        <form method="GET" action="costume_index.php">
+        <form method="GET" action="mascot_index.php">
             <button type="submit" name="project_status" value="Revision" class="btn btn-primary">
                 Revision: <?= $status_counts['Revision'] ?>
             </button>
         </form>
-        <form method="GET" action="costume_index.php">
+        <form method="GET" action="mascot_index.php">
             <button type="submit" name="project_status" value="Not Started" class="btn btn-danger">
                 Not Started: <?= $status_counts['Not Started'] ?>
             </button>
