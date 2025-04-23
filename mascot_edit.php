@@ -21,6 +21,7 @@ if (!$data) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $projectName = $_POST['project_name'];
     $projectStatus = $_POST['project_status'];
+    $quantity = $_POST['quantity'];
     $description = $_POST['description'];
 
     // Cek apakah user upload gambar baru atau tidak
@@ -36,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         move_uploaded_file($_FILES['material_image']['tmp_name'], "uploads/materials/$materialImage");
     }
 
-    $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, description = ?, project_image = ?, material_image = ? WHERE id = ? AND category = 'mascot'");
-    $update->execute([$projectName, $projectStatus, $description, $projectImage, $materialImage, $id]);
+    $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, quantity = ?, description = ?, project_image = ?, material_image = ? WHERE id = ? AND category = 'mascot'");
+    $update->execute([$projectName, $projectStatus, $quantity, $description, $projectImage, $materialImage, $id]);
 
     header("Location: mascot_admin.php");
     exit;
@@ -100,15 +101,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </select>
                 </div>
                 <div class="mb-3">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" class="form-control w-auto" id="quantity" name="quantity"
+                        value="<?= htmlspecialchars($data['quantity']) ?>" min="1" required>
+                </div>
+                <div class="mb-3">
                     <label for="description" class="form-label">Description</label>
                     <textarea name="description" id="description" class="form-control" rows="4"
                         required><?= htmlspecialchars($data['description']) ?></textarea>
                 </div>
-                <div class="mb-3">
-                    <label for="deadline" class="form-label">Deadline</label>
-                    <input type="date" name="deadline" id="deadline" class="form-control"
-                        value="<?= htmlspecialchars($data['deadline']) ?>" required>
-                </div>
+                <input type="date" name="deadline" id="deadline" class="form-control"
+                    value="<?= htmlspecialchars($data['deadline']) ?>" required>
                 <div class="mb-3">
                     <label for="project_image" class="form-label">Project Image (Kosongkan jika tidak diubah)</label>
                     <div class="d-flex align-items-center">

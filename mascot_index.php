@@ -182,7 +182,7 @@ $username = $isLoggedIn ? $_SESSION : null;
     .deadline {
         font-size: 12px;
         color: #888;
-        margin-top: 4px;
+        margin-top: 2px;
     }
 
     /* Modal styles */
@@ -338,6 +338,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 <span class="status-label" style="<?= getStatusClass($row['project_status']) ?>">
                     <?= htmlspecialchars($row['project_status']) ?>
                 </span>
+                <div class="deadline">Quantity: <?= htmlspecialchars($row['quantity']) ?></div>
                 <?php if ($row['deadline']): ?>
                 <div class="deadline">Deadline: <?= htmlspecialchars($row['deadline']) ?></div>
                 <?php endif; ?>

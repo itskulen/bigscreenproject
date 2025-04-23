@@ -15,35 +15,44 @@ $result = $pdo->query($sql);
     <title>Admin Costume - Project</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
     <style>
-        .drop-zone {
-            border: 2px dashed #007bff;
-            padding: 30px;
-            text-align: center;
-            background: #f8f9fa;
-            margin-bottom: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
+    .drop-zone {
+        border: 2px dashed #007bff;
+        padding: 30px;
+        text-align: center;
+        background: #f8f9fa;
+        margin-bottom: 10px;
+        cursor: pointer;
+        border-radius: 5px;
+    }
 
-        .drop-zone:hover {
-            background: #e9ecef;
-        }
+    .drop-zone:hover {
+        background: #e9ecef;
+    }
 
-        .container {
-            margin-top: 30px;
-        }
+    .container {
+        margin-top: 30px;
+    }
 
-        .error {
-            color: red;
-            font-size: 0.9em;
-        }
+    .error {
+        color: red;
+        font-size: 0.9em;
+    }
 
-        .top-right {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
+    .top-right {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+
+    /* Perbesar lebar dropdown DataTables */
+    .dataTables_length select {
+        width: auto !important;
+        min-width: 70px;
+    }
     </style>
 </head>
 
@@ -68,7 +77,7 @@ $result = $pdo->query($sql);
 
             <div class="form-group">
                 <label for="project_status" class="form-label">Project Status</label>
-                <select class="form-select" name="project_status" id="project_status"
+                <select class="form-select col-6" name="project_status" id="project_status"
                     aria-label="Default select example" required>
                     <option selected>Select Status</option>
                     <option value="Not Started">Not Started</option>
@@ -77,6 +86,12 @@ $result = $pdo->query($sql);
                     <option value="Completed">Completed</option>
                 </select>
                 <div class="error" id="project_status_error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="quantity">Quantity:</label>
+                <input type="number" class="form-control col-6" id="quantity" name="quantity" min="1" required>
+                <div class="error" id="quantity_error"></div>
             </div>
 
             <div class="form-group">
@@ -102,30 +117,37 @@ $result = $pdo->query($sql);
                     style="display:none; margin-top:10px; max-width: 200px; border: 1px solid #ddd; padding: 5px;">
                 <div class="error" id="material_image_error"></div>
             </div>
-
+            <div class="form-group">
+                <label for="deadline">Deadline:</label>
+                <input type="date" class="form-control w-auto" id="deadline" name="deadline" required>
+                <div class="error" id="deadline_error"></div>
+            </div>
             <div class="form-group">
                 <label for="description">Description:</label>
                 <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
                 <div class="error" id="description_error"></div>
             </div>
 
-            <div class="form-group">
-                <label for="deadline">Deadline:</label>
-                <input type="date" class="form-control" id="deadline" name="deadline" required>
-                <div class="error" id="deadline_error"></div>
-            </div>
 
             <button type="submit" class="btn btn-primary btn-block">Upload</button>
         </form>
     </div>
     <hr>
-    <div class="container mt-5">
-        <h2>Daftar Project</h2>
-        <table class="table table-bordered">
+    <div class="container mt-3">
+        <?php if (isset($_SESSION['message'])): ?>
+        <div class="alert alert-<?= $_SESSION['message_type'] ?> alert-dismissible fade show" role="alert">
+            <?= $_SESSION['message'] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
+        <?php endif; ?>
+        <h2 class="mt-2">Daftar Project</h2>
+        <table id="projectTable" class="table table-bordered table-hover">
             <thead>
                 <tr>
                     <th>Project Name</th>
                     <th>Status</th>
+                    <th>Quantity</th>
                     <th>Project Image</th>
                     <th>Material Image</th>
                     <th>Description</th>
@@ -138,111 +160,165 @@ $result = $pdo->query($sql);
                 $stmt = $pdo->query("SELECT * FROM gallery WHERE category = 'costume' ORDER BY id DESC");
                 while ($row = $stmt->fetch()):
                 ?>
-                    <tr>
-                        <td><?= htmlspecialchars($row['project_name']) ?></td>
-                        <td>
-                            <select class="form-select" onchange="updateStatus(<?= $row['id'] ?>, this.value, 'costume')">
-                                <option value="Not Started"
-                                    <?= $row['project_status'] === 'Not Started' ? 'selected' : '' ?>>Not Started</option>
-                                <option value="In Progress"
-                                    <?= $row['project_status'] === 'In Progress' ? 'selected' : '' ?>>In Progress</option>
-                                <option value="Revision" <?= $row['project_status'] === 'Revision' ? 'selected' : '' ?>>
-                                    Revision</option>
-                                <option value="Completed" <?= $row['project_status'] === 'Completed' ? 'selected' : '' ?>>
-                                    Completed</option>
-                            </select>
-                        </td>
-                        <td>
-                            <img src="uploads/projects/<?= $row['project_image'] ?>" width="100"><br>
-                        </td>
-                        <td>
-                            <img src="uploads/materials/<?= $row['material_image'] ?>" width="100"><br>
-                        </td>
-                        <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
-                        <td><?= date('d/m/Y', strtotime($row['deadline'])) ?></td>
-                        <td>
-                            <a href="costume_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="costume_delete.php?id=<?= $row['id'] ?>" class="btn btn-danger btn-sm"
-                                onclick="return confirm('Yakin ingin menghapus?')">Delete</a>
-                        </td>
-                    </tr>
+                <tr>
+                    <td><?= htmlspecialchars($row['project_name']) ?></td>
+                    <td>
+                        <select class="form-select" onchange="updateStatus(<?= $row['id'] ?>, this.value, 'costume')">
+                            <option value="Not Started"
+                                <?= $row['project_status'] === 'Not Started' ? 'selected' : '' ?>>Not Started</option>
+                            <option value="In Progress"
+                                <?= $row['project_status'] === 'In Progress' ? 'selected' : '' ?>>In Progress</option>
+                            <option value="Revision" <?= $row['project_status'] === 'Revision' ? 'selected' : '' ?>>
+                                Revision</option>
+                            <option value="Completed" <?= $row['project_status'] === 'Completed' ? 'selected' : '' ?>>
+                                Completed</option>
+                        </select>
+                    </td>
+                    <td><?= htmlspecialchars($row['quantity']) ?></td>
+                    <td><img src="uploads/projects/<?= $row['project_image'] ?>" width="100"></td>
+                    <td><img src="uploads/materials/<?= $row['material_image'] ?>" width="100"></td>
+                    <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
+                    <td><?= date('d/m/Y', strtotime($row['deadline'])) ?></td>
+                    <td>
+                        <a href="costume_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mb-1">Edit</a>
+                        <a href="costume_delete.php?id=<?= $row['id'] ?>" class="btn btn-danger btn-sm"
+                            onclick="return confirm('Yakin ingin menghapus?')">Delete</a>
+                    </td>
+                </tr>
                 <?php endwhile; ?>
             </tbody>
         </table>
     </div>
 
-    <script>
-        // Fungsi untuk menampilkan preview gambar
-        function previewImage(input, previewId) {
-            const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById(previewId);
-                    preview.src = e.target.result;
-                    preview.style.display = "block";
-                };
-                reader.readAsDataURL(file);
-            }
-        }
+    <footer class="bg-primary text-white text-center py-3 mt-4">
+        <p class="mb-0">Create with ❤️ by IT DCM</p>
+    </footer>
 
-        // Event listener untuk Project Image
-        document.getElementById('project_image').addEventListener('change', function() {
-            previewImage(this, 'project_image_preview');
-        });
-
-        // Event listener untuk Material Image
-        document.getElementById('material_image').addEventListener('change', function() {
-            previewImage(this, 'material_image_preview');
-        });
-
-        // Validasi Form
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
-            let isValid = true;
-
-            // Validasi Project Name
-            const projectName = document.getElementById('project_name');
-            if (!projectName.value.trim()) {
-                isValid = false;
-                document.getElementById('project_name_error').textContent = "Project Name is required.";
-            } else {
-                document.getElementById('project_name_error').textContent = "";
-            }
-
-            // Validasi Project Status
-            const projectStatus = document.getElementById('project_status');
-            if (!projectStatus.value) {
-                isValid = false;
-                document.getElementById('project_status_error').textContent = "Project Status is required.";
-            } else {
-                document.getElementById('project_status_error').textContent = "";
-            }
-        });
-
-        function updateStatus(id, status, category) {
-            fetch('update_status.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        id: id,
-                        status: status,
-                        category: category
-                    }), // Tambahkan kategori
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Status updated successfully!');
-                    } else {
-                        alert('Failed to update status.');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-    </script>
+    <!-- jQuery (Required for DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Fungsi untuk menampilkan preview gambar
+    function previewImage(input, previewId) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById(previewId);
+                preview.src = e.target.result;
+                preview.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Event listener untuk Project Image
+    document.getElementById('project_image').addEventListener('change', function() {
+        previewImage(this, 'project_image_preview');
+    });
+
+    // Event listener untuk Material Image
+    document.getElementById('material_image').addEventListener('change', function() {
+        previewImage(this, 'material_image_preview');
+    });
+
+    // Validasi Form
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        let isValid = true;
+
+        // Validasi Project Name
+        const projectName = document.getElementById('project_name');
+        if (!projectName.value.trim()) {
+            isValid = false;
+            document.getElementById('project_name_error').textContent = "Project Name is required.";
+        } else {
+            document.getElementById('project_name_error').textContent = "";
+        }
+
+        // Validasi Project Status
+        const projectStatus = document.getElementById('project_status');
+        if (!projectStatus.value) {
+            isValid = false;
+            document.getElementById('project_status_error').textContent = "Project Status is required.";
+        } else {
+            document.getElementById('project_status_error').textContent = "";
+        }
+    });
+
+    function updateStatus(id, status, category) {
+        fetch('update_status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: id,
+                    status: status,
+                    category: category
+                }), // Tambahkan kategori
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Status updated successfully!');
+                } else {
+                    alert('Failed to update status.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Hapus alert setelah 5 detik
+    setTimeout(() => {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            alert.classList.remove('show');
+            alert.classList.add('fade');
+            setTimeout(() => {
+                alert.remove(); // Hapus elemen alert dari DOM
+            }, 150); // Tunggu animasi selesai (150ms)
+        }
+    }, 5000);
+
+    // Scroll ke tabel jika URL mengandung #projectTable
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.location.hash === '#projectTable') {
+            const table = document.getElementById('projectTable');
+            if (table) {
+                table.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }
+    });
+
+    $(document).ready(function() {
+        $('#projectTable').DataTable({
+            paging: true, // Aktifkan pagination
+            searching: true, // Aktifkan pencarian
+            ordering: true, // Aktifkan pengurutan
+            info: true, // Tampilkan informasi jumlah data
+            lengthChange: true, // Pilihan jumlah data per halaman
+            pageLength: 10, // Default jumlah data per halaman
+            language: {
+                search: "Cari:",
+                lengthMenu: "Tampilkan _MENU_ data per halaman",
+                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                paginate: {
+                    first: "Pertama",
+                    last: "Terakhir",
+                    next: "Berikutnya",
+                    previous: "Sebelumnya",
+                },
+            },
+        });
+    });
+    </script>
 </body>
 
 </html>
