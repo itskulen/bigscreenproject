@@ -2,7 +2,7 @@
 session_start();
 include 'db.php';
 include 'middleware.php';
-checkUserRole('costume'); // Hanya costume_manager yang bisa mengakses
+checkUserRole('costume'); // Hanya costume admin yang bisa mengakses
 
 $sql = "SELECT project_name, project_status, project_image, material_image, description, deadline 
         FROM gallery WHERE category = 'costume'";
@@ -80,10 +80,12 @@ $result = $pdo->query($sql);
                 <select class="form-select col-6" name="project_status" id="project_status"
                     aria-label="Default select example" required>
                     <option selected>Select Status</option>
-                    <option value="Not Started">Not Started</option>
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Urgent">Urgent</option>
                     <option value="In Progress">In Progress</option>
                     <option value="Revision">Revision</option>
                     <option value="Completed">Completed</option>
+                    <option value="Archived">Archived</option>
                 </select>
                 <div class="error" id="project_status_error"></div>
             </div>
@@ -107,13 +109,13 @@ $result = $pdo->query($sql);
             </div>
 
             <div class="form-group">
-                <label>Material Image:</label>
+                <label>Submission Notes:</label>
                 <div class="drop-zone" onclick="document.getElementById('material_image').click();">
-                    Click or Drag to Upload Material Image
+                    Click or Drag to Upload Submission Notes
                 </div>
                 <input type="file" id="material_image" name="material_image" accept="image/*" style="display:none;"
                     required>
-                <img id="material_image_preview" src="#" alt="Material Image Preview"
+                <img id="material_image_preview" src="#" alt="Submission Notes Preview"
                     style="display:none; margin-top:10px; max-width: 200px; border: 1px solid #ddd; padding: 5px;">
                 <div class="error" id="material_image_error"></div>
             </div>
@@ -149,7 +151,7 @@ $result = $pdo->query($sql);
                     <th>Status</th>
                     <th>Quantity</th>
                     <th>Project Image</th>
-                    <th>Material Image</th>
+                    <th>Submission Notes</th>
                     <th>Description</th>
                     <th>Deadline</th>
                     <th>Aksi</th>
@@ -164,21 +166,26 @@ $result = $pdo->query($sql);
                     <td><?= htmlspecialchars($row['project_name']) ?></td>
                     <td>
                         <select class="form-select" onchange="updateStatus(<?= $row['id'] ?>, this.value, 'costume')">
-                            <option value="Not Started"
-                                <?= $row['project_status'] === 'Not Started' ? 'selected' : '' ?>>Not Started</option>
+                            <option value="Upcoming" <?= $row['project_status'] === 'Upcoming' ? 'selected' : '' ?>>
+                                Upcoming
+                            </option>
+                            <option value="Urgent" <?= $row['project_status'] === 'Urgent' ? 'selected' : '' ?>>Urgent
+                            </option>
                             <option value="In Progress"
                                 <?= $row['project_status'] === 'In Progress' ? 'selected' : '' ?>>In Progress</option>
                             <option value="Revision" <?= $row['project_status'] === 'Revision' ? 'selected' : '' ?>>
                                 Revision</option>
                             <option value="Completed" <?= $row['project_status'] === 'Completed' ? 'selected' : '' ?>>
                                 Completed</option>
+                            <option value="Archived" <?= $row['project_status'] === 'Archived' ? 'selected' : '' ?>>
+                                Archived</option>
                         </select>
                     </td>
                     <td><?= htmlspecialchars($row['quantity']) ?></td>
                     <td><img src="uploads/projects/<?= $row['project_image'] ?>" width="100"></td>
                     <td><img src="uploads/materials/<?= $row['material_image'] ?>" width="100"></td>
                     <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
-                    <td><?= date('d/m/Y', strtotime($row['deadline'])) ?></td>
+                    <td><?= htmlspecialchars($row['deadline']) ?></td>
                     <td>
                         <a href="costume_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mb-1">Edit</a>
                         <a href="costume_delete.php?id=<?= $row['id'] ?>" class="btn btn-danger btn-sm"
@@ -221,7 +228,7 @@ $result = $pdo->query($sql);
         previewImage(this, 'project_image_preview');
     });
 
-    // Event listener untuk Material Image
+    // Event listener untuk Submission Notes
     document.getElementById('material_image').addEventListener('change', function() {
         previewImage(this, 'material_image_preview');
     });

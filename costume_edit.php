@@ -1,7 +1,7 @@
 <?php
 include 'db.php';
 include 'middleware.php';
-checkUserRole('costume'); // Hanya costume_manager yang bisa mengakses
+checkUserRole('costume'); // Hanya costume admin yang bisa mengakses
 
 if (!isset($_GET['id'])) {
     echo "ID tidak ditemukan.";
@@ -90,14 +90,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <label for="project_status" class="form-label">Project Status</label>
                     <select name="project_status" id="project_status" class="form-select" required>
                         <option value="">-- Select Status --</option>
-                        <option value="Not Started" <?= $data['project_status'] === 'Not Started' ? 'selected' : '' ?>>
-                            Not Started</option>
+                        <option value="Upcoming" <?= $data['project_status'] === 'Upcoming' ? 'selected' : '' ?>>
+                            Upcoming</option>
+                        <option value="Urgent" <?= $data['project_status'] === 'Urgent' ? 'selected' : '' ?>>
+                            Urgent</option>
                         <option value="In Progress" <?= $data['project_status'] === 'In Progress' ? 'selected' : '' ?>>
                             In Progress</option>
                         <option value="Revision" <?= $data['project_status'] === 'Revision' ? 'selected' : '' ?>>
                             Revision</option>
                         <option value="Completed" <?= $data['project_status'] === 'Completed' ? 'selected' : '' ?>>
                             Completed</option>
+                        <option value="Archived" <?= $data['project_status'] === 'Archived' ? 'selected' : '' ?>>
+                            Archived</option>
                     </select>
                 </div>
                 <div class="mb-3">
@@ -124,7 +128,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
 
                 <div class="mb-3">
-                    <label for="material_image" class="form-label">Material Image (Kosongkan jika tidak diubah)</label>
+                    <label for="material_image" class="form-label">Submission Notes (Kosongkan jika tidak
+                        diubah)</label>
                     <div class="d-flex align-items-center">
                         <input type="file" name="material_image" id="material_image" class="form-control me-2">
                         <button type="button" class="btn btn-sm btn-danger"
@@ -171,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         previewImage(this, 'project_image_preview');
     });
 
-    // Event listener untuk Material Image
+    // Event listener untuk Submission Notes
     document.getElementById('material_image').addEventListener('change', function() {
         previewImage(this, 'material_image_preview');
     });

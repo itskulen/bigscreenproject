@@ -7,14 +7,13 @@ include 'db.php';
 $search = $_GET['search'] ?? '';
 $filter = $_GET['project_status'] ?? '';
 
-// Filter berdasarkan kategori costume
-$sql = "SELECT * FROM gallery WHERE category = 'costume' AND project_name LIKE ?";
+// Filter berdasarkan kategori 
+$sql = "SELECT * FROM gallery WHERE category = 'costume' AND project_status != 'archived' AND project_name LIKE ?";
 $params = ["%$search%"];
 
 if ($filter !== '') {
     $sql .= " AND project_status = ?";
     $params[] = $filter;
-    $status = "project_status";
 }
 
 $stmt = $pdo->prepare($sql);
@@ -25,7 +24,9 @@ $projects = $stmt->fetchAll();
 function getStatusClass($status)
 {
     switch (strtolower($status)) {
-        case 'not started':
+        case 'upcoming':
+            return 'background-color: #0dcaf0;'; // blue
+        case 'urgent':
             return 'background-color: #ef4444;'; // red
         case 'in progress':
             return 'background-color: #eab308;'; // yellow
@@ -37,24 +38,31 @@ function getStatusClass($status)
             return 'background-color: #d1d5db;'; // light gray
     }
 }
+
 $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'costume'");
 $stmt->execute();
 $total_projects = $stmt->fetchColumn();
 
-// Hitung jumlah proyek berdasarkan status untuk kategori costume
+// Hitung jumlah proyek berdasarkan status untuk kategori
 $status_counts = [
+    'Upcoming' => 0,
     'Completed' => 0,
     'In Progress' => 0,
     'Revision' => 0,
-    'Not Started' => 0
+    'Urgent' => 0
 ];
 
 foreach ($status_counts as $status => &$count) {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM gallery WHERE project_status = ? AND category = 'costume'");
+    $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'costume' AND project_status = ?");
     $stmt->execute([$status]);
     $count = $stmt->fetchColumn();
 }
 unset($count);
+
+// Hitung total proyek (kecuali Archived)
+$stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'costume' AND project_status != 'Archived'");
+$stmt->execute();
+$total_projects = $stmt->fetchColumn();
 
 // Periksa apakah pengguna sudah login
 $isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
@@ -130,6 +138,16 @@ $username = $isLoggedIn ? $_SESSION : null;
 
     .dark-mode .btn-danger {
         background-color: #dc3545;
+        color: #fff;
+    }
+
+    .btn-indigo {
+        background-color: #6610f2;
+        color: #fff;
+    }
+
+    .btn-indigo:hover {
+        background-color: #520dc2;
         color: #fff;
     }
 
@@ -306,8 +324,8 @@ $username = $isLoggedIn ? $_SESSION : null;
             </button>
         </form>
         <form method="GET" action="costume_index.php">
-            <button type="submit" name="project_status" value="Completed" class="btn btn-success">
-                Completed: <?= $status_counts['Completed'] ?>
+            <button type="submit" name="project_status" value="Upcoming" class="btn btn-info">
+                Upcoming: <?= $status_counts['Upcoming'] ?>
             </button>
         </form>
         <form method="GET" action="costume_index.php">
@@ -316,13 +334,18 @@ $username = $isLoggedIn ? $_SESSION : null;
             </button>
         </form>
         <form method="GET" action="costume_index.php">
-            <button type="submit" name="project_status" value="Revision" class="btn btn-primary">
+            <button type="submit" name="project_status" value="Urgent" class="btn btn-danger">
+                Urgent: <?= $status_counts['Urgent'] ?>
+            </button>
+        </form>
+        <form method="GET" action="costume_index.php">
+            <button type="submit" name="project_status" value="Revision" class="btn btn-indigo">
                 Revision: <?= $status_counts['Revision'] ?>
             </button>
         </form>
         <form method="GET" action="costume_index.php">
-            <button type="submit" name="project_status" value="Not Started" class="btn btn-danger">
-                Not Started: <?= $status_counts['Not Started'] ?>
+            <button type="submit" name="project_status" value="Completed" class="btn btn-success">
+                Completed: <?= $status_counts['Completed'] ?>
             </button>
         </form>
     </div>
