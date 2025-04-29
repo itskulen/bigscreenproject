@@ -5,9 +5,18 @@ include 'db.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $projectName = $_POST['project_name'];
     $projectStatus = $_POST['project_status'];
+    $priority = $_POST['priority'];
     $quantity = $_POST['quantity'];
     $description = $_POST['description'];
-    $deadline = $_POST['deadline'];
+    $deadline = $_POST['deadline'] ?? null;
+
+    // Validasi deadline
+    if (empty($deadline) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $deadline)) {
+        $_SESSION['message'] = "Invalid or missing deadline.";
+        $_SESSION['message_type'] = "danger";
+        header("Location: mascot_admin.php");
+        exit;
+    }
 
     // Validasi file upload
     $projectImage = null;
@@ -23,9 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Simpan data ke database
-    $stmt = $pdo->prepare("INSERT INTO gallery (project_name, project_status, quantity, project_image, material_image, description, deadline, category) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?, 'mascot')");
-    $success = $stmt->execute([$projectName, $projectStatus, $quantity, $projectImage, $materialImage, $description, $deadline]);
+    $stmt = $pdo->prepare("INSERT INTO gallery (project_name, project_status, priority, quantity, project_image, material_image, description, deadline, category) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'mascot')");
+    $success = $stmt->execute([$projectName, $projectStatus, $priority, $quantity, $projectImage, $materialImage, $description, $deadline]);
 
     // Set session flash message
     if ($success) {

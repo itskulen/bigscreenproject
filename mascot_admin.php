@@ -91,6 +91,16 @@ $result = $pdo->query($sql);
             </div>
 
             <div class="form-group">
+                <label for="priority" class="form-label">Priority</label>
+                <select class="form-select col-6" name="priority" id="priority" required>
+                    <option selected>Select Priority</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="quantity">Quantity:</label>
                 <input type="number" class="form-control col-6" id="quantity" name="quantity" min="1" required>
                 <div class="error" id="quantity_error"></div>

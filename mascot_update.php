@@ -40,10 +40,10 @@ if ($_FILES['material_image']['name']) {
 }
 
 $sql = "UPDATE gallery 
-        SET project_image = ?, material_image = ?, description = ?, deadline = ?, quantity = ? 
+        SET project_image = ?, material_image = ?, description = ?, deadline = ?, quantity = ?, priority = ? 
         WHERE id = ?";
 $stmt = $pdo->prepare($sql);
-$stmt->execute([$project, $material, $desc, $deadline, $quantity, $id]);
+$stmt->execute([$project, $material, $desc, $deadline, $quantity, $priority, $id]);
 
 header("Location: mascot_admin.php");
 exit;

@@ -21,6 +21,7 @@ if (!$data) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $projectName = $_POST['project_name'];
     $projectStatus = $_POST['project_status'];
+    $priority = $_POST['priority'];
     $quantity = $_POST['quantity'];
     $description = $_POST['description'];
 
@@ -37,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         move_uploaded_file($_FILES['material_image']['tmp_name'], "uploads/materials/$materialImage");
     }
 
-    $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, quantity = ?, description = ?, project_image = ?, material_image = ? WHERE id = ? AND category = 'mascot'");
-    $update->execute([$projectName, $projectStatus, $quantity, $description, $projectImage, $materialImage, $id]);
+    $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, priority = ?, quantity = ?, description = ?, project_image = ?, material_image = ? WHERE id = ? AND category = 'mascot'");
+    $update->execute([$projectName, $projectStatus, $priority, $quantity, $description, $projectImage, $materialImage, $id]);
 
     header("Location: mascot_admin.php");
     exit;
@@ -104,6 +105,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             Archived</option>
                     </select>
                 </div>
+
+                <div class="mb-3">
+                    <label for="priority" class="form-label">Priority</label>
+                    <select name="priority" id="priority" class="form-select" required>
+                        <option value="High" <?= $data['priority'] === 'High' ? 'selected' : '' ?>>High</option>
+                        <option value="Medium" <?= $data['priority'] === 'Medium' ? 'selected' : '' ?>>Medium</option>
+                        <option value="Low" <?= $data['priority'] === 'Low' ? 'selected' : '' ?>>Low</option>
+                    </select>
+                </div>
+
                 <div class="mb-3">
                     <label for="quantity">Quantity:</label>
                     <input type="number" class="form-control w-auto" id="quantity" name="quantity"
