@@ -289,6 +289,49 @@ $username = $isLoggedIn ? $_SESSION : null;
         cursor: pointer;
     }
 
+    .modal-backdrop {
+        z-index: 1040;
+        /* Pastikan lebih rendah dari modal */
+    }
+
+    .modal {
+        z-index: 1050;
+        /* Pastikan lebih tinggi dari backdrop */
+    }
+
+    /* Pastikan iframe memenuhi layar */
+    #googleSlideIframe {
+        width: 100%;
+        height: 100vh;
+        /* Tinggi iframe mengikuti tinggi viewport */
+        border: none;
+    }
+
+    /* Pastikan modal-body tidak memiliki padding dan memenuhi modal */
+    .modal-fullscreen .modal-body {
+        overflow: hidden;
+        /* Hilangkan scroll */
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        /* Pastikan modal-body memenuhi modal */
+    }
+
+    /* Pastikan modal-content memenuhi layar */
+    .modal-fullscreen .modal-content {
+        border-radius: 0;
+        /* Hilangkan border radius */
+        height: 100vh;
+        /* Pastikan modal-content memenuhi tinggi viewport */
+    }
+
+    /* Pastikan modal-dialog memenuhi layar */
+    .modal-fullscreen .modal-dialog {
+        margin: 0;
+        max-width: 100%;
+        height: 100%;
+    }
+
     @keyframes fadein {
         from {
             opacity: 0;
@@ -426,10 +469,13 @@ $username = $isLoggedIn ? $_SESSION : null;
                 This Week!
             </small>
             <?php endif; ?>
-            <img src="uploads/projects/<?= htmlspecialchars($row['project_image']) ?>" alt="Project"
-                onclick="openModal(this.src)">
+            <img src="uploads/projects/<?= htmlspecialchars($row['project_image']) ?>" style="cursor: pointer;"
+                alt="No Image Project yet" onclick="openModal(this.src)">
             <div class="card-body">
-                <strong><?= htmlspecialchars($row['project_name']) ?></strong><br>
+                <strong style="cursor: pointer;"
+                    onclick="openGoogleSlideModal('<?= htmlspecialchars($row['subform_embed']) ?>')">
+                    <?= htmlspecialchars($row['project_name']) ?>
+                </strong><br>
                 <span class="status-label" style="<?= getStatusClass($row['project_status']) ?>">
                     <?= htmlspecialchars($row['project_status']) ?>
                 </span>
@@ -444,8 +490,9 @@ $username = $isLoggedIn ? $_SESSION : null;
                 <p style="margin-top: 8px; font-size: 14px;">
                     <?= nl2br(htmlspecialchars($row['description'])) ?>
                 </p>
-                <div style="margin-top: 10px;">
-                    <img src="uploads/materials/<?= htmlspecialchars($row['material_image']) ?>" alt="Material"
+                <div style="margin-top: 5px; cursor: pointer;">
+                    <img src="uploads/materials/<?= htmlspecialchars($row['material_image']) ?>"
+                        alt="No Submission Notes yet"
                         style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px;"
                         onclick="openModal(this.src)">
                 </div>
@@ -454,10 +501,25 @@ $username = $isLoggedIn ? $_SESSION : null;
         <?php endforeach; ?>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal for Images-->
     <div id="imgModal" class="modal" onclick="closeModal()">
         <span class="close" onclick="closeModal()">&times;</span>
         <img class="modal-content" id="modalImage" alt="Preview Image">
+    </div>
+
+    <!-- Modal for Google Slide -->
+    <div class="modal fade" id="googleSlideModal" tabindex="-1" aria-labelledby="googleSlideModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <iframe id="googleSlideIframe" class="w-100 h-100" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -471,6 +533,25 @@ $username = $isLoggedIn ? $_SESSION : null;
 
     function closeModal() {
         const modal = document.getElementById("imgModal");
+        modal.style.display = "none";
+    }
+
+    function openGoogleSlideModal(embedLink) {
+        // Format URL embed Google Slides
+        const embedUrl = embedLink.replace('/edit', '/embed');
+
+        // Set iframe source
+        document.getElementById('googleSlideIframe').src = embedUrl;
+
+        // Tampilkan modal
+        const modal = new bootstrap.Modal(document.getElementById('googleSlideModal'));
+        modal.show();
+    }
+
+    function closeGoogleSlideModal() {
+        const modal = document.getElementById("googleSlideModal");
+        const iframe = document.getElementById("googleSlideIframe");
+        iframe.src = ""; // Clear the iframe source
         modal.style.display = "none";
     }
 

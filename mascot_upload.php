@@ -9,10 +9,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $quantity = $_POST['quantity'];
     $description = $_POST['description'];
     $deadline = $_POST['deadline'] ?? null;
+    $subformEmbed = $_POST['subform_embed'] ?? null;
 
     // Validasi deadline
     if (empty($deadline) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $deadline)) {
         $_SESSION['message'] = "Invalid or missing deadline.";
+        $_SESSION['message_type'] = "danger";
+        header("Location: mascot_admin.php");
+        exit;
+    }
+
+    if (!empty($subformEmbed) && !filter_var($subformEmbed, FILTER_VALIDATE_URL)) {
+        $_SESSION['message'] = "Invalid Google Slide URL.";
         $_SESSION['message_type'] = "danger";
         header("Location: mascot_admin.php");
         exit;
@@ -32,9 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Simpan data ke database
-    $stmt = $pdo->prepare("INSERT INTO gallery (project_name, project_status, priority, quantity, project_image, material_image, description, deadline, category) 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'mascot')");
-    $success = $stmt->execute([$projectName, $projectStatus, $priority, $quantity, $projectImage, $materialImage, $description, $deadline]);
+    $stmt = $pdo->prepare("INSERT INTO gallery (project_name, project_status, priority, quantity, project_image, material_image, description, deadline, category, subform_embed) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'mascot', ?)");
+    $success = $stmt->execute([$projectName, $projectStatus, $priority, $quantity, $projectImage, $materialImage, $description, $deadline, $subformEmbed]);
     // Set session flash message
     if ($success) {
         $_SESSION['message'] = "Project successfully uploaded!";

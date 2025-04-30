@@ -8,6 +8,7 @@ function sanitizeFileName($filename)
 
 $id = $_POST['id'];
 $desc = htmlspecialchars(trim($_POST['description']));
+$subformEmbed = htmlspecialchars(trim($_POST['subform_embed']));
 $deadline = htmlspecialchars(trim($_POST['deadline']));
 $priority = htmlspecialchars(trim($_POST['priority']));
 $quantity = isset($_POST['quantity']) && is_numeric($_POST['quantity']) && $_POST['quantity'] > 0
@@ -49,10 +50,10 @@ if ($_FILES['material_image']['name']) {
 }
 
 $sql = "UPDATE gallery 
-        SET project_image = ?, material_image = ?, description = ?, deadline = ?, quantity = ?, priority = ? 
+        SET project_image = ?, material_image = ?, description = ?, deadline = ?, quantity = ?, priority = ?, subform_embed = ?
         WHERE id = ?";
 $stmt = $pdo->prepare($sql);
-$stmt->execute([$project, $material, $desc, $deadline, $quantity, $priority, $id]);
+$stmt->execute([$project, $material, $desc, $deadline, $quantity, $priority, $subformEmbed, $id]);
 
 // Feedback untuk pengguna
 if ($stmt->rowCount() > 0) {

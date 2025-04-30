@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 29 Apr 2025 pada 08.38
+-- Waktu pembuatan: 30 Apr 2025 pada 07.01
 -- Versi server: 8.0.39
 -- Versi PHP: 8.3.12
 
@@ -37,36 +37,13 @@ CREATE TABLE `gallery` (
   `priority` varchar(20) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Normal',
   `quantity` int NOT NULL DEFAULT '1',
   `deadline` date DEFAULT NULL,
-  `category` enum('mascot','costume') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'mascot'
+  `category` enum('mascot','costume') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'mascot',
+  `createAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updateAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `subform_embed` text COLLATE utf8mb4_general_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data untuk tabel `gallery`
---
-
-INSERT INTO `gallery` (`id`, `project_image`, `material_image`, `description`, `project_name`, `project_status`, `priority`, `quantity`, `deadline`, `category`) VALUES
-(21, 'zahur.jpeg', 'Screenshot_2025-04-14_160840.png', '- 1 Set mascot tung tung tung tung tung tung sahur \r\n- 1 Pcs excalibur pentungan\r\n- 1 Set mascot capu capu capucinno assasinooo\r\n- 1 Pcs katana', 'Tung Tung Tung Tung Sahur and Friends', 'Completed', 'Normal', 1, '2025-04-22', 'mascot'),
-(22, 'duu.png', 'DALL__E_2025-04-14_15.54.23_-_A_surreal_humanoid_character_named__TI_TI_IT___composed_of_a_bizarre_fusion_of_IT_hardware__a_chaotic_amalgamation_of_a_keyboard_torso__monitor_chest_.webp', '- Testing 1\r\n- Testing 2\r\n- Testing 3', 'Hik Vision CCTV Mascot', 'Upcoming', 'Normal', 1, '2025-04-30', 'mascot'),
-(23, 'ChatGPT_Image_Apr_9__2025__08_59_01_AM.png', 'DALL__E_2025-04-14_15.54.23_-_A_surreal_humanoid_character_named__TI_TI_IT___composed_of_a_bizarre_fusion_of_IT_hardware__a_chaotic_amalgamation_of_a_keyboard_torso__monitor_chest_.webp', 'wewgwrgwrttt', 'Hik Vision CCTV Mascot', 'Completed', 'Normal', 1, '2025-04-24', 'mascot'),
-(24, 'Cuplikan_layar_2024-08-06_153553.png', 'Cuplikan_layar_2024-08-06_153806.png', 'Test', 'Test1', 'Archived', 'Normal', 1, '2025-04-22', 'mascot'),
-(28, '6808b0ee0d936_Cuplikan layar 2025-03-21 102126.png', '6808b0ee0e182_6929f8f379bb7d63ce0283f6647f9a6e.png', 'test2', 'Test222', 'Revision', 'Normal', 12, '2025-04-22', 'costume'),
-(29, '68060ca9efb40_Cage Vampire.png', '68060ca9eff07_Shoes.png', 'test344', 'test355', 'Completed', 'Normal', 1, '2025-04-23', 'costume'),
-(33, 'EgBP-17120255111.png', 'Cuplikan layar 2025-03-21 112823.png', 'ascswdc', 'test3', 'Revision', 'Normal', 1, '2025-04-26', 'costume'),
-(34, '680862f90058a_491456248_17852044233430394_6083765508520289848_n.jpg', '680862f900b5e_Gambar WhatsApp 2025-04-15 pukul 08.56.24_329fc156.jpg', 'swdcsd', 'terstttt', 'In Progress', 'Normal', 1, '2025-04-24', 'mascot'),
-(36, '680884264a0af_491455826_17852044257430394_8797943226980328465_n.jpg', '680884264a64b_491389980_17852044272430394_5208796392557484244_n.jpg', 'sdvsd', 'sds', 'In Progress', 'Normal', 1, '2025-04-26', 'mascot'),
-(44, '68089b7a0bc4c_Cuplikan layar 2025-03-21 111538.png', '68089b7a0bf11_Cuplikan layar 2025-03-21 111305.png', 'wew', 'assuii33', 'Urgent', 'Medium', 1, '2025-04-16', 'mascot'),
-(45, '68089bb009766_Cuplikan layar 2025-03-21 102126.png', '68089bb009f10_Check Mark Button.png', 'sacxwe', 'wahyu', 'In Progress', 'Normal', 1, '2025-04-23', 'mascot'),
-(47, '68089f0160e02_Gambar WhatsApp 2024-11-02 pukul 09.28.56_f6fdc7af.jpg', '68089f0161303_Gambar WhatsApp 2025-04-14 pukul 08.56.01_6aac1a4f.jpg', 'asdad', 'meca', 'Archived', 'Normal', 1, '2025-04-03', 'mascot'),
-(48, '68089f2b8e85e_Cuplikan layar 2025-04-17 154505.png', '68089f2b8f1a4_490467515_17852044287430394_2391781559457612175_n.jpg', 'asasdddd', 'test upload', 'In Progress', 'Normal', 1, '2025-04-29', 'mascot'),
-(49, '68089fe5efd38_Cuplikan layar 2025-04-17 130913.png', '68089fe5f01ba_pRZw-1726028086.jpeg', 'rrrrr', 'ppppp333', 'Revision', 'Normal', 7, '2025-04-03', 'mascot'),
-(50, '6808a006426be_Red_Arrow_PNG_Clip_Art_Transparent_Image.png', '6808a00642a4a_Cuplikan layar 2025-04-17 154407.png', 'erfverfv', 'yyyyyy', 'Revision', 'Normal', 34, '2025-04-05', 'mascot'),
-(51, '6808b1140aa18_admin f.png', '6808b1140aef4_arrow-png-12457.png', 'tss', 'ppppp333', 'Completed', 'Normal', 5, '2025-04-16', 'costume'),
-(52, '6809c48d214ee_491461409_17852044275430394_4402899394470984373_n.jpg', '6809c48d217cc_491456248_17852044233430394_6083765508520289848_n.jpg', 'finallll', 'Finalllll', 'Completed', 'Normal', 5, '2025-04-25', 'mascot'),
-(53, '68108ddc161a1_boss m1.png', '68108ddc1639d_3,005,800+ Leaf Stock Illustrations, Royalty-Free Vector Graphics & Clip Art.jpeg', 'Test22222', 'anggggg', 'Urgent', 'Medium', 4, '2025-05-09', 'mascot'),
-(54, '68108e41bb1bd_491465158_17852044245430394_2010514194785514257_n.jpg', '68108e41bb393_Pushpin.png', 'erferf', 'xcv bfb f', 'In Progress', 'Medium', 56, '2025-05-10', 'mascot');
-
 -- --------------------------------------------------------
-
 --
 -- Struktur dari tabel `users`
 --
@@ -110,7 +87,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `gallery`
 --
 ALTER TABLE `gallery`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
 
 --
 -- AUTO_INCREMENT untuk tabel `users`

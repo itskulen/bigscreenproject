@@ -20,6 +20,7 @@ if (!$data) {
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $projectName = $_POST['project_name'];
+    $subformEmbed = $_POST['subform_embed'] ?? null;
     $projectStatus = $_POST['project_status'];
     $priority = $_POST['priority'];
     $quantity = $_POST['quantity'];
@@ -38,8 +39,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         move_uploaded_file($_FILES['material_image']['tmp_name'], "uploads/materials/$materialImage");
     }
 
-    $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, priority = ?, quantity = ?, description = ?, project_image = ?, material_image = ? WHERE id = ? AND category = 'mascot'");
-    $update->execute([$projectName, $projectStatus, $priority, $quantity, $description, $projectImage, $materialImage, $id]);
+    if (!empty($subformEmbed) && !filter_var($subformEmbed, FILTER_VALIDATE_URL)) {
+        $_SESSION['message'] = "Invalid Google Slide URL.";
+        $_SESSION['message_type'] = "danger";
+        header("Location: mascot_admin.php");
+        exit;
+    }
+
+    $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, priority = ?, quantity = ?, description = ?, project_image = ?, material_image = ?, subform_embed = ? WHERE id = ? AND category = 'mascot'");
+    $update->execute([$projectName, $projectStatus, $priority, $quantity, $description, $projectImage, $materialImage, $subformEmbed, $id]);
 
     echo "<!DOCTYPE html>
     <html>
@@ -104,6 +112,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <label for="project_name" class="form-label">Project Name</label>
                     <input type="text" name="project_name" id="project_name" class="form-control"
                         value="<?= htmlspecialchars($data['project_name']) ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label for="subform_embed" class="form-label">Submission Form Embed Link</label>
+                    <input type="text" name="subform_embed" id="subform_embed" class="form-control"
+                        value="<?= htmlspecialchars($data['subform_embed']) ?>"
+                        placeholder="Enter Submission Form Embed Link">
                 </div>
                 <div class="mb-3">
                     <label for="project_status" class="form-label">Project Status</label>
