@@ -18,7 +18,10 @@ if (isset($_GET['id'])) {
         $deleteStmt = $pdo->prepare("DELETE FROM gallery WHERE id = ?");
         $deleteStmt->execute([$id]);
 
-        header("Location: mascot_admin.php"); // Redirect kembali ke halaman admin
+        // Redirect ke halaman admin dengan pesan sukses
+        $_SESSION['message'] = "Project successfully deleted!";
+        $_SESSION['message_type'] = "success";
+        header("Location: mascot_admin.php");
         exit;
     } else {
         echo "Data tidak ditemukan.";

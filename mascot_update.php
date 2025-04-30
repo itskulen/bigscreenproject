@@ -8,7 +8,8 @@ function sanitizeFileName($filename)
 
 $id = $_POST['id'];
 $desc = htmlspecialchars(trim($_POST['description']));
-$deadline = $_POST['deadline'];
+$deadline = htmlspecialchars(trim($_POST['deadline']));
+$priority = htmlspecialchars(trim($_POST['priority']));
 $quantity = isset($_POST['quantity']) && is_numeric($_POST['quantity']) && $_POST['quantity'] > 0
     ? $_POST['quantity']
     : 1; // Default ke 1 jika tidak valid
@@ -16,6 +17,14 @@ $quantity = isset($_POST['quantity']) && is_numeric($_POST['quantity']) && $_POS
 // Debugging untuk memastikan nilai deadline dikirim
 if (empty($deadline)) {
     die("Deadline is empty.");
+}
+
+if (empty($desc)) {
+    die("Description is required.");
+}
+
+if (empty($priority)) {
+    die("Priority is required.");
 }
 
 // Validasi format tanggal
@@ -45,5 +54,28 @@ $sql = "UPDATE gallery
 $stmt = $pdo->prepare($sql);
 $stmt->execute([$project, $material, $desc, $deadline, $quantity, $priority, $id]);
 
-header("Location: mascot_admin.php");
+// Feedback untuk pengguna
+if ($stmt->rowCount() > 0) {
+    echo "<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Project successfully updated!',
+        confirmButtonText: 'OK'
+    }).then(() => {
+        window.location.href = 'mascot_admin.php';
+    });
+    </script>";
+} else {
+    echo "<script>
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No changes were made.',
+        confirmButtonText: 'OK'
+    }).then(() => {
+        window.location.href = 'mascot_admin.php';
+    });
+    </script>";
+}
 exit;

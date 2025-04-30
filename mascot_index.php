@@ -33,6 +33,11 @@ if (isset($_GET['this_week']) && $_GET['this_week'] == '1') {
     $params[] = $filter;
 }
 
+if (isset($_GET['priority']) && $_GET['priority'] !== '') {
+    $sql .= " AND priority = ?";
+    $params[] = $_GET['priority'];
+}
+
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $projects = $stmt->fetchAll();
@@ -363,6 +368,9 @@ $username = $isLoggedIn ? $_SESSION : null;
                 This Week: <?= $this_week_count ?>
             </button>
         </form>
+
+        <div style="border-left: 2px solid #ccc; height: 40px;"></div>
+
         <form method="GET" action="mascot_index.php">
             <button type="submit" name="project_status" value="" class="btn btn-secondary">
                 All Project: <?= isset($total_projects) ? $total_projects : 0 ?>
@@ -392,6 +400,20 @@ $username = $isLoggedIn ? $_SESSION : null;
             <button type="submit" name="project_status" value="Completed" class="btn btn-success">
                 Completed: <?= $status_counts['Completed'] ?>
             </button>
+        </form>
+
+        <div style="border-left: 2px solid #ccc; height: 40px;"></div>
+
+        <form method="GET" action="mascot_index.php" class="d-flex align-items-center">
+            <select name="priority" class="form-select me-2" onchange="this.form.submit()">
+                <option value="">Filter by Priority</option>
+                <option value="High" <?= isset($_GET['priority']) && $_GET['priority'] === 'High' ? 'selected' : '' ?>>
+                    High</option>
+                <option value="Medium"
+                    <?= isset($_GET['priority']) && $_GET['priority'] === 'Medium' ? 'selected' : '' ?>>Medium</option>
+                <option value="Low" <?= isset($_GET['priority']) && $_GET['priority'] === 'Low' ? 'selected' : '' ?>>Low
+                </option>
+            </select>
         </form>
     </div>
     <br>
@@ -475,7 +497,7 @@ $username = $isLoggedIn ? $_SESSION : null;
     });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 
 </html>

@@ -18,6 +18,7 @@ $result = $pdo->query($sql);
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
+    <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
     <style>
     .drop-zone {
         border: 2px dashed #007bff;
@@ -159,6 +160,7 @@ $result = $pdo->query($sql);
                 <tr>
                     <th>Project Name</th>
                     <th>Status</th>
+                    <th>Priority</th>
                     <th>Quantity</th>
                     <th>Project Image</th>
                     <th>Submission Notes</th>
@@ -191,6 +193,14 @@ $result = $pdo->query($sql);
                                 Archived</option>
                         </select>
                     </td>
+                    <td>
+                        <select class="form-select" onchange="updatePriority(<?= $row['id'] ?>, this.value)">
+                            <option value="High" <?= $row['priority'] === 'High' ? 'selected' : '' ?>>High</option>
+                            <option value="Medium" <?= $row['priority'] === 'Medium' ? 'selected' : '' ?>>Medium
+                            </option>
+                            <option value="Low" <?= $row['priority'] === 'Low' ? 'selected' : '' ?>>Low</option>
+                        </select>
+                    </td>
                     <td><?= htmlspecialchars($row['quantity']) ?></td>
                     <td><img src="uploads/projects/<?= $row['project_image'] ?>" width="100"></td>
                     <td><img src="uploads/materials/<?= $row['material_image'] ?>" width="100"></td>
@@ -198,8 +208,25 @@ $result = $pdo->query($sql);
                     <td><?= htmlspecialchars($row['deadline']) ?></td>
                     <td>
                         <a href="mascot_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mb-1">Edit</a>
-                        <a href="mascot_delete.php?id=<?= $row['id'] ?>" class="btn btn-danger btn-sm"
-                            onclick="return confirm('Yakin ingin menghapus?')">Delete</a>
+                        <a href="#" class="btn btn-danger btn-sm" onclick="confirmDelete(<?= $row['id'] ?>)">Delete</a>
+
+                        <script>
+                        function confirmDelete(id) {
+                            Swal.fire({
+                                title: 'Are you sure?',
+                                text: "You won't be able to revert this!",
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#d33',
+                                cancelButtonColor: '#3085d6',
+                                confirmButtonText: 'Yes, delete it!'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = `mascot_delete.php?id=${id}`;
+                                }
+                            });
+                        }
+                        </script>
                     </td>
                 </tr>
                 <?php endwhile; ?>
@@ -276,17 +303,35 @@ $result = $pdo->query($sql);
                     id: id,
                     status: status,
                     category: category
-                }), // Tambahkan kategori
+                }),
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Status updated successfully!');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Status updated successfully!',
+                        confirmButtonText: 'OK'
+                    });
                 } else {
-                    alert('Failed to update status.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to update status.',
+                        confirmButtonText: 'OK'
+                    });
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred.',
+                    confirmButtonText: 'OK'
+                });
+                console.error('Error:', error);
+            });
     }
 
     // Hapus alert setelah 5 detik
@@ -335,7 +380,58 @@ $result = $pdo->query($sql);
             },
         });
     });
+
+    function updatePriority(id, priority) {
+        fetch('update_priority.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: id,
+                    priority: priority
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Priority updated successfully!',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to update priority.',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred.',
+                    confirmButtonText: 'OK'
+                });
+                console.error('Error:', error);
+            });
+    }
     </script>
+    <?php if (isset($_SESSION['message'])): ?>
+    <script>
+    Swal.fire({
+        icon: '<?= $_SESSION['message_type'] === 'success' ? 'success' : 'error' ?>',
+        title: '<?= $_SESSION['message_type'] === 'success' ? 'Success' : 'Error' ?>',
+        text: '<?= $_SESSION['message'] ?>',
+        confirmButtonText: 'OK'
+    });
+    </script>
+    <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
+    <?php endif; ?>
 </body>
 
 </html>

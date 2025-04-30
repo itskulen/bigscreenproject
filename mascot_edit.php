@@ -41,7 +41,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, priority = ?, quantity = ?, description = ?, project_image = ?, material_image = ? WHERE id = ? AND category = 'mascot'");
     $update->execute([$projectName, $projectStatus, $priority, $quantity, $description, $projectImage, $materialImage, $id]);
 
-    header("Location: mascot_admin.php");
+    echo "<!DOCTYPE html>
+    <html>
+    <head>
+        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+    </head>
+    <body>
+    <script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Project successfully updated!',
+        confirmButtonText: 'OK'
+    }).then(() => {
+        window.location.href = 'mascot_admin.php';
+    });
+    </script>
+    </body>
+    </html>";
     exit;
 }
 ?>
@@ -52,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <title>Edit Project</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
     <style>
     body {
         background-color: #f8f9fa;

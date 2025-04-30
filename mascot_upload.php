@@ -42,10 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['message_type'] = "success";
     } else {
         $_SESSION['message'] = "Failed to upload project.";
-        $_SESSION['message_type'] = "danger";
+        $_SESSION['message_type'] = "error";
     }
 
-    // Redirect kembali ke halaman admin
     header("Location: mascot_admin.php");
     exit;
 }
