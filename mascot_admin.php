@@ -4,8 +4,8 @@ include 'db.php';
 include 'middleware.php';
 checkUserRole('mascot'); // Hanya mascot admin yang bisa mengakses
 
-$sql = "SELECT project_name, project_status, project_image, material_image, description, deadline 
-        FROM gallery WHERE category = 'mascot'";
+$sql = "SELECT project_name, project_status, priority, quantity, project_image, material_image, description, deadline, createAt, updateAt 
+        FROM gallery WHERE category = 'mascot' ORDER BY createAt DESC";
 $result = $pdo->query($sql);
 ?>
 <!DOCTYPE html>
@@ -20,40 +20,40 @@ $result = $pdo->query($sql);
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
     <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
     <style>
-    .drop-zone {
-        border: 2px dashed #007bff;
-        padding: 30px;
-        text-align: center;
-        background: #f8f9fa;
-        margin-bottom: 10px;
-        cursor: pointer;
-        border-radius: 5px;
-    }
+        .drop-zone {
+            border: 2px dashed #007bff;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
 
-    .drop-zone:hover {
-        background: #e9ecef;
-    }
+        .drop-zone:hover {
+            background: #e9ecef;
+        }
 
-    .container {
-        margin-top: 30px;
-    }
+        .container {
+            margin-top: 30px;
+        }
 
-    .error {
-        color: red;
-        font-size: 0.9em;
-    }
+        .error {
+            color: red;
+            font-size: 0.9em;
+        }
 
-    .top-right {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-    }
+        .top-right {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
 
-    /* Perbesar lebar dropdown DataTables */
-    .dataTables_length select {
-        width: auto !important;
-        min-width: 70px;
-    }
+        /* Perbesar lebar dropdown DataTables */
+        .dataTables_length select {
+            width: auto !important;
+            min-width: 70px;
+        }
     </style>
 </head>
 
@@ -148,11 +148,11 @@ $result = $pdo->query($sql);
     <hr>
     <div class="container mt-3">
         <?php if (isset($_SESSION['message'])): ?>
-        <div class="alert alert-<?= $_SESSION['message_type'] ?> alert-dismissible fade show" role="alert">
-            <?= $_SESSION['message'] ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
+            <div class="alert alert-<?= $_SESSION['message_type'] ?> alert-dismissible fade show" role="alert">
+                <?= $_SESSION['message'] ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
         <?php endif; ?>
         <h2 class="mt-2">Daftar Project</h2>
         <table id="projectTable" class="table table-bordered table-hover">
@@ -174,61 +174,61 @@ $result = $pdo->query($sql);
                 $stmt = $pdo->query("SELECT * FROM gallery WHERE category = 'mascot' ORDER BY id DESC");
                 while ($row = $stmt->fetch()):
                 ?>
-                <tr>
-                    <td><?= htmlspecialchars($row['project_name']) ?></td>
-                    <td>
-                        <select class="form-select" onchange="updateStatus(<?= $row['id'] ?>, this.value, 'mascot')">
-                            <option value="Upcoming" <?= $row['project_status'] === 'Upcoming' ? 'selected' : '' ?>>
-                                Upcoming
-                            </option>
-                            <option value="Urgent" <?= $row['project_status'] === 'Urgent' ? 'selected' : '' ?>>Urgent
-                            </option>
-                            <option value="In Progress"
-                                <?= $row['project_status'] === 'In Progress' ? 'selected' : '' ?>>In Progress</option>
-                            <option value="Revision" <?= $row['project_status'] === 'Revision' ? 'selected' : '' ?>>
-                                Revision</option>
-                            <option value="Completed" <?= $row['project_status'] === 'Completed' ? 'selected' : '' ?>>
-                                Completed</option>
-                            <option value="Archived" <?= $row['project_status'] === 'Archived' ? 'selected' : '' ?>>
-                                Archived</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="form-select" onchange="updatePriority(<?= $row['id'] ?>, this.value)">
-                            <option value="High" <?= $row['priority'] === 'High' ? 'selected' : '' ?>>High</option>
-                            <option value="Medium" <?= $row['priority'] === 'Medium' ? 'selected' : '' ?>>Medium
-                            </option>
-                            <option value="Low" <?= $row['priority'] === 'Low' ? 'selected' : '' ?>>Low</option>
-                        </select>
-                    </td>
-                    <td><?= htmlspecialchars($row['quantity']) ?></td>
-                    <td><img src="uploads/projects/<?= $row['project_image'] ?>" width="100"></td>
-                    <td><img src="uploads/materials/<?= $row['material_image'] ?>" width="100"></td>
-                    <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
-                    <td><?= htmlspecialchars($row['deadline']) ?></td>
-                    <td>
-                        <a href="mascot_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mb-1">Edit</a>
-                        <a href="#" class="btn btn-danger btn-sm" onclick="confirmDelete(<?= $row['id'] ?>)">Delete</a>
+                    <tr>
+                        <td><?= htmlspecialchars($row['project_name']) ?></td>
+                        <td>
+                            <select class="form-select" onchange="updateStatus(<?= $row['id'] ?>, this.value, 'mascot')">
+                                <option value="Upcoming" <?= $row['project_status'] === 'Upcoming' ? 'selected' : '' ?>>
+                                    Upcoming
+                                </option>
+                                <option value="Urgent" <?= $row['project_status'] === 'Urgent' ? 'selected' : '' ?>>Urgent
+                                </option>
+                                <option value="In Progress"
+                                    <?= $row['project_status'] === 'In Progress' ? 'selected' : '' ?>>In Progress</option>
+                                <option value="Revision" <?= $row['project_status'] === 'Revision' ? 'selected' : '' ?>>
+                                    Revision</option>
+                                <option value="Completed" <?= $row['project_status'] === 'Completed' ? 'selected' : '' ?>>
+                                    Completed</option>
+                                <option value="Archived" <?= $row['project_status'] === 'Archived' ? 'selected' : '' ?>>
+                                    Archived</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="form-select" onchange="updatePriority(<?= $row['id'] ?>, this.value)">
+                                <option value="High" <?= $row['priority'] === 'High' ? 'selected' : '' ?>>High</option>
+                                <option value="Medium" <?= $row['priority'] === 'Medium' ? 'selected' : '' ?>>Medium
+                                </option>
+                                <option value="Low" <?= $row['priority'] === 'Low' ? 'selected' : '' ?>>Low</option>
+                            </select>
+                        </td>
+                        <td><?= htmlspecialchars($row['quantity']) ?></td>
+                        <td><img src="uploads/projects/<?= $row['project_image'] ?>" width="100"></td>
+                        <td><img src="uploads/materials/<?= $row['material_image'] ?>" width="100"></td>
+                        <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
+                        <td><?= htmlspecialchars($row['deadline']) ?></td>
+                        <td>
+                            <a href="mascot_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mb-1">Edit</a>
+                            <a href="#" class="btn btn-danger btn-sm" onclick="confirmDelete(<?= $row['id'] ?>)">Delete</a>
 
-                        <script>
-                        function confirmDelete(id) {
-                            Swal.fire({
-                                title: 'Are you sure?',
-                                text: "You won't be able to revert this!",
-                                icon: 'warning',
-                                showCancelButton: true,
-                                confirmButtonColor: '#d33',
-                                cancelButtonColor: '#3085d6',
-                                confirmButtonText: 'Yes, delete it!'
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    window.location.href = `mascot_delete.php?id=${id}`;
+                            <script>
+                                function confirmDelete(id) {
+                                    Swal.fire({
+                                        title: 'Are you sure?',
+                                        text: "You won't be able to revert this!",
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#d33',
+                                        cancelButtonColor: '#3085d6',
+                                        confirmButtonText: 'Yes, delete it!'
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            window.location.href = `mascot_delete.php?id=${id}`;
+                                        }
+                                    });
                                 }
-                            });
-                        }
-                        </script>
-                    </td>
-                </tr>
+                            </script>
+                        </td>
+                    </tr>
                 <?php endwhile; ?>
             </tbody>
         </table>
@@ -246,191 +246,194 @@ $result = $pdo->query($sql);
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    // Fungsi untuk menampilkan preview gambar
-    function previewImage(input, previewId) {
-        const file = input.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById(previewId);
-                preview.src = e.target.result;
-                preview.style.display = "block";
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    // Event listener untuk Project Image
-    document.getElementById('project_image').addEventListener('change', function() {
-        previewImage(this, 'project_image_preview');
-    });
-
-    // Event listener untuk Submission Notes
-    document.getElementById('material_image').addEventListener('change', function() {
-        previewImage(this, 'material_image_preview');
-    });
-
-    // Validasi Form
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
-        let isValid = true;
-
-        // Validasi Project Name
-        const projectName = document.getElementById('project_name');
-        if (!projectName.value.trim()) {
-            isValid = false;
-            document.getElementById('project_name_error').textContent = "Project Name is required.";
-        } else {
-            document.getElementById('project_name_error').textContent = "";
-        }
-
-        // Validasi Project Status
-        const projectStatus = document.getElementById('project_status');
-        if (!projectStatus.value) {
-            isValid = false;
-            document.getElementById('project_status_error').textContent = "Project Status is required.";
-        } else {
-            document.getElementById('project_status_error').textContent = "";
-        }
-    });
-
-    function updateStatus(id, status, category) {
-        fetch('update_status.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    id: id,
-                    status: status,
-                    category: category
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: 'Status updated successfully!',
-                        confirmButtonText: 'OK'
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Failed to update status.',
-                        confirmButtonText: 'OK'
-                    });
-                }
-            })
-            .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'An error occurred.',
-                    confirmButtonText: 'OK'
-                });
-                console.error('Error:', error);
-            });
-    }
-
-    // Hapus alert setelah 5 detik
-    setTimeout(() => {
-        const alert = document.querySelector('.alert');
-        if (alert) {
-            alert.classList.remove('show');
-            alert.classList.add('fade');
-            setTimeout(() => {
-                alert.remove(); // Hapus elemen alert dari DOM
-            }, 150); // Tunggu animasi selesai (150ms)
-        }
-    }, 5000);
-
-    // Scroll ke tabel jika URL mengandung #projectTable
-    document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.hash === '#projectTable') {
-            const table = document.getElementById('projectTable');
-            if (table) {
-                table.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+        // Fungsi untuk menampilkan preview gambar
+        function previewImage(input, previewId) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById(previewId);
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                };
+                reader.readAsDataURL(file);
             }
         }
-    });
 
-    $(document).ready(function() {
-        $('#projectTable').DataTable({
-            paging: true, // Aktifkan pagination
-            searching: true, // Aktifkan pencarian
-            ordering: true, // Aktifkan pengurutan
-            info: true, // Tampilkan informasi jumlah data
-            lengthChange: true, // Pilihan jumlah data per halaman
-            pageLength: 10, // Default jumlah data per halaman
-            language: {
-                search: "Cari:",
-                lengthMenu: "Tampilkan _MENU_ data per halaman",
-                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-                paginate: {
-                    first: "Pertama",
-                    last: "Terakhir",
-                    next: "Berikutnya",
-                    previous: "Sebelumnya",
-                },
-            },
+        // Event listener untuk Project Image
+        document.getElementById('project_image').addEventListener('change', function() {
+            previewImage(this, 'project_image_preview');
         });
-    });
 
-    function updatePriority(id, priority) {
-        fetch('update_priority.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    id: id,
-                    priority: priority
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: 'Priority updated successfully!',
-                        confirmButtonText: 'OK'
-                    });
-                } else {
+        // Event listener untuk Submission Notes
+        document.getElementById('material_image').addEventListener('change', function() {
+            previewImage(this, 'material_image_preview');
+        });
+
+        // Validasi Form
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            let isValid = true;
+
+            // Validasi Project Name
+            const projectName = document.getElementById('project_name');
+            if (!projectName.value.trim()) {
+                isValid = false;
+                document.getElementById('project_name_error').textContent = "Project Name is required.";
+            } else {
+                document.getElementById('project_name_error').textContent = "";
+            }
+
+            // Validasi Project Status
+            const projectStatus = document.getElementById('project_status');
+            if (!projectStatus.value) {
+                isValid = false;
+                document.getElementById('project_status_error').textContent = "Project Status is required.";
+            } else {
+                document.getElementById('project_status_error').textContent = "";
+            }
+        });
+
+        function updateStatus(id, status, category) {
+            fetch('update_status.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: id,
+                        status: status,
+                        category: category
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Status updated successfully!',
+                            confirmButtonText: 'OK'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to update status.',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                })
+                .catch(error => {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Failed to update priority.',
+                        text: 'An error occurred.',
                         confirmButtonText: 'OK'
                     });
-                }
-            })
-            .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'An error occurred.',
-                    confirmButtonText: 'OK'
+                    console.error('Error:', error);
                 });
-                console.error('Error:', error);
+        }
+
+        // Hapus alert setelah 5 detik
+        setTimeout(() => {
+            const alert = document.querySelector('.alert');
+            if (alert) {
+                alert.classList.remove('show');
+                alert.classList.add('fade');
+                setTimeout(() => {
+                    alert.remove(); // Hapus elemen alert dari DOM
+                }, 150); // Tunggu animasi selesai (150ms)
+            }
+        }, 5000);
+
+        // Scroll ke tabel jika URL mengandung #projectTable
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.location.hash === '#projectTable') {
+                const table = document.getElementById('projectTable');
+                if (table) {
+                    table.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            }
+        });
+
+        $(document).ready(function() {
+            $('#projectTable').DataTable({
+                paging: true, // Aktifkan pagination
+                searching: true, // Aktifkan pencarian
+                ordering: true, // Aktifkan pengurutan
+                info: true, // Tampilkan informasi jumlah data
+                lengthChange: true, // Pilihan jumlah data per halaman
+                pageLength: 10, // Default jumlah data per halaman
+                order: [
+                    [8, 'desc']
+                ], // Urutkan berdasarkan kolom ke-9 (createAt) secara descending
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data per halaman",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Berikutnya",
+                        previous: "Sebelumnya",
+                    },
+                },
             });
-    }
+        });
+
+        function updatePriority(id, priority) {
+            fetch('update_priority.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: id,
+                        priority: priority
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Priority updated successfully!',
+                            confirmButtonText: 'OK'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to update priority.',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred.',
+                        confirmButtonText: 'OK'
+                    });
+                    console.error('Error:', error);
+                });
+        }
     </script>
     <?php if (isset($_SESSION['message'])): ?>
-    <script>
-    Swal.fire({
-        icon: '<?= $_SESSION['message_type'] === 'success' ? 'success' : 'error' ?>',
-        title: '<?= $_SESSION['message_type'] === 'success' ? 'Success' : 'Error' ?>',
-        text: '<?= $_SESSION['message'] ?>',
-        confirmButtonText: 'OK'
-    });
-    </script>
-    <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
+        <script>
+            Swal.fire({
+                icon: '<?= $_SESSION['message_type'] === 'success' ? 'success' : 'error' ?>',
+                title: '<?= $_SESSION['message_type'] === 'success' ? 'Success' : 'Error' ?>',
+                text: '<?= $_SESSION['message'] ?>',
+                confirmButtonText: 'OK'
+            });
+        </script>
+        <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
     <?php endif; ?>
 </body>
 

@@ -35,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $pdo->prepare("INSERT INTO gallery (project_name, project_status, priority, quantity, project_image, material_image, description, deadline, category) 
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'mascot')");
     $success = $stmt->execute([$projectName, $projectStatus, $priority, $quantity, $projectImage, $materialImage, $description, $deadline]);
-
     // Set session flash message
     if ($success) {
         $_SESSION['message'] = "Project successfully uploaded!";
@@ -45,6 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['message_type'] = "error";
     }
 
-    header("Location: mascot_admin.php");
+    header("Location: mascot_admin.php#projectTable");
     exit;
 }
