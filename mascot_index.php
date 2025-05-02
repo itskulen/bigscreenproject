@@ -129,7 +129,7 @@ $username = $isLoggedIn ? $_SESSION : null;
         font-family: Arial, sans-serif;
         background-color: #f2f2f2;
         color: #000;
-        padding: 20px;
+        padding: 12px;
         text-align: center;
     }
 
@@ -408,13 +408,13 @@ $username = $isLoggedIn ? $_SESSION : null;
 
 <body>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
         <div class="d-flex align-items-center">
             <!-- Logo Mascot -->
             <a href="costume_index.php">
                 <img src="uploads/me.png" alt="Mascot Logo" style="width: 50px; height: 50px; margin-right: 5px;">
             </a>
-            <h2 class="fw-bold text-purple mb-0">Mascot Project List</h2>
+            <h3 class="fw-bold text-purple mb-0">Mascot Project List</h3>
         </div>
         <!-- Tombol Login atau Dashboard -->
         <div>
@@ -501,7 +501,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
     <div class="card-grid">
         <?php foreach ($projects as $row): ?>
-        <div class="card" style="width: 18rem; position: relative;">
+        <div class="card" style="width: 18.5rem; position: relative;">
             <?php if (isThisWeek($row['deadline'])): ?>
             <small class="fw-semibold text-danger-emphasis bg-danger-subtle">
                 This Week!
