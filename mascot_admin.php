@@ -142,6 +142,17 @@ $result = $pdo->query($sql);
             </div>
 
             <div class="form-group">
+                <label for="deadline">Deadline:</label>
+                <input type="date" class="form-control w-auto" id="deadline" name="deadline" required>
+                <div class="error" id="deadline_error"></div>
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                <div class="error" id="description_error"></div>
+            </div>
+
+            <div class="form-group">
                 <label>Project Image:</label>
                 <div class="drop-zone" onclick="document.getElementById('project_image').click();">
                     Click or Drag to Upload Project Image
@@ -152,7 +163,6 @@ $result = $pdo->query($sql);
                     style="display:none; margin-top:10px; max-width: 200px; border: 1px solid #ddd; padding: 5px;">
                 <div class="error" id="project_image_error"></div>
             </div>
-
             <div class="form-group">
                 <label>Submission Notes:</label>
                 <div class="drop-zone" onclick="document.getElementById('material_image').click();">
@@ -164,17 +174,6 @@ $result = $pdo->query($sql);
                     style="display:none; margin-top:10px; max-width: 200px; border: 1px solid #ddd; padding: 5px;">
                 <div class="error" id="material_image_error"></div>
             </div>
-            <div class="form-group">
-                <label for="deadline">Deadline:</label>
-                <input type="date" class="form-control w-auto" id="deadline" name="deadline" required>
-                <div class="error" id="deadline_error"></div>
-            </div>
-            <div class="form-group">
-                <label for="description">Description:</label>
-                <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
-                <div class="error" id="description_error"></div>
-            </div>
-
 
             <button type="submit" class="btn btn-primary btn-block">Upload</button>
         </form>

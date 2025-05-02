@@ -111,12 +111,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="mb-3">
                     <label for="project_name" class="form-label">Project Name</label>
                     <input type="text" name="project_name" id="project_name" class="form-control"
-                        value="<?= htmlspecialchars($data['project_name']) ?>" required>
+                        value="<?= htmlspecialchars($data['project_name'] ?? '') ?>" required>
                 </div>
                 <div class="mb-3">
                     <label for="subform_embed" class="form-label">Submission Form Embed Link</label>
                     <input type="text" name="subform_embed" id="subform_embed" class="form-control"
-                        value="<?= htmlspecialchars($data['subform_embed']) ?>"
+                        value="<?= htmlspecialchars($data['subform_embed'] ?? '') ?>"
                         placeholder="Enter Submission Form Embed Link">
                 </div>
                 <div class="mb-3">
@@ -153,14 +153,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         value="<?= htmlspecialchars($data['quantity']) ?>" min="1" required>
                 </div>
                 <div class="mb-3">
+                    <label for="deadline" class="form-label">Deadline</label>
+                    <input type="date" name="deadline" id="deadline" class="form-control"
+                        value="<?= htmlspecialchars($data['deadline'] ?? '') ?>" required>
+                </div>
+                <div class="mb-3">
                     <label for="description" class="form-label">Description</label>
                     <textarea name="description" id="description" class="form-control" rows="4"
-                        required><?= htmlspecialchars($data['description']) ?></textarea>
+                        required><?= htmlspecialchars($data['description'] ?? '') ?></textarea>
                 </div>
-                <input type="date" name="deadline" id="deadline" class="form-control"
-                    value="<?= htmlspecialchars($data['deadline']) ?>" required>
                 <div class="mb-3">
-                    <label for="project_image" class="form-label">Project Image (Kosongkan jika tidak diubah)</label>
+                    <label for="project_image" class="form-label">Project Image (Kosongkan jika tidak
+                        diubah)</label>
                     <div class="d-flex align-items-center">
                         <input type="file" name="project_image" id="project_image" class="form-control me-2">
                         <button type="button" class="btn btn-sm btn-danger"
