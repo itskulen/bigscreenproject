@@ -4,8 +4,9 @@ include 'db.php';
 include 'middleware.php';
 checkUserRole('mascot'); // Hanya mascot admin yang bisa mengakses
 
-$sql = "SELECT project_name, project_status, priority, quantity, project_image, material_image, description, deadline, createAt, updateAt 
-        FROM gallery WHERE category = 'mascot' ORDER BY createAt DESC";
+$sql = "SELECT project_name, project_status, priority, quantity, project_image, material_image, description, deadline,
+createAt, updateAt
+FROM gallery WHERE category = 'mascot' ORDER BY createAt DESC";
 $result = $pdo->query($sql);
 ?>
 <!DOCTYPE html>
@@ -15,6 +16,7 @@ $result = $pdo->query($sql);
     <title>Admin Mascot - Project</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
@@ -53,6 +55,32 @@ $result = $pdo->query($sql);
     .dataTables_length select {
         width: auto !important;
         min-width: 70px;
+    }
+
+    #scrollToTopBtn {
+        display: none;
+        /* Tombol disembunyikan secara default */
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    #scrollToTopBtn:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-success:hover {
+        background-color: #28a745;
+    }
+
+    .btn-success i {
+        color: white;
     }
     </style>
 </head>
@@ -154,7 +182,8 @@ $result = $pdo->query($sql);
     <hr>
     <div class="container mt-3">
         <?php if (isset($_SESSION['message'])): ?>
-        <div class="alert alert-<?= $_SESSION['message_type'] ?> alert-dismissible fade show" role="alert">
+        <div id="alertMessage" class="alert alert-<?= $_SESSION['message_type'] ?> alert-dismissible fade show"
+            role="alert">
             <?= $_SESSION['message'] ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -214,10 +243,13 @@ $result = $pdo->query($sql);
                     <td><?= htmlspecialchars($row['deadline']) ?></td>
                     <td>
                         <a href="mascot_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mb-1">Edit</a>
-                        <a href="#" class="btn btn-danger btn-sm" onclick="confirmDelete(<?= $row['id'] ?>)">Delete</a>
+                        <a href="#" class="btn btn-danger btn-sm"
+                            onclick="confirmDelete(event, <?= $row['id'] ?>)">Delete</a>
 
                         <script>
-                        function confirmDelete(id) {
+                        function confirmDelete(event, id) {
+                            event.preventDefault();
+
                             Swal.fire({
                                 title: 'Are you sure?',
                                 text: "You won't be able to revert this!",
@@ -238,6 +270,21 @@ $result = $pdo->query($sql);
                 <?php endwhile; ?>
             </tbody>
         </table>
+    </div>
+
+    <!-- Floating Buttons -->
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px;">
+        <!-- Scroll to Top Button -->
+        <button id="scrollToTopBtn" class="btn btn-warning"
+            style="display: none; border-radius: 50%; width: 50px; height: 50px;">
+            <i class="bi bi-arrow-up" style="color: #198754;"></i>
+        </button>
+
+        <!-- Helpdesk Button -->
+        <a href="https://wa.me/6287721988393" target="_blank" class="btn btn-success"
+            style="border-radius: 50%; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center;">
+            <i style="font-size: 16px;">Help!</i>
+        </a>
     </div>
 
     <footer class="bg-primary text-white text-center py-3 mt-4">
@@ -429,6 +476,26 @@ $result = $pdo->query($sql);
                 console.error('Error:', error);
             });
     }
+
+    // Ambil elemen tombol
+    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+
+    // Tampilkan tombol saat pengguna menggulir ke bawah
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 200) { // Tampilkan tombol jika scroll lebih dari 200px
+            scrollToTopBtn.style.display = 'block';
+        } else {
+            scrollToTopBtn.style.display = 'none';
+        }
+    });
+
+    // Fungsi untuk menggulir ke atas
+    scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth' // Gulir dengan animasi halus
+        });
+    });
     </script>
     <?php if (isset($_SESSION['message'])): ?>
     <script>

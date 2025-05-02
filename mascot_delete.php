@@ -1,5 +1,6 @@
 <?php
 include 'db.php';
+session_start();
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
@@ -16,16 +17,28 @@ if (isset($_GET['id'])) {
 
         // Hapus data dari database
         $deleteStmt = $pdo->prepare("DELETE FROM gallery WHERE id = ?");
-        $deleteStmt->execute([$id]);
+        $success = $deleteStmt->execute([$id]);
 
-        // Redirect ke halaman admin dengan pesan sukses
-        $_SESSION['message'] = "Project successfully deleted!";
-        $_SESSION['message_type'] = "success";
-        header("Location: mascot_admin.php");
+        if ($success) {
+            $_SESSION['message'] = "Project successfully deleted!";
+            $_SESSION['message_type'] = "success";
+        } else {
+            $_SESSION['message'] = "Failed to delete project.";
+            $_SESSION['message_type'] = "error";
+        }
+
+        // Redirect ke halaman admin
+        header("Location: mascot_admin.php#alertMessage");
         exit;
     } else {
-        echo "Data tidak ditemukan.";
+        $_SESSION['message'] = "Data not found.";
+        $_SESSION['message_type'] = "error";
+        header("Location: mascot_admin.php#alertMessage");
+        exit;
     }
 } else {
-    echo "ID tidak valid.";
+    $_SESSION['message'] = "Invalid ID.";
+    $_SESSION['message_type'] = "error";
+    header("Location: mascot_admin.php#alertMessage");
+    exit;
 }

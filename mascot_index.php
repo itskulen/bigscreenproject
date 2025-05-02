@@ -28,7 +28,9 @@ if (isset($_GET['this_week']) && $_GET['this_week'] == '1') {
     $sql .= " AND deadline BETWEEN ? AND ?";
     $params[] = $startOfWeek;
     $params[] = $endOfWeek;
-} elseif ($filter !== '') {
+}
+
+if ($filter !== '') {
     $sql .= " AND project_status = ?";
     $params[] = $filter;
 }
@@ -37,6 +39,8 @@ if (isset($_GET['priority']) && $_GET['priority'] !== '') {
     $sql .= " AND priority = ?";
     $params[] = $_GET['priority'];
 }
+
+$sql .= " ORDER BY createAt DESC";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
@@ -138,17 +142,21 @@ $username = $isLoggedIn ? $_SESSION : null;
         background-color: #1e1e1e;
         color: #ffffff;
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        transition: transform 0.2s;
+        transition: transform 0.2s, box-shadow 0.2s;
         opacity: 0;
         transform: translateY(20px);
         animation: fadeInUp 0.8s ease forwards;
         animation-delay: 0.3s;
+        border: 1px solid #444;
+        /* Tambahkan border untuk outline */
     }
 
     .dark-mode .card:hover {
-        transform: translateY(-20px);
-        transition: transform 0.3s ease;
-        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+        transform: scale(1.040) !important;
+        /* Tambahkan !important jika diperlukan */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 12px 24px rgba(255, 255, 255, 0.2);
+        border-color: #888;
     }
 
     .dark-mode .card-body {
@@ -217,15 +225,30 @@ $username = $isLoggedIn ? $_SESSION : null;
     }
 
     .card:hover {
-        transform: translateY(-10px);
-        transition: transform 0.3s ease;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        transform: scale(1.040);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        border-color: rgb(179, 179, 179);
+        z-index: 99;
     }
 
-    .card img {
+    /* .card img {
         width: 100%;
         height: 150px;
         object-fit: cover;
+    } */
+
+    .card img {
+        width: 100%;
+        /* Pastikan gambar memenuhi lebar card */
+        height: 150px;
+        /* Tetapkan tinggi tetap */
+        object-fit: contain;
+        /* Pastikan gambar terlihat sepenuhnya tanpa terpotong */
+        background-color: #f8f8f8;
+        /* Tambahkan latar belakang untuk area kosong */
+        border-radius: 4px;
+        /* Tambahkan border radius untuk estetika */
     }
 
     .card-body {
@@ -372,16 +395,29 @@ $username = $isLoggedIn ? $_SESSION : null;
     .status-selesai {
         background-color: green;
     }
+
+    .text-purple {
+        color: #4A25AA !important;
+    }
+
+    .dark-mode .text-purple {
+        color: rgb(255, 255, 255) !important;
+    }
     </style>
 </head>
 
 <body>
-    <!-- Tombol Login atau Dashboard -->
+
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mx-auto">Mascot Project List</h1>
+        <div class="d-flex align-items-center">
+            <!-- Logo Mascot -->
+            <img src="uploads/logo.png" alt="Mascot Logo" style="width: 50px; height: 50px; margin-right: 5px;">
+            <h2 class="fw-bold text-purple mb-0">Mascot Project List</h2>
+        </div>
+        <!-- Tombol Login atau Dashboard -->
         <div>
             <button id="toggleDarkMode" class="btn btn-outline-secondary">
-                <i class="bi bi-moon"></i> Dark Mode
+                <i class="bi bi-moon"></i>
             </button>
             <?php if ($isLoggedIn): ?>
             <a href="mascot_admin.php" class="btn btn-primary">
@@ -493,7 +529,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 <div style="margin-top: 5px; cursor: pointer;">
                     <img src="uploads/materials/<?= htmlspecialchars($row['material_image']) ?>"
                         alt="No Submission Notes yet"
-                        style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px;"
+                        style="width: 100%; height: 150px; object-fit: contain; border-radius: 4px;"
                         onclick="openModal(this.src)">
                 </div>
             </div>
@@ -568,11 +604,11 @@ $username = $isLoggedIn ? $_SESSION : null;
     toggleDarkMode.addEventListener('click', () => {
         if (body.classList.contains('dark-mode')) {
             body.classList.remove('dark-mode');
-            toggleDarkMode.innerHTML = '<i class="bi bi-moon"></i> Dark Mode';
+            toggleDarkMode.innerHTML = '<i class="bi bi-moon"></i>';
             localStorage.setItem('dark-mode', 'disabled');
         } else {
             body.classList.add('dark-mode');
-            toggleDarkMode.innerHTML = '<i class="bi bi-sun"></i> Light Mode';
+            toggleDarkMode.innerHTML = '<i class="bi bi-sun"></i>';
             localStorage.setItem('dark-mode', 'enabled');
         }
     });

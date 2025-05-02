@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $quantity = $_POST['quantity'];
     $description = $_POST['description'];
     $deadline = $_POST['deadline'] ?? null;
-    $subformEmbed = $_POST['subform_embed'] ?? null;
+    $subformEmbed = !empty($_POST['subform_embed']) ? $_POST['subform_embed'] : null;
 
     // Validasi deadline
     if (empty($deadline) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $deadline)) {
@@ -47,11 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($success) {
         $_SESSION['message'] = "Project successfully uploaded!";
         $_SESSION['message_type'] = "success";
+        header("Location: mascot_admin.php#alertMessage"); // Arahkan ke bagian alert message
+        exit;
     } else {
         $_SESSION['message'] = "Failed to upload project.";
         $_SESSION['message_type'] = "error";
+        header("Location: mascot_admin.php#alertMessage"); // Arahkan ke bagian alert message
+        exit;
     }
-
-    header("Location: mascot_admin.php#projectTable");
-    exit;
 }
