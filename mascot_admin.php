@@ -178,11 +178,10 @@ $result = $pdo->query($sql);
             <button type="submit" class="btn btn-primary btn-block">Upload</button>
         </form>
     </div>
-    <hr>
+    <hr id="alertMessage">
     <div class="container mt-3">
         <?php if (isset($_SESSION['message'])): ?>
-        <div id="alertMessage" class="alert alert-<?= $_SESSION['message_type'] ?> alert-dismissible fade show"
-            role="alert">
+        <div class="alert alert-<?= $_SESSION['message_type'] ?> alert-dismissible fade show" role="alert">
             <?= $_SESSION['message'] ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -239,7 +238,7 @@ $result = $pdo->query($sql);
                     <td><img src="uploads/projects/<?= $row['project_image'] ?>" width="100"></td>
                     <td><img src="uploads/materials/<?= $row['material_image'] ?>" width="100"></td>
                     <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
-                    <td><?= htmlspecialchars($row['deadline']) ?></td>
+                    <td><?= !empty($row['deadline']) ? htmlspecialchars($row['deadline']) : '-' ?></td>
                     <td>
                         <a href="mascot_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mb-1">Edit</a>
                         <a href="#" class="btn btn-danger btn-sm"
@@ -337,11 +336,35 @@ $result = $pdo->query($sql);
 
         // Validasi Project Status
         const projectStatus = document.getElementById('project_status');
-        if (!projectStatus.value) {
+        if (!projectStatus.value || projectStatus.value === "Select Status") {
             isValid = false;
             document.getElementById('project_status_error').textContent = "Project Status is required.";
         } else {
             document.getElementById('project_status_error').textContent = "";
+        }
+
+        // Validasi Project Priority
+        const priority = document.getElementById('priority');
+        if (!priority.value || priority.value === "Select Priority") {
+            isValid = false;
+            document.getElementById('priority_error').textContent = "Priority Status is required.";
+        } else {
+            document.getElementById('priority_error').textContent = "";
+        }
+
+        // Validasi Quantity
+        const quantity = document.getElementById('quantity');
+        if (!quantity.value || isNaN(quantity.value) || parseInt(quantity.value) <= 0) {
+            isValid = false;
+            document.getElementById('quantity_error').textContent = "Quantity must be a positive number.";
+        } else {
+            document.getElementById('quantity_error').textContent = "";
+        }
+
+        // Jika ada error, cegah pengiriman form
+        if (!isValid) {
+            e.preventDefault();
+            alert("Please fill out all required fields.");
         }
     });
 
@@ -397,19 +420,6 @@ $result = $pdo->query($sql);
             }, 150); // Tunggu animasi selesai (150ms)
         }
     }, 5000);
-
-    // Scroll ke tabel jika URL mengandung #projectTable
-    document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.hash === '#projectTable') {
-            const table = document.getElementById('projectTable');
-            if (table) {
-                table.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        }
-    });
 
     $(document).ready(function() {
         $('#projectTable').DataTable({

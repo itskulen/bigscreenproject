@@ -411,7 +411,7 @@ $username = $isLoggedIn ? $_SESSION : null;
     <div class="d-flex justify-content-between align-items-center mb-2">
         <div class="d-flex align-items-center">
             <!-- Logo Mascot -->
-            <a href="costume_index.php">
+            <a href="index.php">
                 <img src="uploads/me.png" alt="Mascot Logo" style="width: 50px; height: 50px; margin-right: 5px;">
             </a>
             <h3 class="fw-bold text-purple mb-0">Mascot Project List</h3>
