@@ -8,16 +8,17 @@ function sanitizeFileName($filename)
 
 $id = $_POST['id'];
 $desc = htmlspecialchars(trim($_POST['description']));
-$subformEmbed = htmlspecialchars(trim($_POST['subform_embed']));
+$subformEmbed = trim($_POST['subform_embed']);
+$subformEmbed = $subformEmbed === "" ? null : htmlspecialchars($subformEmbed); // Konversi string kosong ke NULL
 $deadline = htmlspecialchars(trim($_POST['deadline']));
 $priority = htmlspecialchars(trim($_POST['priority']));
 $quantity = isset($_POST['quantity']) && is_numeric($_POST['quantity']) && $_POST['quantity'] > 0
     ? $_POST['quantity']
     : 1; // Default ke 1 jika tidak valid
-    
+
 // Debugging untuk memastikan nilai deadline dikirim
-if (empty($deadline)) {
-    die("Deadline is empty.");
+if (!empty($deadline) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $deadline)) {
+    die("Invalid date format.");
 }
 
 if (empty($desc)) {
@@ -26,11 +27,6 @@ if (empty($desc)) {
 
 if (empty($priority)) {
     die("Priority is required.");
-}
-
-// Validasi format tanggal
-if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $deadline)) {
-    die("Invalid date format.");
 }
 
 $stmt = $pdo->prepare("SELECT * FROM gallery WHERE id = ?");

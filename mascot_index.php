@@ -148,7 +148,6 @@ $username = $isLoggedIn ? $_SESSION : null;
         animation: fadeInUp 0.8s ease forwards;
         animation-delay: 0.3s;
         border: 1px solid #444;
-        /* Tambahkan border untuk outline */
     }
 
     .dark-mode .card:hover {
@@ -200,6 +199,15 @@ $username = $isLoggedIn ? $_SESSION : null;
     .btn-indigo:hover {
         background-color: #520dc2;
         color: #fff;
+    }
+
+    .btn-indigo.active {
+        background-color: #520dc2;
+        /* Warna latar belakang saat aktif */
+        color: #fff;
+        /* Warna teks saat aktif */
+        border-color: #520dc2;
+        /* Warna border saat aktif */
     }
 
     .dark-mode .modal {
@@ -403,6 +411,11 @@ $username = $isLoggedIn ? $_SESSION : null;
     .dark-mode .text-purple {
         color: rgb(255, 255, 255) !important;
     }
+
+    .btn.active {
+        border: 2px solid #000;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
     </style>
 </head>
 
@@ -445,7 +458,7 @@ $username = $isLoggedIn ? $_SESSION : null;
     <div style="display: flex; gap: 20px;">
         <form method="GET" action="mascot_index.php">
             <button type="submit" name="this_week" value="1"
-                class="btn fw-semibold text-danger-emphasis bg-danger-subtle border border-danger-subtle">
+                class="btn fw-semibold text-danger-emphasis bg-danger-subtle border border-danger-subtle <?= isset($_GET['this_week']) && $_GET['this_week'] == '1' ? 'active' : '' ?>">
                 This Week: <?= $this_week_count ?>
             </button>
         </form>
@@ -453,32 +466,38 @@ $username = $isLoggedIn ? $_SESSION : null;
         <div style="border-left: 2px solid #ccc; height: 40px;"></div>
 
         <form method="GET" action="mascot_index.php">
-            <button type="submit" name="project_status" value="" class="btn btn-secondary">
+            <button type="submit" name="project_status" value=""
+                class="btn btn-secondary <?= !isset($_GET['project_status']) || $_GET['project_status'] === '' ? 'active' : '' ?>">
                 All Project: <?= isset($total_projects) ? $total_projects : 0 ?>
             </button>
         </form>
         <form method="GET" action="mascot_index.php">
-            <button type="submit" name="project_status" value="Upcoming" class="btn btn-info">
+            <button type="submit" name="project_status" value="Upcoming"
+                class="btn btn-info <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Upcoming' ? 'active' : '' ?>">
                 Upcoming: <?= $status_counts['Upcoming'] ?>
             </button>
         </form>
         <form method="GET" action="mascot_index.php">
-            <button type="submit" name="project_status" value="In Progress" class="btn btn-warning text-dark">
+            <button type="submit" name="project_status" value="In Progress"
+                class="btn btn-warning text-dark <?= isset($_GET['project_status']) && $_GET['project_status'] === 'In Progress' ? 'active' : '' ?>">
                 In Progress: <?= $status_counts['In Progress'] ?>
             </button>
         </form>
         <form method="GET" action="mascot_index.php">
-            <button type="submit" name="project_status" value="Urgent" class="btn btn-danger">
+            <button type="submit" name="project_status" value="Urgent"
+                class="btn btn-danger <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Urgent' ? 'active' : '' ?>">
                 Urgent: <?= $status_counts['Urgent'] ?>
             </button>
         </form>
         <form method="GET" action="mascot_index.php">
-            <button type="submit" name="project_status" value="Revision" class="btn btn-indigo">
+            <button type="submit" name="project_status" value="Revision"
+                class="btn btn-indigo <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Revision' ? 'active' : '' ?>">
                 Revision: <?= $status_counts['Revision'] ?>
             </button>
         </form>
         <form method="GET" action="mascot_index.php">
-            <button type="submit" name="project_status" value="Completed" class="btn btn-success">
+            <button type="submit" name="project_status" value="Completed"
+                class="btn btn-success <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Completed' ? 'active' : '' ?>">
                 Completed: <?= $status_counts['Completed'] ?>
             </button>
         </form>
@@ -486,12 +505,16 @@ $username = $isLoggedIn ? $_SESSION : null;
         <div style="border-left: 2px solid #ccc; height: 40px;"></div>
 
         <form method="GET" action="mascot_index.php" class="d-flex align-items-center">
-            <select name="priority" class="form-select me-2" onchange="this.form.submit()">
+            <select name="priority"
+                class="form-select me-2 <?= isset($_GET['priority']) && $_GET['priority'] !== '' ? 'active' : '' ?>"
+                onchange="this.form.submit()">
                 <option value="">Filter by Priority</option>
                 <option value="High" <?= isset($_GET['priority']) && $_GET['priority'] === 'High' ? 'selected' : '' ?>>
-                    High</option>
+                    High
+                </option>
                 <option value="Medium"
-                    <?= isset($_GET['priority']) && $_GET['priority'] === 'Medium' ? 'selected' : '' ?>>Medium</option>
+                    <?= isset($_GET['priority']) && $_GET['priority'] === 'Medium' ? 'selected' : '' ?>>Medium
+                </option>
                 <option value="Low" <?= isset($_GET['priority']) && $_GET['priority'] === 'Low' ? 'selected' : '' ?>>Low
                 </option>
             </select>
@@ -555,6 +578,10 @@ $username = $isLoggedIn ? $_SESSION : null;
                 </div>
                 <div class="modal-body p-0">
                     <iframe id="googleSlideIframe" class="w-100 h-100" frameborder="0" allowfullscreen></iframe>
+                    <p id="fallbackLink" style="display: none; text-align: center; margin-top: 20px;">
+                        Your browser does not support embedded content.
+                        <a href="#" id="googleSlideLink" target="_blank">Click here to view the slides</a>.
+                    </p>
                 </div>
             </div>
         </div>
@@ -575,13 +602,23 @@ $username = $isLoggedIn ? $_SESSION : null;
     }
 
     function openGoogleSlideModal(embedLink) {
-        // Format URL embed Google Slides
         const embedUrl = embedLink.replace('/edit', '/embed');
+        const iframe = document.getElementById('googleSlideIframe');
+        const fallbackLink = document.getElementById('fallbackLink');
+        const googleSlideLink = document.getElementById('googleSlideLink');
 
-        // Set iframe source
-        document.getElementById('googleSlideIframe').src = embedUrl;
+        iframe.src = embedUrl;
+        googleSlideLink.href = embedLink;
 
-        // Tampilkan modal
+        // Cek apakah iframe didukung
+        iframe.onload = function() {
+            fallbackLink.style.display = 'none';
+        };
+        iframe.onerror = function() {
+            fallbackLink.style.display = 'block';
+            iframe.style.display = 'none';
+        };
+
         const modal = new bootstrap.Modal(document.getElementById('googleSlideModal'));
         modal.show();
     }

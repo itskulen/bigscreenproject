@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $priority = $_POST['priority'];
     $quantity = $_POST['quantity'];
     $description = $_POST['description'];
+    $deadline = $_POST['deadline'];
 
     // Cek apakah user upload gambar baru atau tidak
     $projectImage = $data['project_image'];
@@ -46,8 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
-    $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, priority = ?, quantity = ?, description = ?, project_image = ?, material_image = ?, subform_embed = ? WHERE id = ? AND category = 'mascot'");
-    $update->execute([$projectName, $projectStatus, $priority, $quantity, $description, $projectImage, $materialImage, $subformEmbed, $id]);
+    $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, priority = ?, quantity = ?, description = ?, deadline = ?, project_image = ?, material_image = ?, subform_embed = ? WHERE id = ? AND category = 'mascot'");
+    $update->execute([$projectName, $projectStatus, $priority, $quantity, $description, $deadline, $projectImage, $materialImage, $subformEmbed, $id]);
 
     echo "<!DOCTYPE html>
     <html>
@@ -115,9 +116,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
                 <div class="mb-3">
                     <label for="subform_embed" class="form-label">Submission Form Embed Link</label>
-                    <input type="text" name="subform_embed" id="subform_embed" class="form-control"
+                    <textarea type="text" name="subform_embed" id="subform_embed" class="form-control"
                         value="<?= htmlspecialchars($data['subform_embed'] ?? '') ?>"
-                        placeholder="Enter Submission Form Embed Link">
+                        placeholder="Enter Submission Form Embed Link"></textarea>
                 </div>
                 <div class="mb-3">
                     <label for="project_status" class="form-label">Project Status</label>
@@ -160,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="mb-3">
                     <label for="description" class="form-label">Description</label>
                     <textarea name="description" id="description" class="form-control" rows="4"
-                        required><?= htmlspecialchars($data['description'] ?? '') ?></textarea>
+                        required><?= htmlspecialchars($data['description']) ?></textarea>
                 </div>
                 <div class="mb-3">
                     <label for="project_image" class="form-label">Project Image (Kosongkan jika tidak
