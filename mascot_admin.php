@@ -199,6 +199,7 @@ $result = $pdo->query($sql);
                     <th>Submission Notes</th>
                     <th>Description</th>
                     <th>Deadline</th>
+                    <th>Sub Form</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -239,6 +240,16 @@ $result = $pdo->query($sql);
                     <td><img src="uploads/materials/<?= $row['material_image'] ?>" width="100"></td>
                     <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
                     <td><?= !empty($row['deadline']) ? htmlspecialchars($row['deadline']) : '-' ?></td>
+                    <td>
+                        <?php if (!empty($row['subform_embed'])): ?>
+                        <a href="<?= htmlspecialchars($row['subform_embed']) ?>" target="_blank"
+                            class="btn btn-sm btn-primary">
+                            Subform
+                        </a>
+                        <?php else: ?>
+                        <span class="text-muted">No Link</span>
+                        <?php endif; ?>
+                    </td>
                     <td>
                         <a href="mascot_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mb-1">Edit</a>
                         <a href="#" class="btn btn-danger btn-sm"
@@ -428,9 +439,9 @@ $result = $pdo->query($sql);
             ordering: true, // Aktifkan pengurutan
             info: true, // Tampilkan informasi jumlah data
             lengthChange: true, // Pilihan jumlah data per halaman
-            pageLength: 10, // Default jumlah data per halaman
+            pageLength: 25, // Default jumlah data per halaman
             order: [
-                [8, 'desc']
+                [9, 'desc']
             ], // Urutkan berdasarkan kolom ke-9 (createAt) secara descending
             language: {
                 search: "Cari:",

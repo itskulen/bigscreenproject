@@ -30,12 +30,12 @@ if (isset($_GET['this_week']) && $_GET['this_week'] == '1') {
     $params[] = $endOfWeek;
 }
 
-if ($filter !== '') {
+if (!empty($_GET['project_status'])) {
     $sql .= " AND project_status = ?";
-    $params[] = $filter;
+    $params[] = $_GET['project_status'];
 }
 
-if (isset($_GET['priority']) && $_GET['priority'] !== '') {
+if (!empty($_GET['priority'])) {
     $sql .= " AND priority = ?";
     $params[] = $_GET['priority'];
 }
@@ -100,8 +100,17 @@ $status_counts = [
 ];
 
 foreach ($status_counts as $status => &$count) {
-    $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'mascot' AND project_status = ?");
-    $stmt->execute([$status]);
+    $sql = "SELECT COUNT(*) AS total FROM gallery WHERE category = 'mascot' AND project_status = ?";
+    $params = [$status];
+
+    // Tambahkan filter priority jika ada
+    if (!empty($_GET['priority'])) {
+        $sql .= " AND priority = ?";
+        $params[] = $_GET['priority'];
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $count = $stmt->fetchColumn();
 }
 unset($count);
@@ -474,55 +483,60 @@ $username = $isLoggedIn ? $_SESSION : null;
         <form method="GET" action="mascot_index.php">
             <button type="submit" name="project_status" value="Upcoming"
                 class="btn btn-info <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Upcoming' ? 'active' : '' ?>">
-                Upcoming: <?= $status_counts['Upcoming'] ?>
+                Upcoming: <?= $status_counts['Upcoming'] ?? 0 ?>
             </button>
+            <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
         </form>
         <form method="GET" action="mascot_index.php">
             <button type="submit" name="project_status" value="In Progress"
                 class="btn btn-warning text-dark <?= isset($_GET['project_status']) && $_GET['project_status'] === 'In Progress' ? 'active' : '' ?>">
-                In Progress: <?= $status_counts['In Progress'] ?>
+                In Progress: <?= $status_counts['In Progress'] ?? 0 ?>
             </button>
+            <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
         </form>
         <form method="GET" action="mascot_index.php">
             <button type="submit" name="project_status" value="Urgent"
                 class="btn btn-danger <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Urgent' ? 'active' : '' ?>">
-                Urgent: <?= $status_counts['Urgent'] ?>
+                Urgent: <?= $status_counts['Urgent'] ?? 0 ?>
             </button>
+            <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
         </form>
         <form method="GET" action="mascot_index.php">
             <button type="submit" name="project_status" value="Revision"
                 class="btn btn-indigo <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Revision' ? 'active' : '' ?>">
-                Revision: <?= $status_counts['Revision'] ?>
+                Revision: <?= $status_counts['Revision'] ?? 0 ?>
             </button>
+            <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
         </form>
         <form method="GET" action="mascot_index.php">
             <button type="submit" name="project_status" value="Completed"
                 class="btn btn-success <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Completed' ? 'active' : '' ?>">
-                Completed: <?= $status_counts['Completed'] ?>
+                Completed: <?= $status_counts['Completed'] ?? 0 ?>
             </button>
+            <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
         </form>
 
         <div style="border-left: 2px solid #ccc; height: 40px;"></div>
 
         <form method="GET" action="mascot_index.php" class="d-flex align-items-center">
-            <select name="priority"
-                class="form-select me-2 <?= isset($_GET['priority']) && $_GET['priority'] !== '' ? 'active' : '' ?>"
-                onchange="this.form.submit()">
+            <select name="priority" class="form-select me-2" onchange="this.form.submit()">
                 <option value="">Filter by Priority</option>
                 <option value="High" <?= isset($_GET['priority']) && $_GET['priority'] === 'High' ? 'selected' : '' ?>>
-                    High
-                </option>
+                    High</option>
                 <option value="Medium"
-                    <?= isset($_GET['priority']) && $_GET['priority'] === 'Medium' ? 'selected' : '' ?>>Medium
-                </option>
+                    <?= isset($_GET['priority']) && $_GET['priority'] === 'Medium' ? 'selected' : '' ?>>Medium</option>
                 <option value="Low" <?= isset($_GET['priority']) && $_GET['priority'] === 'Low' ? 'selected' : '' ?>>Low
                 </option>
             </select>
+            <input type="hidden" name="project_status" value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
         </form>
     </div>
     <br>
 
     <div class="card-grid">
+        <?php if (empty($projects)): ?>
+        <p class="text-center">No projects found for the selected filters.</p>
+        <?php else: ?>
         <?php foreach ($projects as $row): ?>
         <div class="card" style="width: 18.5rem; position: relative;">
             <?php if (isThisWeek($row['deadline'])): ?>
@@ -560,6 +574,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             </div>
         </div>
         <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 
     <!-- Modal for Images-->
@@ -602,6 +617,12 @@ $username = $isLoggedIn ? $_SESSION : null;
     }
 
     function openGoogleSlideModal(embedLink) {
+        function isWebOS() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            return userAgent.includes("webos") || userAgent.includes("smarttv");
+        }
+
+        // Jika bukan WebOS, tampilkan embed iframe
         const embedUrl = embedLink.replace('/edit', '/embed');
         const iframe = document.getElementById('googleSlideIframe');
         const fallbackLink = document.getElementById('fallbackLink');

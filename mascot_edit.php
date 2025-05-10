@@ -116,9 +116,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
                 <div class="mb-3">
                     <label for="subform_embed" class="form-label">Submission Form Embed Link</label>
-                    <textarea type="text" name="subform_embed" id="subform_embed" class="form-control"
-                        value="<?= htmlspecialchars($data['subform_embed'] ?? '') ?>"
-                        placeholder="Enter Submission Form Embed Link"></textarea>
+                    <textarea name="subform_embed" id="subform_embed" class="form-control"
+                        placeholder="Enter Submission Form Embed Link"><?= htmlspecialchars($data['subform_embed'] ?? '') ?></textarea>
                 </div>
                 <div class="mb-3">
                     <label for="project_status" class="form-label">Project Status</label>
