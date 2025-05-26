@@ -197,8 +197,9 @@ $result = $pdo->query($sql);
         </table>
     </div>
 
-    <footer class="bg-primary text-white text-center py-3 mt-4">
-        <p class="mb-0">Create with ❤️ by IT DCM</p>
+    <footer class="text-secondary text-center py-1 mt-4 rounded" style="background-color: rgba(0, 0, 0, 0.05);">
+        <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href="" style="text-decoration: none;">IT
+                DCM</a></div>
     </footer>
 
     <!-- jQuery (Required for DataTables) -->

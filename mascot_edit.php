@@ -192,6 +192,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </form>
         </div>
     </div>
+    <footer class="text-secondary text-center py-1 mt-4" style="background-color: rgba(0, 0, 0, 0.05);">
+        <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href="" style="text-decoration: none;">IT
+                DCM</a></div>
+    </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     // Fungsi untuk memperbarui preview gambar

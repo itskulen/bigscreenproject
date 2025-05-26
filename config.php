@@ -1,6 +1,6 @@
 <?php
 $host = 'localhost';
-$db   = 'database'; // ganti dengan nama database kamu
+$db   = 'tv_db'; // ganti dengan nama database kamu
 $user = 'root';
 $pass = ''; // biasanya kosong kalau di XAMPP
 $charset = 'utf8mb4';
@@ -18,4 +18,3 @@ try {
 } catch (\PDOException $e) {
     throw new \PDOException($e->getMessage(), (int)$e->getCode());
 }
-?>

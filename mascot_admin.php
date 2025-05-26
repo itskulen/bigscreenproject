@@ -82,6 +82,20 @@ $result = $pdo->query($sql);
     .btn-success i {
         color: white;
     }
+
+    .top-left a {
+        margin: 0;
+        padding: 0;
+    }
+
+    .top-left button {
+        margin-right: 5px;
+    }
+
+    .top-left a:focus,
+    .top-left button:focus {
+        outline: none;
+    }
     </style>
 </head>
 
@@ -296,8 +310,9 @@ $result = $pdo->query($sql);
         </a>
     </div>
 
-    <footer class="bg-primary text-white text-center py-3 mt-4">
-        <p class="mb-0">Create with ❤️ by IT DCM</p>
+    <footer class="text-secondary text-center py-1 mt-4" style="background-color: rgba(0, 0, 0, 0.05);">
+        <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href="" style="text-decoration: none;">IT
+                DCM</a></div>
     </footer>
 
     <!-- jQuery (Required for DataTables) -->

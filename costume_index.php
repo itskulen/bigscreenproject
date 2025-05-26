@@ -377,6 +377,10 @@ $username = $isLoggedIn ? $_SESSION : null;
         </div>
         <?php endforeach; ?>
     </div>
+    <footer class="text-secondary text-center py-1 mt-4 rounded" style="background-color: rgba(0, 0, 0, 0.05);">
+        <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href="" style="text-decoration: none;">IT
+                DCM</a></div>
+    </footer>
 
     <!-- Modal -->
     <div id="imgModal" class="modal" onclick="closeModal()">

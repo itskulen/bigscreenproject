@@ -1,6 +1,6 @@
 <?php
 $host = 'localhost';
-$dbname = 'database';
+$dbname = 'tv_db';
 $username = 'root';
 $password = '';
 
@@ -10,4 +10,3 @@ try {
 } catch (PDOException $e) {
     die("DB Error: " . $e->getMessage());
 }
-?>
