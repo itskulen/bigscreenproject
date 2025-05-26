@@ -197,9 +197,9 @@ $result = $pdo->query($sql);
                     <th>Quantity</th>
                     <th>Project Image</th>
                     <th>Submission Notes</th>
+                    <th>Sub Form</th>
                     <th>Description</th>
                     <th>Deadline</th>
-                    <th>Sub Form</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -238,18 +238,18 @@ $result = $pdo->query($sql);
                     <td><?= htmlspecialchars($row['quantity']) ?></td>
                     <td><img src="uploads/projects/<?= $row['project_image'] ?>" width="100"></td>
                     <td><img src="uploads/materials/<?= $row['material_image'] ?>" width="100"></td>
-                    <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
-                    <td><?= !empty($row['deadline']) ? htmlspecialchars($row['deadline']) : '-' ?></td>
                     <td>
                         <?php if (!empty($row['subform_embed'])): ?>
                         <a href="<?= htmlspecialchars($row['subform_embed']) ?>" target="_blank"
                             class="btn btn-sm btn-primary">
-                            Subform
+                            View
                         </a>
                         <?php else: ?>
                         <span class="text-muted">No Link</span>
                         <?php endif; ?>
                     </td>
+                    <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
+                    <td><?= !empty($row['deadline']) ? htmlspecialchars($row['deadline']) : '-' ?></td>
                     <td>
                         <a href="mascot_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mb-1">Edit</a>
                         <a href="#" class="btn btn-danger btn-sm"

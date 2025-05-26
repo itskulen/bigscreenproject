@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 
 <body>
-    <div class="container mt-5">
+    <div class="container my-5">
         <div class="form-container mx-auto" style="max-width: 600px;">
             <h2 class="text-center">Edit Project</h2>
             <form method="post" enctype="multipart/form-data">
