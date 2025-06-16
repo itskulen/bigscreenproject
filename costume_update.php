@@ -8,19 +8,25 @@ function sanitizeFileName($filename)
 
 $id = $_POST['id'];
 $desc = htmlspecialchars(trim($_POST['description']));
-$deadline = $_POST['deadline'];
+$subformEmbed = trim($_POST['subform_embed']);
+$subformEmbed = $subformEmbed === "" ? null : htmlspecialchars($subformEmbed); // Konversi string kosong ke NULL
+$deadline = htmlspecialchars(trim($_POST['deadline']));
+$priority = htmlspecialchars(trim($_POST['priority']));
 $quantity = isset($_POST['quantity']) && is_numeric($_POST['quantity']) && $_POST['quantity'] > 0
     ? $_POST['quantity']
     : 1; // Default ke 1 jika tidak valid
 
 // Debugging untuk memastikan nilai deadline dikirim
-if (empty($deadline)) {
-    die("Deadline is empty.");
+if (!empty($deadline) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $deadline)) {
+    die("Invalid date format.");
 }
 
-// Validasi format tanggal
-if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $deadline)) {
-    die("Invalid date format.");
+if (empty($desc)) {
+    die("Description is required.");
+}
+
+if (empty($priority)) {
+    die("Priority is required.");
 }
 
 $stmt = $pdo->prepare("SELECT * FROM gallery WHERE id = ?");
@@ -40,10 +46,33 @@ if ($_FILES['material_image']['name']) {
 }
 
 $sql = "UPDATE gallery 
-        SET project_image = ?, material_image = ?, description = ?, deadline = ?, quantity = ? 
+        SET project_image = ?, material_image = ?, description = ?, deadline = ?, quantity = ?, priority = ?, subform_embed = ?
         WHERE id = ?";
 $stmt = $pdo->prepare($sql);
-$stmt->execute([$project, $material, $desc, $deadline, $quantity, $id]);
+$stmt->execute([$project, $material, $desc, $deadline, $quantity, $priority, $subformEmbed, $id]);
 
-header("Location: costume_admin.php");
+// Feedback untuk pengguna
+if ($stmt->rowCount() > 0) {
+    echo "<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Project successfully updated!',
+        confirmButtonText: 'OK'
+    }).then(() => {
+        window.location.href = 'costume_admin.php';
+    });
+    </script>";
+} else {
+    echo "<script>
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No changes were made.',
+        confirmButtonText: 'OK'
+    }).then(() => {
+        window.location.href = 'costume_admin.php';
+    });
+    </script>";
+}
 exit;

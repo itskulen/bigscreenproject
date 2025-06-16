@@ -5,9 +5,35 @@ include 'db.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $projectName = $_POST['project_name'];
     $projectStatus = $_POST['project_status'];
+    $priority = $_POST['priority'];
     $quantity = $_POST['quantity'];
     $description = $_POST['description'];
-    $deadline = $_POST['deadline'];
+    $deadline = !empty($_POST['deadline']) ? $_POST['deadline'] : null;
+    $subformEmbed = !empty($_POST['subform_embed']) ? $_POST['subform_embed'] : null;
+
+    // Validasi subformEmbed
+    if (!empty($subformEmbed) && !filter_var($subformEmbed, FILTER_VALIDATE_URL)) {
+        $_SESSION['message'] = "Invalid Google Slide URL.";
+        $_SESSION['message_type'] = "danger";
+        header("Location: costume_admin.php#alertMessage");
+        exit;
+    }
+
+    // Validasi quantity
+    if (empty($quantity) || !is_numeric($quantity) || intval($quantity) <= 0) {
+        $_SESSION['message'] = "Quantity must be a positive number.";
+        $_SESSION['message_type'] = "danger";
+        header("Location: costume_admin.php#alertMessage");
+        exit;
+    }
+
+    // Validasi deadline
+    if (!empty($deadline) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $deadline)) {
+        $_SESSION['message'] = "Invalid deadline format.";
+        $_SESSION['message_type'] = "danger";
+        header("Location: costume_admin.php#alertMessage");
+        exit;
+    }
 
     // Validasi file upload
     $projectImage = null;
@@ -15,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $projectImage = uniqid() . "_" . basename($_FILES['project_image']['name']);
         move_uploaded_file($_FILES['project_image']['tmp_name'], "uploads/projects/$projectImage");
     }
-
     $materialImage = null;
     if (isset($_FILES['material_image']) && $_FILES['material_image']['error'] === UPLOAD_ERR_OK) {
         $materialImage = uniqid() . "_" . basename($_FILES['material_image']['name']);
@@ -23,20 +48,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Simpan data ke database
-    $stmt = $pdo->prepare("INSERT INTO gallery (project_name, project_status, quantity, project_image, material_image, description, deadline, category) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?, 'costume')");
-    $success = $stmt->execute([$projectName, $projectStatus, $quantity, $projectImage, $materialImage, $description, $deadline]);
-
-    // Set session flash message
+    $stmt = $pdo->prepare("INSERT INTO gallery (project_name, project_status, priority, quantity, project_image, material_image, description, deadline, category, subform_embed) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'costume', ?)");
+    $success = $stmt->execute([$projectName, $projectStatus, $priority, $quantity, $projectImage, $materialImage, $description, $deadline, $subformEmbed]);
     if ($success) {
         $_SESSION['message'] = "Project successfully uploaded!";
         $_SESSION['message_type'] = "success";
+        header("Location: costume_admin.php#alertMessage"); // Arahkan ke bagian alert message
+        exit;
     } else {
         $_SESSION['message'] = "Failed to upload project.";
-        $_SESSION['message_type'] = "danger";
+        $_SESSION['message_type'] = "error";
+        header("Location: costume_admin.php#alertMessage"); // Arahkan ke bagian alert message
+        exit;
     }
-
-    // Redirect kembali ke halaman admin
-    header("Location: costume_admin.php");
-    exit;
 }

@@ -58,15 +58,15 @@ function getStatusClass($status)
 {
     switch (strtolower($status)) {
         case 'upcoming':
-            return 'background-color: #0dcaf0;'; // blue
+            return 'background-color: #31D2F2;'; // blue
         case 'urgent':
             return 'background-color: #ef4444;'; // red
         case 'in progress':
-            return 'background-color: #eab308;'; // yellow
+            return 'background-color: #FFCA2C;'; // yellow
         case 'revision':
-            return 'background-color: #8b5cf6;'; // purple
+            return 'background-color: #6610f2;'; // purple
         case 'completed':
-            return 'background-color: #22c55e;'; // green
+            return 'background-color: #198754;'; // green
         default:
             return 'background-color: #d1d5db;'; // light gray
     }
@@ -142,6 +142,30 @@ $username = $isLoggedIn ? $_SESSION : null;
         text-align: center;
     }
 
+    html,
+    body {
+        height: 100%;
+        /* Pastikan tinggi halaman penuh */
+        display: flex;
+        /* Gunakan flexbox */
+        flex-direction: column;
+        /* Atur elemen secara vertikal */
+    }
+
+    .container-fluid {
+        flex: 1;
+        /* Isi ruang yang tersedia di antara header dan footer */
+    }
+
+    footer {
+        margin-top: auto;
+        /* Dorong footer ke bagian bawah */
+        background-color: rgba(0, 0, 0, 0.05);
+        /* Warna latar belakang */
+        text-align: center;
+        padding: 10px;
+    }
+
     .dark-mode {
         background-color: #212529;
         color: #ffffff;
@@ -171,22 +195,13 @@ $username = $isLoggedIn ? $_SESSION : null;
         padding: 10px;
     }
 
-    .dark-mode .btn {
-        border-color: #ffffff;
-    }
-
-    .dark-mode .btn-secondary {
-        background-color: #444;
-        color: #fff;
-    }
-
     .dark-mode .btn-primary {
         background-color: #007bff;
         color: #fff;
     }
 
     .dark-mode .btn-success {
-        background-color: #28a745;
+        background-color: #198754;
         color: #fff;
     }
 
@@ -203,19 +218,21 @@ $username = $isLoggedIn ? $_SESSION : null;
     .btn-indigo {
         background-color: #6610f2;
         color: #fff;
+        --btn-bg: #6610f2;
     }
 
     .btn-indigo:hover {
         background-color: #520dc2;
         color: #fff;
+        --btn-bg: #520dc2;
     }
 
     .btn-indigo.active {
-        background-color: #520dc2;
+        background-color: #6610f2;
         /* Warna latar belakang saat aktif */
         color: #fff;
         /* Warna teks saat aktif */
-        border-color: #520dc2;
+        border-color: #6610f2;
         /* Warna border saat aktif */
     }
 
@@ -422,159 +439,166 @@ $username = $isLoggedIn ? $_SESSION : null;
     }
 
     .btn.active {
-        border: 2px solid #000;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        outline: 2px solid var(--btn-bg, var(--bs-btn-bg));
+        /* Tambahkan outline */
+        outline-offset: 2px;
+        /* Berikan jarak antara outline dan elemen */
     }
     </style>
 </head>
 
 <body>
-
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="d-flex align-items-center">
-            <!-- Logo Mascot -->
-            <a href="index.php">
-                <img src="uploads/me.png" alt="Mascot Logo" style="width: 50px; height: 50px; margin-right: 5px;">
-            </a>
-            <h3 class="fw-bold text-purple mb-0">Mascot Project List</h3>
-        </div>
-        <!-- Tombol Login atau Dashboard -->
-        <div>
-            <button id="toggleDarkMode" class="btn btn-outline-secondary">
-                <i class="bi bi-moon"></i>
-            </button>
-            <?php if ($isLoggedIn): ?>
-            <a href="mascot_admin.php" class="btn btn-primary">
-                Dashboard
-            </a>
-            <?php else: ?>
-            <a href="login.php" class="btn btn-secondary">
-                Login
-            </a>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <form method="GET" class="row g-3 align-items-center mb-4">
-        <div class="col-md-4">
-            <input type="text" name="search" class="form-control" placeholder="Search Project..."
-                value="<?= htmlspecialchars($search) ?>">
-        </div>
-        <div class="col-md-1">
-            <button type="submit" class="btn btn-primary w-100">Search</button>
-        </div>
-    </form>
-    <div style="display: flex; gap: 20px;">
-        <form method="GET" action="mascot_index.php">
-            <button type="submit" name="this_week" value="1"
-                class="btn fw-semibold text-danger-emphasis bg-danger-subtle border border-danger-subtle <?= isset($_GET['this_week']) && $_GET['this_week'] == '1' ? 'active' : '' ?>">
-                This Week: <?= $this_week_count ?>
-            </button>
-        </form>
-
-        <div style="border-left: 2px solid #ccc; height: 40px;"></div>
-
-        <form method="GET" action="mascot_index.php">
-            <button type="submit" name="project_status" value=""
-                class="btn btn-secondary <?= !isset($_GET['project_status']) || $_GET['project_status'] === '' ? 'active' : '' ?>">
-                All Project: <?= isset($total_projects) ? $total_projects : 0 ?>
-            </button>
-        </form>
-        <form method="GET" action="mascot_index.php">
-            <button type="submit" name="project_status" value="Upcoming"
-                class="btn btn-info <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Upcoming' ? 'active' : '' ?>">
-                Upcoming: <?= $status_counts['Upcoming'] ?? 0 ?>
-            </button>
-            <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-        </form>
-        <form method="GET" action="mascot_index.php">
-            <button type="submit" name="project_status" value="In Progress"
-                class="btn btn-warning text-dark <?= isset($_GET['project_status']) && $_GET['project_status'] === 'In Progress' ? 'active' : '' ?>">
-                In Progress: <?= $status_counts['In Progress'] ?? 0 ?>
-            </button>
-            <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-        </form>
-        <form method="GET" action="mascot_index.php">
-            <button type="submit" name="project_status" value="Urgent"
-                class="btn btn-danger <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Urgent' ? 'active' : '' ?>">
-                Urgent: <?= $status_counts['Urgent'] ?? 0 ?>
-            </button>
-            <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-        </form>
-        <form method="GET" action="mascot_index.php">
-            <button type="submit" name="project_status" value="Revision"
-                class="btn btn-indigo <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Revision' ? 'active' : '' ?>">
-                Revision: <?= $status_counts['Revision'] ?? 0 ?>
-            </button>
-            <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-        </form>
-        <form method="GET" action="mascot_index.php">
-            <button type="submit" name="project_status" value="Completed"
-                class="btn btn-success <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Completed' ? 'active' : '' ?>">
-                Completed: <?= $status_counts['Completed'] ?? 0 ?>
-            </button>
-            <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-        </form>
-
-        <div style="border-left: 2px solid #ccc; height: 40px;"></div>
-
-        <form method="GET" action="mascot_index.php" class="d-flex align-items-center">
-            <select name="priority" class="form-select me-2" onchange="this.form.submit()">
-                <option value="">Filter by Priority</option>
-                <option value="High" <?= isset($_GET['priority']) && $_GET['priority'] === 'High' ? 'selected' : '' ?>>
-                    High</option>
-                <option value="Medium"
-                    <?= isset($_GET['priority']) && $_GET['priority'] === 'Medium' ? 'selected' : '' ?>>Medium</option>
-                <option value="Low" <?= isset($_GET['priority']) && $_GET['priority'] === 'Low' ? 'selected' : '' ?>>Low
-                </option>
-            </select>
-            <input type="hidden" name="project_status" value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
-        </form>
-    </div>
-    <br>
-
-    <div class="card-grid">
-        <?php if (empty($projects)): ?>
-        <p class="text-center">No projects found for the selected filters.</p>
-        <?php else: ?>
-        <?php foreach ($projects as $row): ?>
-        <div class="card" style="width: 18.5rem; position: relative;">
-            <?php if (isThisWeek($row['deadline'])): ?>
-            <small class="fw-semibold text-danger-emphasis bg-danger-subtle">
-                This Week!
-            </small>
-            <?php endif; ?>
-            <img src="uploads/projects/<?= htmlspecialchars($row['project_image']) ?>" style="cursor: pointer;"
-                alt="No Image Project yet" onclick="openModal(this.src)">
-            <div class="card-body">
-                <strong style="cursor: pointer;"
-                    onclick="openGoogleSlideModal('<?= htmlspecialchars($row['subform_embed']) ?>')">
-                    <?= htmlspecialchars($row['project_name']) ?>
-                </strong><br>
-                <span class="status-label" style="<?= getStatusClass($row['project_status']) ?>">
-                    <?= htmlspecialchars($row['project_status']) ?>
-                </span>
-                <span class="status-label" style="<?= getPriorityClass($row['priority']) ?> margin-left: 5px;">
-                    P :
-                    <?= htmlspecialchars($row['priority']) ?>
-                </span>
-                <div class="deadline">Quantity: <?= htmlspecialchars($row['quantity']) ?></div>
-                <?php if ($row['deadline']): ?>
-                <div class="deadline">Deadline: <?= htmlspecialchars($row['deadline']) ?></div>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex align-items-center">
+                <!-- Logo Mascot -->
+                <a href="index.php">
+                    <img src="uploads/me.png" alt="Mascot Logo" style="width: 50px; height: 50px; margin-right: 5px;">
+                </a>
+                <h3 class="fw-bold text-purple mb-0">Mascot Project List</h3>
+            </div>
+            <!-- Tombol Login atau Dashboard -->
+            <div>
+                <button id="toggleDarkMode" class="btn btn-outline-secondary">
+                    <i class="bi bi-moon"></i>
+                </button>
+                <?php if ($isLoggedIn): ?>
+                <a href="mascot_admin.php" class="btn btn-primary">
+                    Dashboard
+                </a>
+                <?php else: ?>
+                <a href="login.php" class="btn btn-secondary">
+                    Login
+                </a>
                 <?php endif; ?>
-                <p style="margin-top: 8px; font-size: 14px;">
-                    <?= nl2br(htmlspecialchars($row['description'])) ?>
-                </p>
-                <div style="margin-top: 5px; cursor: pointer;">
-                    <img src="uploads/materials/<?= htmlspecialchars($row['material_image']) ?>"
-                        alt="No Submission Notes yet"
-                        style="width: 100%; height: 150px; object-fit: contain; border-radius: 4px;"
-                        onclick="openModal(this.src)">
-                </div>
             </div>
         </div>
-        <?php endforeach; ?>
-        <?php endif; ?>
+
+        <form method="GET" class="row g-3 align-items-center mb-4">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Search Project..."
+                    value="<?= htmlspecialchars($search) ?>">
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </form>
+        <div style="display: flex; gap: 20px;">
+            <form method="GET" action="mascot_index.php">
+                <button type="submit" name="this_week" value="1"
+                    class="btn fw-semibold text-danger-emphasis bg-danger-subtle border border-danger-subtle <?= isset($_GET['this_week']) && $_GET['this_week'] == '1' ? 'active' : '' ?>">
+                    This Week: <?= $this_week_count ?>
+                </button>
+            </form>
+
+            <div style="border-left: 2px solid #ccc; height: 40px;"></div>
+
+            <form method="GET" action="mascot_index.php">
+                <button type="submit" name="project_status" value=""
+                    class="btn btn-secondary <?= !isset($_GET['project_status']) || $_GET['project_status'] === '' ? 'active' : '' ?>">
+                    All Project: <?= isset($total_projects) ? $total_projects : 0 ?>
+                </button>
+            </form>
+            <form method="GET" action="mascot_index.php">
+                <button type="submit" name="project_status" value="Upcoming"
+                    class="btn btn-info <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Upcoming' ? 'active' : '' ?>">
+                    Upcoming: <?= $status_counts['Upcoming'] ?? 0 ?>
+                </button>
+                <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+            </form>
+            <form method="GET" action="mascot_index.php">
+                <button type="submit" name="project_status" value="In Progress"
+                    class="btn btn-warning <?= isset($_GET['project_status']) && $_GET['project_status'] === 'In Progress' ? 'active' : '' ?>">
+                    In Progress: <?= $status_counts['In Progress'] ?? 0 ?>
+                </button>
+                <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+            </form>
+            <form method="GET" action="mascot_index.php">
+                <button type="submit" name="project_status" value="Urgent"
+                    class="btn btn-danger <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Urgent' ? 'active' : '' ?>">
+                    Urgent: <?= $status_counts['Urgent'] ?? 0 ?>
+                </button>
+                <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+            </form>
+            <form method="GET" action="mascot_index.php">
+                <button type="submit" name="project_status" value="Revision"
+                    class="btn btn-indigo <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Revision' ? 'active' : '' ?>">
+                    Revision: <?= $status_counts['Revision'] ?? 0 ?>
+                </button>
+                <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+            </form>
+            <form method="GET" action="mascot_index.php">
+                <button type="submit" name="project_status" value="Completed"
+                    class="btn btn-success <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Completed' ? 'active' : '' ?>">
+                    Completed: <?= $status_counts['Completed'] ?? 0 ?>
+                </button>
+                <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+            </form>
+
+            <div style="border-left: 2px solid #ccc; height: 40px;"></div>
+
+            <form method="GET" action="mascot_index.php" class="d-flex align-items-center">
+                <select name="priority" class="form-select me-2" onchange="this.form.submit()">
+                    <option value="">Filter by Priority</option>
+                    <option value="High"
+                        <?= isset($_GET['priority']) && $_GET['priority'] === 'High' ? 'selected' : '' ?>>
+                        High</option>
+                    <option value="Medium"
+                        <?= isset($_GET['priority']) && $_GET['priority'] === 'Medium' ? 'selected' : '' ?>>Medium
+                    </option>
+                    <option value="Low"
+                        <?= isset($_GET['priority']) && $_GET['priority'] === 'Low' ? 'selected' : '' ?>>Low
+                    </option>
+                </select>
+                <input type="hidden" name="project_status"
+                    value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
+            </form>
+        </div>
+        <br>
+
+        <div class="card-grid">
+            <?php if (empty($projects)): ?>
+            <p class="text-center">No projects found for the selected filters.</p>
+            <?php else: ?>
+            <?php foreach ($projects as $row): ?>
+            <div class="card" style="width: 18.5rem; position: relative;">
+                <?php if (isThisWeek($row['deadline'])): ?>
+                <small class="fw-semibold text-danger-emphasis bg-danger-subtle">
+                    This Week!
+                </small>
+                <?php endif; ?>
+                <img src="uploads/projects/<?= htmlspecialchars($row['project_image']) ?>" style="cursor: pointer;"
+                    alt="No Image Project yet" onclick="openModal(this.src)">
+                <div class="card-body">
+                    <strong style="cursor: pointer;"
+                        onclick="openGoogleSlideModal('<?= htmlspecialchars($row['subform_embed']) ?>')">
+                        <?= htmlspecialchars($row['project_name']) ?>
+                    </strong><br>
+                    <span class="status-label" style="<?= getStatusClass($row['project_status']) ?>">
+                        <?= htmlspecialchars($row['project_status']) ?>
+                    </span>
+                    <span class="status-label" style="<?= getPriorityClass($row['priority']) ?> margin-left: 5px;">
+                        P :
+                        <?= htmlspecialchars($row['priority']) ?>
+                    </span>
+                    <div class="deadline">Quantity: <?= htmlspecialchars($row['quantity']) ?></div>
+                    <?php if ($row['deadline']): ?>
+                    <div class="deadline">Deadline: <?= htmlspecialchars($row['deadline']) ?></div>
+                    <?php endif; ?>
+                    <p style="margin-top: 8px; font-size: 14px;">
+                        <?= nl2br(htmlspecialchars($row['description'])) ?>
+                    </p>
+                    <div style="margin-top: 5px; cursor: pointer;">
+                        <img src="uploads/materials/<?= htmlspecialchars($row['material_image']) ?>"
+                            alt="No Submission Notes yet"
+                            style="width: 100%; height: 150px; object-fit: contain; border-radius: 4px;"
+                            onclick="openModal(this.src)">
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
     </div>
     <footer class="text-secondary text-center py-1 mt-4 rounded" style="background-color: rgba(0, 0, 0, 0.05);">
         <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href="" style="text-decoration: none;">IT

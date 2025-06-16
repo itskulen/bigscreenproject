@@ -48,9 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Simpan data ke database
-$stmt = $pdo->prepare("INSERT INTO gallery (project_name, project_status, priority, quantity, project_image, material_image, description, deadline, category, subform_embed) 
+    $stmt = $pdo->prepare("INSERT INTO gallery (project_name, project_status, priority, quantity, project_image, material_image, description, deadline, category, subform_embed) 
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'mascot', ?)");
-$success = $stmt->execute([$projectName, $projectStatus, $priority, $quantity, $projectImage, $materialImage, $description, $deadline, $subformEmbed]);
+    $success = $stmt->execute([$projectName, $projectStatus, $priority, $quantity, $projectImage, $materialImage, $description, $deadline, $subformEmbed]);
     if ($success) {
         $_SESSION['message'] = "Project successfully uploaded!";
         $_SESSION['message_type'] = "success";

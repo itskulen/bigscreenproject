@@ -96,6 +96,34 @@ $result = $pdo->query($sql);
     .top-left button:focus {
         outline: none;
     }
+
+    .modal-dialog {
+        max-width: 1200px;
+        /* Atur lebar modal */
+        margin: 30px auto;
+        /* Tambahkan margin */
+    }
+
+    .modal-body iframe {
+        height: 900px;
+        /* Atur tinggi iframe */
+    }
+
+    /* Lebarkan kolom Status dan Priority */
+    table#projectTable th:nth-child(2),
+    /* Kolom Status */
+    table#projectTable td:nth-child(2),
+    table#projectTable th:nth-child(3),
+    /* Kolom Priority */
+    table#projectTable td:nth-child(3) {
+        width: 120px;
+        /* Atur lebar kolom */
+    }
+
+    table#projectTable select {
+        width: 100%;
+        /* Pastikan select form memenuhi lebar kolom */
+    }
     </style>
 </head>
 
@@ -254,10 +282,10 @@ $result = $pdo->query($sql);
                     <td><img src="uploads/materials/<?= $row['material_image'] ?>" width="100"></td>
                     <td>
                         <?php if (!empty($row['subform_embed'])): ?>
-                        <a href="<?= htmlspecialchars($row['subform_embed']) ?>" target="_blank"
-                            class="btn btn-sm btn-primary">
+                        <button type="button" class="btn btn-sm btn-primary"
+                            onclick="openGoogleSlideModal('<?= htmlspecialchars($row['subform_embed']) ?>')">
                             View
-                        </a>
+                        </button>
                         <?php else: ?>
                         <span class="text-muted">No Link</span>
                         <?php endif; ?>
@@ -310,6 +338,28 @@ $result = $pdo->query($sql);
         </a>
     </div>
 
+    <!-- Modal for Google Slide -->
+    <div class="modal fade" id="googleSlideModal" tabindex="-1" aria-labelledby="googleSlideModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <!-- Gunakan modal-xl untuk ukuran ekstra besar -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="googleSlideModalLabel">Google Slide</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <iframe id="googleSlideIframe" class="w-100" style="height: 600px;" frameborder="0"
+                        allowfullscreen></iframe>
+                    <p id="fallbackLink" style="display: none; text-align: center; margin-top: 20px;">
+                        Your browser does not support embedded content.
+                        <a href="#" id="googleSlideLink" target="_blank">Click here to view the slides</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="text-secondary text-center py-1 mt-4" style="background-color: rgba(0, 0, 0, 0.05);">
         <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href="" style="text-decoration: none;">IT
                 DCM</a></div>
@@ -335,6 +385,28 @@ $result = $pdo->query($sql);
             };
             reader.readAsDataURL(file);
         }
+    }
+
+    function openGoogleSlideModal(embedLink) {
+        const embedUrl = embedLink.replace('/edit', '/embed'); // Ubah URL menjadi embed
+        const iframe = document.getElementById('googleSlideIframe');
+        const fallbackLink = document.getElementById('fallbackLink');
+        const googleSlideLink = document.getElementById('googleSlideLink');
+
+        iframe.src = embedUrl;
+        googleSlideLink.href = embedLink;
+
+        // Cek apakah iframe didukung
+        iframe.onload = function() {
+            fallbackLink.style.display = 'none';
+        };
+        iframe.onerror = function() {
+            fallbackLink.style.display = 'block';
+            iframe.style.display = 'none';
+        };
+
+        const modal = new bootstrap.Modal(document.getElementById('googleSlideModal'));
+        modal.show();
     }
 
     // Event listener untuk Project Image

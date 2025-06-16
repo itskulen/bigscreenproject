@@ -4,8 +4,9 @@ include 'db.php';
 include 'middleware.php';
 checkUserRole('costume'); // Hanya costume admin yang bisa mengakses
 
-$sql = "SELECT project_name, project_status, project_image, material_image, description, deadline 
-        FROM gallery WHERE category = 'costume'";
+$sql = "SELECT project_name, project_status, priority, quantity, project_image, material_image, description, deadline,
+createAt, updateAt
+FROM gallery WHERE category = 'costume' ORDER BY createAt DESC";
 $result = $pdo->query($sql);
 ?>
 <!DOCTYPE html>
@@ -15,9 +16,11 @@ $result = $pdo->query($sql);
     <title>Admin Costume - Project</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
+    <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
     <style>
     .drop-zone {
         border: 2px dashed #007bff;
@@ -53,6 +56,74 @@ $result = $pdo->query($sql);
         width: auto !important;
         min-width: 70px;
     }
+
+    #scrollToTopBtn {
+        display: none;
+        /* Tombol disembunyikan secara default */
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    #scrollToTopBtn:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-success:hover {
+        background-color: #28a745;
+    }
+
+    .btn-success i {
+        color: white;
+    }
+
+    .top-left a {
+        margin: 0;
+        padding: 0;
+    }
+
+    .top-left button {
+        margin-right: 5px;
+    }
+
+    .top-left a:focus,
+    .top-left button:focus {
+        outline: none;
+    }
+
+    .modal-dialog {
+        max-width: 1200px;
+        /* Atur lebar modal */
+        margin: 30px auto;
+        /* Tambahkan margin */
+    }
+
+    .modal-body iframe {
+        height: 900px;
+        /* Atur tinggi iframe */
+    }
+
+    /* Lebarkan kolom Status dan Priority */
+    table#projectTable th:nth-child(2),
+    /* Kolom Status */
+    table#projectTable td:nth-child(2),
+    table#projectTable th:nth-child(3),
+    /* Kolom Priority */
+    table#projectTable td:nth-child(3) {
+        width: 120px;
+        /* Atur lebar kolom */
+    }
+
+    table#projectTable select {
+        width: 100%;
+        /* Pastikan select form memenuhi lebar kolom */
+    }
     </style>
 </head>
 
@@ -76,6 +147,12 @@ $result = $pdo->query($sql);
             </div>
 
             <div class="form-group">
+                <label for="subform_embed">Submission Form Embed Link:</label>
+                <textarea type="text" class="form-control" id="subform_embed" name="subform_embed"
+                    placeholder="Link Example: https://docs.google.com/presentation/d/e/2PACX-.../edit"></textarea>
+            </div>
+
+            <div class="form-group">
                 <label for="project_status" class="form-label">Project Status</label>
                 <select class="form-select col-6" name="project_status" id="project_status"
                     aria-label="Default select example" required>
@@ -91,9 +168,30 @@ $result = $pdo->query($sql);
             </div>
 
             <div class="form-group">
+                <label for="priority" class="form-label">Priority</label>
+                <select class="form-select col-6" name="priority" id="priority" required>
+                    <option selected>Select Priority</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="quantity">Quantity:</label>
                 <input type="number" class="form-control col-6" id="quantity" name="quantity" min="1" required>
                 <div class="error" id="quantity_error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="deadline">Deadline:</label>
+                <input type="date" class="form-control w-auto" id="deadline" name="deadline" required>
+                <div class="error" id="deadline_error"></div>
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                <div class="error" id="description_error"></div>
             </div>
 
             <div class="form-group">
@@ -107,7 +205,6 @@ $result = $pdo->query($sql);
                     style="display:none; margin-top:10px; max-width: 200px; border: 1px solid #ddd; padding: 5px;">
                 <div class="error" id="project_image_error"></div>
             </div>
-
             <div class="form-group">
                 <label>Submission Notes:</label>
                 <div class="drop-zone" onclick="document.getElementById('material_image').click();">
@@ -119,22 +216,11 @@ $result = $pdo->query($sql);
                     style="display:none; margin-top:10px; max-width: 200px; border: 1px solid #ddd; padding: 5px;">
                 <div class="error" id="material_image_error"></div>
             </div>
-            <div class="form-group">
-                <label for="deadline">Deadline:</label>
-                <input type="date" class="form-control w-auto" id="deadline" name="deadline" required>
-                <div class="error" id="deadline_error"></div>
-            </div>
-            <div class="form-group">
-                <label for="description">Description:</label>
-                <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
-                <div class="error" id="description_error"></div>
-            </div>
-
 
             <button type="submit" class="btn btn-primary btn-block">Upload</button>
         </form>
     </div>
-    <hr>
+    <hr id="alertMessage">
     <div class="container mt-3">
         <?php if (isset($_SESSION['message'])): ?>
         <div class="alert alert-<?= $_SESSION['message_type'] ?> alert-dismissible fade show" role="alert">
@@ -149,9 +235,11 @@ $result = $pdo->query($sql);
                 <tr>
                     <th>Project Name</th>
                     <th>Status</th>
+                    <th>Priority</th>
                     <th>Quantity</th>
                     <th>Project Image</th>
                     <th>Submission Notes</th>
+                    <th>Sub Form</th>
                     <th>Description</th>
                     <th>Deadline</th>
                     <th>Aksi</th>
@@ -181,15 +269,53 @@ $result = $pdo->query($sql);
                                 Archived</option>
                         </select>
                     </td>
+                    <td>
+                        <select class="form-select" onchange="updatePriority(<?= $row['id'] ?>, this.value)">
+                            <option value="High" <?= $row['priority'] === 'High' ? 'selected' : '' ?>>High</option>
+                            <option value="Medium" <?= $row['priority'] === 'Medium' ? 'selected' : '' ?>>Medium
+                            </option>
+                            <option value="Low" <?= $row['priority'] === 'Low' ? 'selected' : '' ?>>Low</option>
+                        </select>
+                    </td>
                     <td><?= htmlspecialchars($row['quantity']) ?></td>
                     <td><img src="uploads/projects/<?= $row['project_image'] ?>" width="100"></td>
                     <td><img src="uploads/materials/<?= $row['material_image'] ?>" width="100"></td>
+                    <td>
+                        <?php if (!empty($row['subform_embed'])): ?>
+                        <button type="button" class="btn btn-sm btn-primary"
+                            onclick="openGoogleSlideModal('<?= htmlspecialchars($row['subform_embed']) ?>')">
+                            View
+                        </button>
+                        <?php else: ?>
+                        <span class="text-muted">No Link</span>
+                        <?php endif; ?>
+                    </td>
                     <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
-                    <td><?= htmlspecialchars($row['deadline']) ?></td>
+                    <td><?= !empty($row['deadline']) ? htmlspecialchars($row['deadline']) : '-' ?></td>
                     <td>
                         <a href="costume_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mb-1">Edit</a>
-                        <a href="costume_delete.php?id=<?= $row['id'] ?>" class="btn btn-danger btn-sm"
-                            onclick="return confirm('Yakin ingin menghapus?')">Delete</a>
+                        <a href="#" class="btn btn-danger btn-sm"
+                            onclick="confirmDelete(event, <?= $row['id'] ?>)">Delete</a>
+
+                        <script>
+                        function confirmDelete(event, id) {
+                            event.preventDefault();
+
+                            Swal.fire({
+                                title: 'Are you sure?',
+                                text: "You won't be able to revert this!",
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#d33',
+                                cancelButtonColor: '#3085d6',
+                                confirmButtonText: 'Yes, delete it!'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = `costume_delete.php?id=${id}`;
+                                }
+                            });
+                        }
+                        </script>
                     </td>
                 </tr>
                 <?php endwhile; ?>
@@ -197,7 +323,44 @@ $result = $pdo->query($sql);
         </table>
     </div>
 
-    <footer class="text-secondary text-center py-1 mt-4 rounded" style="background-color: rgba(0, 0, 0, 0.05);">
+    <!-- Floating Buttons -->
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px;">
+        <!-- Scroll to Top Button -->
+        <button id="scrollToTopBtn" class="btn btn-warning"
+            style="display: none; border-radius: 50%; width: 50px; height: 50px;">
+            <i class="bi bi-arrow-up" style="color: #198754;"></i>
+        </button>
+
+        <!-- Helpdesk Button -->
+        <a href="https://wa.me/6287721988393" target="_blank" class="btn btn-success"
+            style="border-radius: 50%; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center;">
+            <i style="font-size: 16px;">Help!</i>
+        </a>
+    </div>
+
+    <!-- Modal for Google Slide -->
+    <div class="modal fade" id="googleSlideModal" tabindex="-1" aria-labelledby="googleSlideModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <!-- Gunakan modal-xl untuk ukuran ekstra besar -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="googleSlideModalLabel">Google Slide</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <iframe id="googleSlideIframe" class="w-100" style="height: 600px;" frameborder="0"
+                        allowfullscreen></iframe>
+                    <p id="fallbackLink" style="display: none; text-align: center; margin-top: 20px;">
+                        Your browser does not support embedded content.
+                        <a href="#" id="googleSlideLink" target="_blank">Click here to view the slides</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-secondary text-center py-1 mt-4" style="background-color: rgba(0, 0, 0, 0.05);">
         <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href="" style="text-decoration: none;">IT
                 DCM</a></div>
     </footer>
@@ -222,6 +385,28 @@ $result = $pdo->query($sql);
             };
             reader.readAsDataURL(file);
         }
+    }
+
+    function openGoogleSlideModal(embedLink) {
+        const embedUrl = embedLink.replace('/edit', '/embed'); // Ubah URL menjadi embed
+        const iframe = document.getElementById('googleSlideIframe');
+        const fallbackLink = document.getElementById('fallbackLink');
+        const googleSlideLink = document.getElementById('googleSlideLink');
+
+        iframe.src = embedUrl;
+        googleSlideLink.href = embedLink;
+
+        // Cek apakah iframe didukung
+        iframe.onload = function() {
+            fallbackLink.style.display = 'none';
+        };
+        iframe.onerror = function() {
+            fallbackLink.style.display = 'block';
+            iframe.style.display = 'none';
+        };
+
+        const modal = new bootstrap.Modal(document.getElementById('googleSlideModal'));
+        modal.show();
     }
 
     // Event listener untuk Project Image
@@ -249,11 +434,35 @@ $result = $pdo->query($sql);
 
         // Validasi Project Status
         const projectStatus = document.getElementById('project_status');
-        if (!projectStatus.value) {
+        if (!projectStatus.value || projectStatus.value === "Select Status") {
             isValid = false;
             document.getElementById('project_status_error').textContent = "Project Status is required.";
         } else {
             document.getElementById('project_status_error').textContent = "";
+        }
+
+        // Validasi Project Priority
+        const priority = document.getElementById('priority');
+        if (!priority.value || priority.value === "Select Priority") {
+            isValid = false;
+            document.getElementById('priority_error').textContent = "Priority Status is required.";
+        } else {
+            document.getElementById('priority_error').textContent = "";
+        }
+
+        // Validasi Quantity
+        const quantity = document.getElementById('quantity');
+        if (!quantity.value || isNaN(quantity.value) || parseInt(quantity.value) <= 0) {
+            isValid = false;
+            document.getElementById('quantity_error').textContent = "Quantity must be a positive number.";
+        } else {
+            document.getElementById('quantity_error').textContent = "";
+        }
+
+        // Jika ada error, cegah pengiriman form
+        if (!isValid) {
+            e.preventDefault();
+            alert("Please fill out all required fields.");
         }
     });
 
@@ -267,17 +476,35 @@ $result = $pdo->query($sql);
                     id: id,
                     status: status,
                     category: category
-                }), // Tambahkan kategori
+                }),
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Status updated successfully!');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Status updated successfully!',
+                        confirmButtonText: 'OK'
+                    });
                 } else {
-                    alert('Failed to update status.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to update status.',
+                        confirmButtonText: 'OK'
+                    });
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred.',
+                    confirmButtonText: 'OK'
+                });
+                console.error('Error:', error);
+            });
     }
 
     // Hapus alert setelah 5 detik
@@ -292,19 +519,6 @@ $result = $pdo->query($sql);
         }
     }, 5000);
 
-    // Scroll ke tabel jika URL mengandung #projectTable
-    document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.hash === '#projectTable') {
-            const table = document.getElementById('projectTable');
-            if (table) {
-                table.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        }
-    });
-
     $(document).ready(function() {
         $('#projectTable').DataTable({
             paging: true, // Aktifkan pagination
@@ -312,7 +526,10 @@ $result = $pdo->query($sql);
             ordering: true, // Aktifkan pengurutan
             info: true, // Tampilkan informasi jumlah data
             lengthChange: true, // Pilihan jumlah data per halaman
-            pageLength: 10, // Default jumlah data per halaman
+            pageLength: 25, // Default jumlah data per halaman
+            order: [
+                [9, 'desc']
+            ], // Urutkan berdasarkan kolom ke-9 (createAt) secara descending
             language: {
                 search: "Cari:",
                 lengthMenu: "Tampilkan _MENU_ data per halaman",
@@ -326,7 +543,78 @@ $result = $pdo->query($sql);
             },
         });
     });
+
+    function updatePriority(id, priority) {
+        fetch('update_priority.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: id,
+                    priority: priority
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Priority updated successfully!',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to update priority.',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred.',
+                    confirmButtonText: 'OK'
+                });
+                console.error('Error:', error);
+            });
+    }
+
+    // Ambil elemen tombol
+    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+
+    // Tampilkan tombol saat pengguna menggulir ke bawah
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 200) { // Tampilkan tombol jika scroll lebih dari 200px
+            scrollToTopBtn.style.display = 'block';
+        } else {
+            scrollToTopBtn.style.display = 'none';
+        }
+    });
+
+    // Fungsi untuk menggulir ke atas
+    scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth' // Gulir dengan animasi halus
+        });
+    });
     </script>
+    <?php if (isset($_SESSION['message'])): ?>
+    <script>
+    Swal.fire({
+        icon: '<?= $_SESSION['message_type'] === 'success' ? 'success' : 'error' ?>',
+        title: '<?= $_SESSION['message_type'] === 'success' ? 'Success' : 'Error' ?>',
+        text: '<?= $_SESSION['message'] ?>',
+        confirmButtonText: 'OK'
+    });
+    </script>
+    <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
+    <?php endif; ?>
 </body>
 
 </html>

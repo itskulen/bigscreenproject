@@ -20,9 +20,12 @@ if (!$data) {
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $projectName = $_POST['project_name'];
+    $subformEmbed = $_POST['subform_embed'] ?? null;
     $projectStatus = $_POST['project_status'];
+    $priority = $_POST['priority'];
     $quantity = $_POST['quantity'];
     $description = $_POST['description'];
+    $deadline = $_POST['deadline'];
 
     // Cek apakah user upload gambar baru atau tidak
     $projectImage = $data['project_image'];
@@ -37,10 +40,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         move_uploaded_file($_FILES['material_image']['tmp_name'], "uploads/materials/$materialImage");
     }
 
-    $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, quantity = ?, description = ?, project_image = ?, material_image = ? WHERE id = ? AND category = 'costume'");
-    $update->execute([$projectName, $projectStatus, $quantity, $description, $projectImage, $materialImage, $id]);
+    if (!empty($subformEmbed) && !filter_var($subformEmbed, FILTER_VALIDATE_URL)) {
+        $_SESSION['message'] = "Invalid Google Slide URL.";
+        $_SESSION['message_type'] = "danger";
+        header("Location: costume_admin.php");
+        exit;
+    }
 
-    header("Location: costume_admin.php");
+    $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, priority = ?, quantity = ?, description = ?, deadline = ?, project_image = ?, material_image = ?, subform_embed = ? WHERE id = ? AND category = 'costume'");
+    $update->execute([$projectName, $projectStatus, $priority, $quantity, $description, $deadline, $projectImage, $materialImage, $subformEmbed, $id]);
+
+    echo "<!DOCTYPE html>
+    <html>
+    <head>
+        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+    </head>
+    <body>
+    <script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Project successfully updated!',
+        confirmButtonText: 'OK'
+    }).then(() => {
+        window.location.href = 'costume_admin.php';
+    });
+    </script>
+    </body>
+    </html>";
     exit;
 }
 ?>
@@ -51,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <title>Edit Project</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
     <style>
     body {
         background-color: #f8f9fa;
@@ -77,14 +105,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 
 <body>
-    <div class="container mt-5">
+    <div class="container my-5">
         <div class="form-container mx-auto" style="max-width: 600px;">
             <h2 class="text-center">Edit Project</h2>
             <form method="post" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label for="project_name" class="form-label">Project Name</label>
                     <input type="text" name="project_name" id="project_name" class="form-control"
-                        value="<?= htmlspecialchars($data['project_name']) ?>" required>
+                        value="<?= htmlspecialchars($data['project_name'] ?? '') ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label for="subform_embed" class="form-label">Submission Form Embed Link</label>
+                    <textarea name="subform_embed" id="subform_embed" class="form-control"
+                        placeholder="Enter Submission Form Embed Link"><?= htmlspecialchars($data['subform_embed'] ?? '') ?></textarea>
                 </div>
                 <div class="mb-3">
                     <label for="project_status" class="form-label">Project Status</label>
@@ -104,20 +137,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             Archived</option>
                     </select>
                 </div>
+
+                <div class="mb-3">
+                    <label for="priority" class="form-label">Priority</label>
+                    <select name="priority" id="priority" class="form-select" required>
+                        <option value="High" <?= $data['priority'] === 'High' ? 'selected' : '' ?>>High</option>
+                        <option value="Medium" <?= $data['priority'] === 'Medium' ? 'selected' : '' ?>>Medium</option>
+                        <option value="Low" <?= $data['priority'] === 'Low' ? 'selected' : '' ?>>Low</option>
+                    </select>
+                </div>
+
                 <div class="mb-3">
                     <label for="quantity">Quantity:</label>
                     <input type="number" class="form-control w-auto" id="quantity" name="quantity"
                         value="<?= htmlspecialchars($data['quantity']) ?>" min="1" required>
                 </div>
                 <div class="mb-3">
+                    <label for="deadline" class="form-label">Deadline</label>
+                    <input type="date" name="deadline" id="deadline" class="form-control"
+                        value="<?= htmlspecialchars($data['deadline'] ?? '') ?>" required>
+                </div>
+                <div class="mb-3">
                     <label for="description" class="form-label">Description</label>
                     <textarea name="description" id="description" class="form-control" rows="4"
                         required><?= htmlspecialchars($data['description']) ?></textarea>
                 </div>
-                <input type="date" name="deadline" id="deadline" class="form-control"
-                    value="<?= htmlspecialchars($data['deadline']) ?>" required>
                 <div class="mb-3">
-                    <label for="project_image" class="form-label">Project Image (Kosongkan jika tidak diubah)</label>
+                    <label for="project_image" class="form-label">Project Image (Kosongkan jika tidak
+                        diubah)</label>
                     <div class="d-flex align-items-center">
                         <input type="file" name="project_image" id="project_image" class="form-control me-2">
                         <button type="button" class="btn btn-sm btn-danger"
@@ -145,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </form>
         </div>
     </div>
-    <footer class="text-secondary text-center py-1 mt-4 rounded" style="background-color: rgba(0, 0, 0, 0.05);">
+    <footer class="text-secondary text-center py-1 mt-4" style="background-color: rgba(0, 0, 0, 0.05);">
         <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href="" style="text-decoration: none;">IT
                 DCM</a></div>
     </footer>
