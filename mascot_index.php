@@ -2,6 +2,9 @@
 session_start();
 require('config.php');
 include 'db.php';
+require 'vendor/autoload.php';
+
+use Carbon\Carbon;
 
 // Ambil keyword dan filter status dari URL
 $search = $_GET['search'] ?? '';
@@ -126,7 +129,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 ?>
 
 <!DOCTYPE html>
-<html>
+<html data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -136,7 +139,6 @@ $username = $isLoggedIn ? $_SESSION : null;
     <style>
     body {
         font-family: Arial, sans-serif;
-        background-color: #f2f2f2;
         color: #000;
         padding: 12px;
         text-align: center;
@@ -166,55 +168,6 @@ $username = $isLoggedIn ? $_SESSION : null;
         padding: 10px;
     }
 
-    .dark-mode {
-        background-color: #212529;
-        color: #ffffff;
-    }
-
-    .dark-mode .card {
-        background-color: #1e1e1e;
-        color: #ffffff;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        transition: transform 0.2s, box-shadow 0.2s;
-        opacity: 0;
-        transform: translateY(20px);
-        animation: fadeInUp 0.8s ease forwards;
-        animation-delay: 0.3s;
-        border: 1px solid #444;
-    }
-
-    .dark-mode .card:hover {
-        transform: scale(1.040) !important;
-        /* Tambahkan !important jika diperlukan */
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        box-shadow: 0 12px 24px rgba(255, 255, 255, 0.2);
-        border-color: #888;
-    }
-
-    .dark-mode .card-body {
-        padding: 10px;
-    }
-
-    .dark-mode .btn-primary {
-        background-color: #007bff;
-        color: #fff;
-    }
-
-    .dark-mode .btn-success {
-        background-color: #198754;
-        color: #fff;
-    }
-
-    .dark-mode .btn-warning {
-        background-color: #ffc107;
-        color: #000;
-    }
-
-    .dark-mode .btn-danger {
-        background-color: #dc3545;
-        color: #fff;
-    }
-
     .btn-indigo {
         background-color: #6610f2;
         color: #fff;
@@ -234,14 +187,6 @@ $username = $isLoggedIn ? $_SESSION : null;
         /* Warna teks saat aktif */
         border-color: #6610f2;
         /* Warna border saat aktif */
-    }
-
-    .dark-mode .modal {
-        background-color: rgba(0, 0, 0, 0.9);
-    }
-
-    .dark-mode .modal-content {
-        background-color: #1e1e1e;
     }
 
     .search-filter {
@@ -414,35 +359,33 @@ $username = $isLoggedIn ? $_SESSION : null;
         display: inline-block;
     }
 
-    .status-belum {
-        background-color: red;
-    }
-
-    .status-progress {
-        background-color: orange;
-    }
-
-    .status-revisi {
-        background-color: purple;
-    }
-
-    .status-selesai {
-        background-color: green;
-    }
-
-    .text-purple {
-        color: #4A25AA !important;
-    }
-
-    .dark-mode .text-purple {
-        color: rgb(255, 255, 255) !important;
-    }
-
     .btn.active {
         outline: 2px solid var(--btn-bg, var(--bs-btn-bg));
         /* Tambahkan outline */
         outline-offset: 2px;
         /* Berikan jarak antara outline dan elemen */
+    }
+
+    .card-body strong {
+        color: var(--bs-body-color);
+        /* Warna teks dinamis berdasarkan tema */
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .card-body p {
+        color: var(--bs-body-color);
+        /* Warna teks dinamis berdasarkan tema */
+        font-size: 14px;
+        margin-top: 8px;
+        line-height: 1.5;
+    }
+
+    p.text-center {
+        color: var(--bs-body-color);
+        /* Warna teks dinamis berdasarkan tema */
+        font-size: 16px;
+        margin-top: 20px;
     }
     </style>
 </head>
@@ -451,11 +394,11 @@ $username = $isLoggedIn ? $_SESSION : null;
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <div class="d-flex align-items-center">
-                <!-- Logo Mascot -->
+                <!-- Logo CCM -->
                 <a href="index.php">
-                    <img src="uploads/me.png" alt="Mascot Logo" style="width: 50px; height: 50px; margin-right: 5px;">
+                    <img src="uploads/me.png" alt="ME Logo" style="width: 50px; height: 50px; margin-right: 5px;">
                 </a>
-                <h3 class="fw-bold text-purple mb-0">Mascot Project List</h3>
+                <h3 class="fw-bold text-header mb-0">Mascot Project List</h3>
             </div>
             <!-- Tombol Login atau Dashboard -->
             <div>
@@ -583,7 +526,9 @@ $username = $isLoggedIn ? $_SESSION : null;
                     </span>
                     <div class="deadline">Quantity: <?= htmlspecialchars($row['quantity']) ?></div>
                     <?php if ($row['deadline']): ?>
-                    <div class="deadline">Deadline: <?= htmlspecialchars($row['deadline']) ?></div>
+                    <div class="deadline">
+                        Deadline: <?= htmlspecialchars(Carbon::parse($row['deadline'])->format('d M Y')) ?>
+                    </div>
                     <?php endif; ?>
                     <p style="margin-top: 8px; font-size: 14px;">
                         <?= nl2br(htmlspecialchars($row['description'])) ?>
@@ -679,25 +624,25 @@ $username = $isLoggedIn ? $_SESSION : null;
         modal.style.display = "none";
     }
 
-    // Ambil tombol toggle
     const toggleDarkMode = document.getElementById('toggleDarkMode');
-    const body = document.body;
+    const html = document.documentElement;
 
     // Periksa preferensi dark mode dari localStorage
-    if (localStorage.getItem('dark-mode') === 'enabled') {
-        body.classList.add('dark-mode');
+    if (localStorage.getItem('theme') === 'dark') {
+        html.setAttribute('data-bs-theme', 'dark');
+        toggleDarkMode.innerHTML = '<i class="bi bi-sun"></i>';
     }
 
     // Tambahkan event listener untuk tombol toggle
     toggleDarkMode.addEventListener('click', () => {
-        if (body.classList.contains('dark-mode')) {
-            body.classList.remove('dark-mode');
+        if (html.getAttribute('data-bs-theme') === 'dark') {
+            html.setAttribute('data-bs-theme', 'light');
             toggleDarkMode.innerHTML = '<i class="bi bi-moon"></i>';
-            localStorage.setItem('dark-mode', 'disabled');
+            localStorage.setItem('theme', 'light');
         } else {
-            body.classList.add('dark-mode');
+            html.setAttribute('data-bs-theme', 'dark');
             toggleDarkMode.innerHTML = '<i class="bi bi-sun"></i>';
-            localStorage.setItem('dark-mode', 'enabled');
+            localStorage.setItem('theme', 'dark');
         }
     });
     </script>

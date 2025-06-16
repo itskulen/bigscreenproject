@@ -17,4 +17,4 @@ Thumbs.db
 node_modules/
 
 # Ignore composer dependencies (if using PHP Composer)
-vendor/
+# vendor/

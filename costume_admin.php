@@ -3,6 +3,9 @@ session_start();
 include 'db.php';
 include 'middleware.php';
 checkUserRole('costume'); // Hanya costume admin yang bisa mengakses
+require 'vendor/autoload.php';
+
+use Carbon\Carbon;
 
 $sql = "SELECT project_name, project_status, priority, quantity, project_image, material_image, description, deadline,
 createAt, updateAt
@@ -291,7 +294,11 @@ $result = $pdo->query($sql);
                         <?php endif; ?>
                     </td>
                     <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
-                    <td><?= !empty($row['deadline']) ? htmlspecialchars($row['deadline']) : '-' ?></td>
+                    <td>
+                        <?= !empty($row['deadline'])
+                                ? htmlspecialchars(Carbon::parse($row['deadline'])->format('d M Y'))
+                                : '-' ?>
+                    </td>
                     <td>
                         <a href="costume_edit.php?id=<?= $row['id'] ?>" class="btn btn-warning btn-sm mb-1">Edit</a>
                         <a href="#" class="btn btn-danger btn-sm"
