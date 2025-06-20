@@ -466,6 +466,15 @@ $result = $pdo->query($sql);
             document.getElementById('quantity_error').textContent = "";
         }
 
+        // Validasi Deadline
+        const deadline = document.getElementById('deadline');
+        if (!deadline.value) {
+            isValid = false;
+            document.getElementById('deadline_error').textContent = "Deadline is required.";
+        } else {
+            document.getElementById('deadline_error').textContent = "";
+        }
+
         // Jika ada error, cegah pengiriman form
         if (!isValid) {
             e.preventDefault();
