@@ -27,6 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if (empty($_POST['deadline'])) {
+        $_SESSION['message'] = 'Deadline is required.';
+        $_SESSION['message_type'] = 'danger';
+        header('Location: mascot_admin.php');
+        exit;
+    }
+
     // Validasi deadline
     if (!empty($deadline) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $deadline)) {
         $_SESSION['message'] = "Invalid deadline format.";

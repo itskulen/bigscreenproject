@@ -12,6 +12,10 @@ $filter = $_GET['project_status'] ?? '';
 
 function isThisWeek($deadline)
 {
+    if (empty($deadline)) {
+        return false; // Jika deadline kosong, kembalikan false
+    }
+    
     $currentDate = new DateTime();
     $startOfWeek = $currentDate->modify('this week')->setTime(0, 0, 0); // Awal minggu (Senin)
     $endOfWeek = (clone $startOfWeek)->modify('+6 days')->setTime(23, 59, 59); // Akhir minggu (Minggu)

@@ -11,11 +11,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $deadline = !empty($_POST['deadline']) ? $_POST['deadline'] : null;
     $subformEmbed = !empty($_POST['subform_embed']) ? $_POST['subform_embed'] : null;
 
+    if (empty($projectName)) {
+        $_SESSION['message'] = 'Project Name is required.';
+        $_SESSION['message_type'] = 'danger';
+        header('Location: costume_admin.php');
+        exit;
+    }
+
     // Validasi subformEmbed
     if (!empty($subformEmbed) && !filter_var($subformEmbed, FILTER_VALIDATE_URL)) {
         $_SESSION['message'] = "Invalid Google Slide URL.";
         $_SESSION['message_type'] = "danger";
         header("Location: costume_admin.php#alertMessage");
+        exit;
+    }
+
+    if (empty($projectStatus) || $projectStatus === 'Select Status') {
+        $_SESSION['message'] = 'Project Status is required.';
+        $_SESSION['message_type'] = 'danger';
+        header('Location: costume_admin.php');
+        exit;
+    }
+
+    if (empty($priority) || $priority === 'Select Priority') {
+        $_SESSION['message'] = 'Priority is required.';
+        $_SESSION['message_type'] = 'danger';
+        header('Location: costume_admin.php');
         exit;
     }
 
@@ -29,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($_POST['deadline'])) {
         $_SESSION['message'] = 'Deadline is required.';
-        $_SESSION['message_type'] = 'error';
+        $_SESSION['message_type'] = 'danger';
         header('Location: costume_admin.php');
         exit;
     }
