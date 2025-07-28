@@ -7,6 +7,7 @@ session_start();
 
 <head>
     <title>Unauthorized Access</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <body>
