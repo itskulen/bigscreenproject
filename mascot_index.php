@@ -98,7 +98,7 @@ function getPriorityClass($priority)
         case 'medium':
             return 'background-color: #ffc107;'; // Yellow
         case 'normal':
-            return 'background-color: #0d6efd;'; // Blue/Cyan
+            return 'background-color: #8b5cf6;'; // Purple accent
         case 'low':
             return 'background-color: #28a745;'; // Green
         default:
@@ -160,7 +160,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: #000;
                 padding: 0;
                 margin: 0;
-                background: linear-gradient(135deg, #5B4CD0, #5E22CE);
+                background: linear-gradient(135deg, #f8fafc, #e2e8f0, #cbd5e1);
                 background-attachment: fixed;
                 background-size: cover;
                 min-height: 100vh;
@@ -181,42 +181,120 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             /* Header improvements */
             .header-section {
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 border-radius: 15px;
                 padding: 0.8rem;
                 margin-bottom: 1.2rem;
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(226, 232, 240, 0.8);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                position: relative;
+                overflow: hidden;
             }
 
+            /* Purple accent border/gradient di bagian atas header */
+            .header-section::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, #8b5cf6, #7c3aed, #6d28d9, #7c3aed, #8b5cf6);
+                background-size: 200% 100%;
+                animation: gradientShift 3s ease-in-out infinite;
+            }
+
+            @keyframes gradientShift {
+
+                0%,
+                100% {
+                    background-position: 0% 50%;
+                }
+
+                50% {
+                    background-position: 100% 50%;
+                }
+            }
+
+            /* Purple accent untuk logo container */
+            .logo-container {
+                position: relative;
+                display: inline-block;
+            }
+
+            /* Purple accent untuk title */
             .text-header {
-                color: white;
-                text-shadow:
-                    -1px -1px 0 rgba(0, 0, 0, 0.3),
-                    1px -1px 0 rgba(0, 0, 0, 0.3),
-                    -1px 1px 0 rgba(0, 0, 0, 0.3),
-                    1px 1px 0 rgba(0, 0, 0, 0.3);
+                color: #334155;
+                text-shadow: none;
                 font-weight: 600;
+                position: relative;
+            }
+
+            .text-header::after {
+                content: '';
+                position: absolute;
+                bottom: -4px;
+                left: 0;
+                width: 0;
+                height: 2px;
+                background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+                transition: width 0.3s ease;
+                border-radius: 1px;
+            }
+
+            .text-header:hover::after {
+                width: 100%;
+            }
+
+            /* Purple glow effect untuk header saat hover */
+            .header-section:hover {
+                box-shadow: 0 4px 20px rgba(139, 92, 246, 0.15),
+                    0 8px 40px rgba(139, 92, 246, 0.1);
+                border-color: rgba(139, 92, 246, 0.3);
+            }
+
+            /* Dark mode untuk header accent */
+            [data-bs-theme="dark"] .header-section {
+                background: rgba(30, 41, 59, 0.95);
+                border: 1px solid rgba(139, 92, 246, 0.3);
+            }
+
+            [data-bs-theme="dark"] .header-section::before {
+                background: linear-gradient(90deg, #a78bfa, #8b5cf6, #7c3aed, #8b5cf6, #a78bfa);
+                background-size: 200% 100%;
+            }
+
+            [data-bs-theme="dark"] .text-header {
+                color: #e2e8f0;
+            }
+
+            [data-bs-theme="dark"] .header-section:hover {
+                box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25),
+                    0 8px 40px rgba(139, 92, 246, 0.15);
+                border-color: rgba(139, 92, 246, 0.5);
             }
 
             /* Search section improvements */
             .search-section {
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 border-radius: 15px;
                 padding: 1rem;
                 margin-bottom: 1.2rem;
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(226, 232, 240, 0.8);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             }
 
             /* Filter buttons improvements */
             .filters-section {
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 border-radius: 15px;
                 padding: 1rem;
                 margin-bottom: 1.2rem;
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(226, 232, 240, 0.8);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             }
 
             .filters-container {
@@ -237,17 +315,32 @@ $username = $isLoggedIn ? $_SESSION : null;
             .filter-divider {
                 width: 2px;
                 height: 30px;
-                background: rgba(255, 255, 255, 0.3);
+                background: rgba(148, 163, 184, 0.5);
                 margin: 0 0.5rem;
             }
 
             footer {
                 margin-top: auto;
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 text-align: center;
                 padding: 1rem;
-                color: white;
+                color: #475569;
+                border-top: 1px solid rgba(226, 232, 240, 0.8);
+            }
+
+            /* Purple accents for small elements */
+            .purple-accent {
+                background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+                color: white !important;
+            }
+
+            .purple-border {
+                border-color: #8b5cf6 !important;
+            }
+
+            .purple-text {
+                color: #7c3aed !important;
             }
 
             /* Button improvements */
@@ -357,9 +450,8 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             .btn-primary-custom {
-                background-color: #f59e0b;
-                /* Amber/orange */
-                border-color: #f59e0b;
+                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                border-color: #8b5cf6;
                 color: #fff;
                 font-weight: 500;
                 border-radius: 25px;
@@ -367,10 +459,10 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             .btn-primary-custom:hover {
-                background-color: #d97706;
-                border-color: #d97706;
+                background: linear-gradient(135deg, #7c3aed, #6d28d9);
+                border-color: #7c3aed;
                 color: #fff;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
             }
 
             .btn.bg-danger-subtle.active {
@@ -435,19 +527,17 @@ $username = $isLoggedIn ? $_SESSION : null;
                 background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 border-radius: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.3);
+                border: 2px solid rgba(139, 92, 246, 0.3);
                 overflow: hidden;
                 transition: all 0.3s ease;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 8px 32px rgba(139, 92, 246, 0.08);
                 position: relative;
             }
 
             .card:hover {
-                outline: 2px solid #fd7e14;
-                outline-offset: 2px;
-                transform: scale(1.04);
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-                border-color: #ffffff80;
+                transform: scale(1.06);
+                box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+                border-color: rgba(139, 92, 246, 0.8);
                 z-index: 10;
             }
 
@@ -462,6 +552,46 @@ $username = $isLoggedIn ? $_SESSION : null;
             .card-body {
                 padding: 1rem;
                 background: rgba(255, 255, 255, 0.9);
+                color: var(--bs-body-color);
+            }
+
+            /* Purple accent untuk project title */
+            .card-body strong {
+                color: var(--bs-body-color);
+                font-size: 16px;
+                cursor: pointer;
+                position: relative;
+                transition: color 0.3s ease;
+            }
+
+            .card-body strong:hover {
+                color: #8b5cf6;
+            }
+
+            /* Card text elements */
+            .card-body p {
+                color: var(--bs-body-color);
+                font-size: 14px;
+                margin-top: 8px;
+                line-height: 1.5;
+            }
+
+            /* Deadline text */
+            .deadline {
+                font-size: 13px;
+                color: var(--bs-secondary-color);
+                margin: 4px 0;
+                font-weight: 500;
+                display: inline-block;
+            }
+
+            /* Purple accent untuk material image container */
+            .card:hover .material-container {
+                border-color: rgba(139, 92, 246, 0.3) !important;
+            }
+
+            [data-bs-theme="dark"] .card:hover .material-container {
+                border-color: rgba(139, 92, 246, 0.5) !important;
             }
 
             .status-label {
@@ -475,14 +605,6 @@ $username = $isLoggedIn ? $_SESSION : null;
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
             }
 
-            .deadline {
-                font-size: 13px;
-                color: #666;
-                margin: 4px 0;
-                font-weight: 500;
-                display: inline-block;
-            }
-
             .deadline-container {
                 display: flex;
                 gap: 1rem;
@@ -494,14 +616,29 @@ $username = $isLoggedIn ? $_SESSION : null;
                 position: absolute;
                 top: 10px;
                 right: 10px;
-                background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+                background: linear-gradient(45deg, rgba(239, 68, 68, 0.6), #dc2626);
                 color: white;
                 padding: 4px 8px;
                 border-radius: 15px;
                 font-size: 11px;
                 font-weight: 600;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
                 z-index: 5;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+                }
+
+                50% {
+                    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.7), 0 0 0 4px rgba(239, 68, 68, 0.2);
+                }
+
+                100% {
+                    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+                }
             }
 
             /* Modal styles */
@@ -621,30 +758,16 @@ $username = $isLoggedIn ? $_SESSION : null;
                 /* Berikan jarak antara outline dan elemen */
             }
 
-            .card-body strong {
-                color: var(--bs-body-color);
-                /* Warna teks dinamis berdasarkan tema */
-                font-size: 16px;
-                cursor: pointer;
-            }
-
-            .card-body p {
-                color: var(--bs-body-color);
-                /* Warna teks dinamis berdasarkan tema */
-                font-size: 14px;
-                margin-top: 8px;
-                line-height: 1.5;
-            }
-
             p.text-center {
-                color: white;
+                color: #475569;
                 font-size: 18px;
                 margin-top: 2rem;
                 padding: 2rem;
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 border-radius: 15px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(226, 232, 240, 0.8);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             }
 
             /* Responsive improvements */
@@ -703,70 +826,171 @@ $username = $isLoggedIn ? $_SESSION : null;
             /* Dark mode improvements */
             [data-bs-theme="dark"] .header-section,
             [data-bs-theme="dark"] .search-filter-combined {
-                background: rgba(0, 0, 0, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: rgba(30, 41, 59, 0.95);
+                border: 1px solid rgba(71, 85, 105, 0.5);
+            }
+
+            [data-bs-theme="dark"] .text-header {
+                color: #e2e8f0;
+            }
+
+            [data-bs-theme="dark"] footer {
+                background: rgba(30, 41, 59, 0.95);
+                color: #cbd5e1;
+                border-top: 1px solid rgba(71, 85, 105, 0.5);
+            }
+
+            [data-bs-theme="dark"] body {
+                background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+            }
+
+            [data-bs-theme="dark"] .filter-divider {
+                background: rgba(71, 85, 105, 0.5);
+            }
+
+            [data-bs-theme="dark"] p.text-center {
+                background: rgba(30, 41, 59, 0.95);
+                color: #cbd5e1;
+                border: 1px solid rgba(71, 85, 105, 0.5);
+            }
+
+            [data-bs-theme="dark"] footer a {
+                color: #a78bfa !important;
             }
 
             [data-bs-theme="dark"] .card {
                 background: rgba(33, 37, 41, 0.95);
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(139, 92, 246, 0.4);
+                box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
+            }
+
+            [data-bs-theme="dark"] .card:hover {
+                border-color: rgba(139, 92, 246, 0.8);
+                box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
             }
 
             [data-bs-theme="dark"] .card-body {
                 background: rgba(33, 37, 41, 0.9);
-                color: #fff;
+                color: #fff !important;
+            }
+
+            [data-bs-theme="dark"] .card-body strong:hover {
+                color: #a78bfa;
             }
 
             [data-bs-theme="dark"] .card-body strong {
-                color: #fff;
+                color: #fff !important;
             }
 
             [data-bs-theme="dark"] .card-body p {
-                color: #e9ecef;
+                color: #e9ecef !important;
             }
 
             [data-bs-theme="dark"] .deadline {
-                color: #ced4da;
+                color: #ced4da !important;
+            }
+
+            [data-bs-theme="dark"] .card-body .deadline {
+                color: #ced4da !important;
             }
 
             [data-bs-theme="dark"] .form-control,
             [data-bs-theme="dark"] .form-select {
-                background: rgba(33, 37, 41, 0.9);
-                color: #fff;
-                border-color: rgba(255, 255, 255, 0.2);
+                background: rgba(33, 37, 41, 0.9) !important;
+                color: #fff !important;
+                border-color: rgba(255, 255, 255, 0.2) !important;
+            }
+
+            [data-bs-theme="dark"] .form-control:focus,
+            [data-bs-theme="dark"] .form-select:focus {
+                background: rgba(33, 37, 41, 1) !important;
+                color: #fff !important;
+                border-color: #8b5cf6 !important;
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.3) !important;
+            }
+
+            [data-bs-theme="dark"] .form-control::placeholder {
+                color: #adb5bd !important;
+            }
+
+            /* Ensure text in inputs is always visible */
+            .form-control {
+                color: var(--bs-body-color) !important;
+            }
+
+            .form-select {
+                color: var(--bs-body-color) !important;
             }
 
             [data-bs-theme="dark"] .input-group-text {
-                background: rgba(33, 37, 41, 0.9) !important;
-                color: #fff;
-                border-color: rgba(255, 255, 255, 0.2);
+                background: rgba(139, 92, 246, 0.9) !important;
+                color: #fff !important;
+                border-color: rgba(139, 92, 246, 0.6) !important;
             }
 
             /* Form improvements */
             .form-control,
             .form-select {
                 border-radius: 25px;
-                border: 2px solid rgba(255, 255, 255, 0.3);
-                background: rgba(255, 255, 255, 0.9);
+                border: 2px solid rgba(226, 232, 240, 0.8);
+                background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 transition: all 0.3s ease;
             }
 
             .form-control:focus,
             .form-select:focus {
-                border-color: rgba(255, 255, 255, 0.6);
-                box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-                background: rgba(255, 255, 255, 0.95);
+                border-color: #8b5cf6;
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+                background: rgba(255, 255, 255, 1);
             }
 
             /* Combined search and filter section */
             .search-filter-combined {
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 border-radius: 15px;
                 padding: 1rem;
                 margin-bottom: 1.2rem;
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(226, 232, 240, 0.8);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+
+            /* Dark mode toggle button improvements */
+            #toggleDarkMode {
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                border: 0.5px solid #6c757d;
+                background: rgba(255, 255, 255, 0.95);
+                color: #6c757d;
+                transition: all 0.3s ease;
+                backdrop-filter: blur(10px);
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            #toggleDarkMode:hover {
+                background: #6c757d;
+                color: white;
+                border-color: #6c757d;
+                transform: scale(1.05);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            [data-bs-theme="dark"] #toggleDarkMode {
+                border-color: #8b5cf6;
+                background: rgba(139, 92, 246, 0.2);
+                color: #a78bfa;
+            }
+
+            [data-bs-theme="dark"] #toggleDarkMode:hover {
+                background: #8b5cf6;
+                color: white;
+                border-color: #8b5cf6;
             }
         </style>
     </head>
@@ -776,16 +1000,18 @@ $username = $isLoggedIn ? $_SESSION : null;
             <div class="header-section">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
-                        <!-- Logo CCM -->
-                        <a href="index.php" class="me-3">
-                            <img src="uploads/me.png" alt="ME Logo"
-                                style="width: 50px; height: 50px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                        </a>
+                        <!-- Logo dengan purple accent -->
+                        <div class="logo-container me-3">
+                            <a href="index.php">
+                                <img src="uploads/me.png" alt="ME Logo"
+                                    style="width: 50px; height: 50px; border-radius: 50%; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); border: 2px solid rgba(139, 92, 246, 0.2);">
+                            </a>
+                        </div>
                         <h3 class="fw-bold text-header mb-0">Mascot Project List</h3>
                     </div>
                     <!-- Tombol Login atau Dashboard -->
                     <div class="d-flex gap-2">
-                        <button id="toggleDarkMode" class="btn btn-outline-light">
+                        <button id="toggleDarkMode" class="btn btn-outline-secondary">
                             <i class="bi bi-moon"></i>
                         </button>
                         <?php if ($isLoggedIn): ?>
@@ -931,7 +1157,9 @@ $username = $isLoggedIn ? $_SESSION : null;
                             <div class="filter-group">
                                 <form method="GET" action="mascot_index.php" class="d-flex align-items-center">
                                     <div class="input-group">
-                                        <span class="input-group-text bg-white"><i class="bi bi-funnel"></i></span>
+                                        <span class="input-group-text"
+                                            style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border-color: #8b5cf6;"><i
+                                                class="bi bi-funnel"></i></span>
                                         <select name="priority" class="form-select border-start-0"
                                             onchange="this.form.submit()">
                                             <option value="">All Priority</option>
@@ -976,8 +1204,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                     <img src="uploads/projects/<?= htmlspecialchars($row['project_image']) ?>"
                         style="cursor: pointer;" alt="No Image Project yet" onclick="openModal(this.src)">
                     <div class="card-body">
-                        <strong
-                            style="cursor: pointer; font-size: 1.1rem; color: #333; margin-bottom: 0.3rem; display: block;"
+                        <strong style="cursor: pointer; font-size: 1.1rem; margin-bottom: 0.3rem; display: block;"
                             onclick="openGoogleSlideModal('<?= htmlspecialchars($row['subform_embed']) ?>')">
                             <i class="bi bi-file-earmark-slides me-1"></i><?= htmlspecialchars($row['project_name']) ?>
                         </strong>
@@ -1003,11 +1230,13 @@ $username = $isLoggedIn ? $_SESSION : null;
                             <?php endif; ?>
                         </div>
 
-                        <p style="margin: 6px 0; font-size: 14px; color: #666; line-height: 1.4;">
+                        <p style="margin: 6px 0; font-size: 14px; line-height: 1.4;">
                             <?= nl2br(htmlspecialchars($row['description'])) ?>
                         </p>
 
-                        <div style="margin-top: 8px; cursor: pointer; border-radius: 10px; overflow: hidden;">
+                        <!-- Material image dengan purple accent container -->
+                        <div class="material-container"
+                            style="margin-top: 8px; cursor: pointer; border-radius: 10px; overflow: hidden; border: 2px solid rgba(139, 92, 246, 0.1); transition: border-color 0.3s ease;">
                             <img src="uploads/materials/<?= htmlspecialchars($row['material_image']) ?>"
                                 alt="No Submission Notes yet"
                                 style="width: 100%; height: 150px; object-fit: contain; background-color: #f8f9fa;"
@@ -1019,9 +1248,9 @@ $username = $isLoggedIn ? $_SESSION : null;
                 <?php endif; ?>
             </div>
         </div>
-        <footer class="text-white text-center py-1">
-            <div class="mb-0">Create with ❤️ by <a class="text-white fw-bold" href=""
-                    style="text-decoration: none;">IT DCM</a></div>
+        <footer class="text-center py-1">
+            <div class="mb-0">Create with ❤️ by <a class="fw-bold" href=""
+                    style="text-decoration: none; color: #8b5cf6;">IT DCM</a></div>
         </footer>
 
         <!-- Modal for Images-->
