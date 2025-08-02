@@ -964,6 +964,29 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-color: rgba(139, 92, 246, 0.6) !important;
             }
 
+            /* Dark mode untuk live search */
+            [data-bs-theme="dark"] #searchInput:focus {
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.5) !important;
+                border-color: #a78bfa !important;
+            }
+
+            [data-bs-theme="dark"] #searchInput.typing {
+                border-color: #f39c12 !important;
+                box-shadow: 0 0 15px rgba(243, 156, 18, 0.4) !important;
+            }
+
+            /* Dark mode untuk no results */
+            [data-bs-theme="dark"] #noResults .alert {
+                background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 193, 7, 0.1)) !important;
+                border: 1px solid rgba(255, 193, 7, 0.5) !important;
+                color: #fbbf24 !important;
+            }
+
+            [data-bs-theme="dark"] .project-card.search-highlight {
+                border-color: rgba(139, 92, 246, 0.8) !important;
+                box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3) !important;
+            }
+
             /* Form improvements */
             .form-control,
             .form-select {
@@ -979,6 +1002,76 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-color: #8b5cf6;
                 box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
                 background: rgba(255, 255, 255, 1);
+            }
+
+            /* Live search enhancements */
+            #searchInput {
+                transition: all 0.3s ease;
+            }
+
+            #searchInput:focus {
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+                border-color: #8b5cf6;
+                transform: scale(1.02);
+            }
+
+            /* Search button loading state */
+            .btn-primary-custom {
+                transition: all 0.3s ease;
+            }
+
+            .btn-primary-custom .bi-hourglass-split {
+                animation: searchLoading 1s infinite ease-in-out;
+            }
+
+            @keyframes searchLoading {
+
+                0%,
+                100% {
+                    transform: rotate(0deg) scale(1);
+                }
+
+                50% {
+                    transform: rotate(180deg) scale(1.1);
+                }
+            }
+
+            /* Search input typing indicator */
+            #searchInput.typing {
+                border-color: #ffc107;
+                box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+            }
+
+            /* No results styling */
+            #noResults .alert {
+                background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+                border: 1px solid rgba(255, 193, 7, 0.3);
+                color: #f59e0b;
+                border-radius: 15px;
+                backdrop-filter: blur(10px);
+            }
+
+            /* Animation untuk project cards */
+            .project-card {
+                transition: all 0.3s ease;
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Highlight search matches */
+            .project-card.search-highlight {
+                border-color: rgba(139, 92, 246, 0.6) !important;
+                box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2) !important;
             }
 
             /* Combined search and filter section */
@@ -1288,21 +1381,21 @@ $username = $isLoggedIn ? $_SESSION : null;
                 <!-- Search and Filters in one row -->
                 <div class="row g-3 align-items-center">
                     <div class="col-lg-4 col-md-6">
-                        <!-- Tambahkan form wrapper untuk search -->
-                        <form method="GET" action="mascot_index.php">
-                            <div class="input-group">
-                                <input type="text" name="search" class="form-control border-start-0"
-                                    placeholder="Search Project..." value="<?= htmlspecialchars($search) ?>">
-                                <button type="submit" class="btn btn-primary-custom">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
-                            <!-- Pertahankan filter yang sudah aktif -->
-                            <input type="hidden" name="project_status"
+                        <!-- Real-time search input tanpa form -->
+                        <div class="input-group">
+                            <input type="text" id="searchInput" class="form-control"
+                                placeholder="Search Project..." value="<?= htmlspecialchars($search) ?>">
+                            <span class="input-group-text btn-primary-custom">
+                                <i class="bi bi-search"></i>
+                            </span>
+                        </div>
+                        <!-- Hidden form untuk maintain URL parameters saat menggunakan filter buttons -->
+                        <form method="GET" action="mascot_index.php" id="filterForm" style="display: none;">
+                            <input type="hidden" name="project_status" id="hiddenStatus"
                                 value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
-                            <input type="hidden" name="priority"
+                            <input type="hidden" name="priority" id="hiddenPriority"
                                 value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-                            <input type="hidden" name="this_week"
+                            <input type="hidden" name="this_week" id="hiddenThisWeek"
                                 value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
                         </form>
                     </div>
@@ -1454,12 +1547,25 @@ $username = $isLoggedIn ? $_SESSION : null;
                 </div>
             </div>
 
+            <!-- No Results Message -->
+            <div id="noResults" class="text-center" style="display: none;">
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-search me-2"></i>
+                    <strong>No results found</strong><br>
+                    <small>Try using different keywords or clear the search to see all projects.</small>
+                </div>
+            </div>
+
             <div class="card-grid">
                 <?php if (empty($projects)): ?>
                 <p class="text-center">No projects found for the selected filters.</p>
                 <?php else: ?>
                 <?php foreach ($projects as $index => $row): ?>
-                <div class="card">
+                <div class="card project-card"
+                    data-project-name="<?= strtolower(htmlspecialchars($row['project_name'])) ?>"
+                    data-description="<?= strtolower(htmlspecialchars($row['description'])) ?>"
+                    data-status="<?= strtolower(htmlspecialchars($row['project_status'])) ?>"
+                    data-priority="<?= strtolower(htmlspecialchars($row['priority'])) ?>">
                     <?php if (isThisWeek($row['deadline'])): ?>
                     <div class="this-week-badge">
                         <i class="bi bi-calendar-event me-1"></i>This Week!
@@ -1763,10 +1869,6 @@ $username = $isLoggedIn ? $_SESSION : null;
                 },
                 // Event callbacks
                 on: {
-                    reveal: (fancybox, slide) => {
-                        // Add custom effects when image is revealed
-                        console.log(`Menampilkan: ${slide.caption || 'Gambar'}`);
-                    },
                     "Carousel.ready": (fancybox) => {
                         // When carousel is ready
                         console.log("Fancybox gallery siap");
@@ -1816,6 +1918,124 @@ $username = $isLoggedIn ? $_SESSION : null;
                 var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
                     return new bootstrap.Tooltip(tooltipTriggerEl);
                 });
+
+                // Live Search Functionality (seperti DataTables)
+                const searchInput = document.getElementById('searchInput');
+                const projectCards = document.querySelectorAll('.project-card');
+                const cardGrid = document.querySelector('.card-grid');
+                const noResults = document.getElementById('noResults');
+                const originalNoProjectsMessage = document.querySelector('.text-center');
+
+                let searchTimeout;
+
+                // Debounce function untuk smooth performance
+                function debounce(func, delay) {
+                    return function(args) {
+                        clearTimeout(searchTimeout);
+                        searchTimeout = setTimeout(() => func.apply(this, [args]), delay);
+                    };
+                }
+
+                // Fungsi untuk melakukan filtering real-time
+                function performRealTimeFilter() {
+                    const searchValue = searchInput.value.toLowerCase().trim();
+                    let visibleCount = 0;
+                    const totalCards = projectCards.length;
+
+                    // Sembunyikan pesan "No projects found" original jika ada
+                    if (originalNoProjectsMessage && totalCards > 0) {
+                        originalNoProjectsMessage.style.display = 'none';
+                    }
+
+                    projectCards.forEach(card => {
+                        const projectName = card.getAttribute('data-project-name') || '';
+                        const description = card.getAttribute('data-description') || '';
+                        const status = card.getAttribute('data-status') || '';
+                        const priority = card.getAttribute('data-priority') || '';
+
+                        // Gabungkan semua text yang bisa dicari
+                        const searchableText = (projectName + ' ' + description + ' ' + status + ' ' + priority)
+                            .toLowerCase();
+
+                        const isMatch = searchValue === '' || searchableText.includes(searchValue);
+
+                        if (isMatch) {
+                            card.style.display = 'block';
+                            card.style.animation = 'fadeInUp 0.3s ease forwards';
+                            visibleCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+
+                    // Update search info dan no results message
+                    updateSearchResults(searchValue, visibleCount, totalCards);
+                }
+
+                // Fungsi untuk update search results info
+                function updateSearchResults(searchValue, visibleCount, totalCards) {
+                    if (searchValue === '') {
+                        // Tidak ada pencarian
+                        noResults.style.display = 'none';
+                    } else if (visibleCount === 0) {
+                        // Tidak ada hasil
+                        noResults.style.display = 'block';
+                        noResults.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                    } else {
+                        // Ada hasil
+                        noResults.style.display = 'none';
+                    }
+                }
+
+                // Event listener untuk real-time search
+                if (searchInput && projectCards.length > 0) {
+                    const debouncedFilter = debounce(performRealTimeFilter, 150); // 150ms delay untuk responsiveness
+
+                    searchInput.addEventListener('input', function(e) {
+                        const searchButton = document.querySelector('.input-group-text');
+
+                        // Visual feedback saat mengetik
+                        this.classList.add('typing');
+
+                        if (this.value.length > 0) {
+                            searchButton.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+                            searchButton.style.opacity = '0.8';
+                        } else {
+                            searchButton.innerHTML = '<i class="bi bi-search"></i>';
+                            searchButton.style.opacity = '1';
+                        }
+
+                        // Jalankan filter dengan debounce
+                        debouncedFilter();
+
+                        // Remove typing class setelah delay
+                        setTimeout(() => {
+                            this.classList.remove('typing');
+                            searchButton.innerHTML = '<i class="bi bi-search"></i>';
+                            searchButton.style.opacity = '1';
+                        }, 300);
+                    });
+
+                    // Jalankan filter awal jika ada nilai search dari URL
+                    if (searchInput.value.trim() !== '') {
+                        performRealTimeFilter();
+                    }
+
+                    // Tambahkan placeholder interaktif
+                    const originalPlaceholder = searchInput.placeholder;
+                    searchInput.addEventListener('focus', function() {
+                        this.placeholder = 'Search Project...';
+                    });
+
+                    searchInput.addEventListener('blur', function() {
+                        if (this.value === '') {
+                            this.placeholder = originalPlaceholder;
+                        }
+                    });
+                }
             });
         </script>
     </body>
