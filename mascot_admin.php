@@ -22,29 +22,387 @@ $result = $pdo->query($sql);
         <!-- DataTables CSS -->
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
+        <!-- Fancybox CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
         <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
         <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                margin: 0;
+                padding: 0;
+            }
+
+            .main-container {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                border-radius: 15px;
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+                margin: 15px;
+                padding: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                width: calc(100% - 30px);
+                max-width: none;
+            }
+
+            .header-section {
+                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+            }
+
+            .header-section h2 {
+                margin: 0;
+                font-weight: 600;
+                font-size: 1.5rem;
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            }
+
+            .top-buttons {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+
+            .btn-modern {
+                border-radius: 20px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+                border: none;
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+
+            .btn-modern:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            }
+
+            .btn-modern.btn-danger {
+                background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            }
+
+            .btn-modern.btn-success {
+                background: linear-gradient(135deg, #51cf66, #40c057);
+            }
+
+            .form-section {
+                background: rgba(255, 255, 255, 0.9);
+                padding: 20px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                border: 1px solid rgba(139, 92, 246, 0.1);
+            }
+
+            .form-group {
+                margin-bottom: 18px;
+            }
+
+            .form-control,
+            .form-select {
+                border-radius: 10px;
+                border: 2px solid #e9ecef;
+                padding: 10px 14px;
+                font-size: 14px;
+                transition: all 0.3s ease;
+                background: rgba(255, 255, 255, 0.9);
+            }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #8b5cf6;
+                box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+                background: white;
+            }
+
+            .form-label {
+                font-weight: 600;
+                color: #4a5568;
+                margin-bottom: 8px;
+                display: block;
+            }
+
             .drop-zone {
-                border: 2px dashed #007bff;
-                padding: 30px;
+                border: 3px dashed #8b5cf6;
+                padding: 25px;
                 text-align: center;
-                background: #f8f9fa;
-                margin-bottom: 10px;
+                background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(124, 58, 237, 0.05));
+                margin-bottom: 12px;
                 cursor: pointer;
-                border-radius: 5px;
+                border-radius: 12px;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .drop-zone::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+                transition: left 0.5s ease;
+            }
+
+            .drop-zone:hover::before {
+                left: 100%;
             }
 
             .drop-zone:hover {
-                background: #e9ecef;
+                background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.1));
+                border-color: #7c3aed;
+                transform: translateY(-2px);
+                box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
             }
 
-            .container {
-                margin-top: 30px;
+            .drop-zone i {
+                font-size: 2rem;
+                color: #8b5cf6;
+                margin-bottom: 10px;
+                display: block;
+            }
+
+            .drop-zone-text {
+                color: #6b7280;
+                font-weight: 500;
             }
 
             .error {
-                color: red;
-                font-size: 0.9em;
+                color: #ef4444;
+                font-size: 0.875rem;
+                margin-top: 5px;
+                font-weight: 500;
+            }
+
+            .btn-upload {
+                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                border: none;
+                color: white;
+                padding: 12px 30px;
+                border-radius: 20px;
+                font-weight: 600;
+                font-size: 15px;
+                transition: all 0.3s ease;
+                box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+                width: 100%;
+            }
+
+            .btn-upload:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 35px rgba(139, 92, 246, 0.4);
+                background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            }
+
+            .table-section {
+                background: rgba(255, 255, 255, 0.9);
+                padding: 20px;
+                border-radius: 12px;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                border: 1px solid rgba(139, 92, 246, 0.1);
+            }
+
+            .table-section h2 {
+                color: #4a5568;
+                font-weight: 600;
+                font-size: 1.2rem;
+                margin-bottom: 15px;
+                padding-bottom: 8px;
+                border-bottom: 3px solid #8b5cf6;
+                display: inline-block;
+            }
+
+            .container {
+                margin-top: 0;
+            }
+
+            /* DataTable Styling */
+            .dataTables_wrapper {
+                padding: 15px 0;
+            }
+
+            .dataTables_filter input {
+                border-radius: 20px !important;
+                border: 2px solid #e9ecef !important;
+                padding: 6px 14px !important;
+                margin-left: 8px !important;
+                font-size: 14px !important;
+            }
+
+            .dataTables_filter input:focus {
+                border-color: #8b5cf6 !important;
+                box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1) !important;
+            }
+
+            .dataTables_length select {
+                border-radius: 6px !important;
+                border: 2px solid #e9ecef !important;
+                padding: 4px 8px !important;
+                font-size: 14px !important;
+            }
+
+            .table-responsive {
+                border-radius: 10px;
+                overflow-x: auto;
+                overflow-y: visible;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+                max-width: 100%;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table {
+                margin-bottom: 0;
+                font-size: 14px;
+                /* Increased font size for better readability */
+                width: 100%;
+                /* Use full width on desktop */
+                white-space: nowrap;
+            }
+
+            /* Only apply minimum width on smaller screens */
+            @media (max-width: 1199px) {
+                .table {
+                    min-width: 1000px;
+                }
+            }
+
+            .table thead th {
+                background: #8b5cf6;
+                color: white;
+                font-weight: 600;
+                border: none;
+                padding: 12px 8px;
+                text-align: center;
+                font-size: 14px;
+                /* Increased font size */
+                white-space: nowrap;
+            }
+
+            .table tbody td {
+                padding: 12px 8px;
+                /* Increased padding */
+                vertical-align: middle;
+                border-bottom: 1px solid #f1f5f9;
+                font-size: 16px;
+                /* Increased font size */
+            }
+
+            .table tbody tr:hover {
+                background-color: rgba(139, 92, 246, 0.05);
+                transition: all 0.2s ease;
+            }
+
+            .table .form-select {
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                padding: 4px 8px;
+                font-size: 14px;
+                min-width: 100px;
+            }
+
+            .btn-sm {
+                border-radius: 12px;
+                font-weight: 500;
+                padding: 4px 10px;
+                font-size: 11px;
+                transition: all 0.2s ease;
+            }
+
+            .btn-sm:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+
+            /* Floating buttons styling */
+            .floating-buttons {
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                z-index: 1000;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .floating-btn {
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                transition: all 0.3s ease;
+                border: none;
+                cursor: pointer;
+                text-decoration: none;
+                font-size: 12px;
+                font-weight: bold;
+                color: white;
+                background: linear-gradient(135deg, #10b981, #059669);
+            }
+
+            .floating-btn:hover {
+                transform: translateY(-3px) scale(1.1);
+                box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
+                color: white;
+                text-decoration: none;
+            }
+
+            /* Scroll to project list button */
+            #scrollToProjectBtn {
+                display: none;
+                position: fixed;
+                bottom: 160px;
+                /* Position above scroll to top button */
+                right: 30px;
+                z-index: 1000;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                border: none;
+                color: white;
+                cursor: pointer;
+            }
+
+            #scrollToProjectBtn:hover {
+                transform: translateY(-3px) scale(1.1);
+                box-shadow: 0 12px 35px rgba(139, 92, 246, 0.4);
+                background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            }
+
+            /* Scroll to top button - specific positioning */
+            #scrollToTopBtn {
+                display: none;
+                position: fixed;
+                bottom: 100px;
+                /* Positioning above WhatsApp button */
+                right: 30px;
+                z-index: 1000;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+                background: linear-gradient(135deg, #fbbf24, #f59e0b);
+                border: none;
+                color: white;
+            }
+
+            #scrollToTopBtn:hover {
+                transform: translateY(-3px) scale(1.1);
+                box-shadow: 0 12px 35px rgba(245, 158, 11, 0.4);
+                background: linear-gradient(135deg, #f59e0b, #d97706);
             }
 
             .top-right {
@@ -57,24 +415,6 @@ $result = $pdo->query($sql);
             .dataTables_length select {
                 width: auto !important;
                 min-width: 70px;
-            }
-
-            #scrollToTopBtn {
-                display: none;
-                /* Tombol disembunyikan secara default */
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                z-index: 1000;
-                border-radius: 50%;
-                width: 50px;
-                height: 50px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                transition: opacity 0.3s ease, visibility 0.3s ease;
-            }
-
-            #scrollToTopBtn:hover {
-                background-color: #0056b3;
             }
 
             .btn-success:hover {
@@ -130,257 +470,519 @@ $result = $pdo->query($sql);
             /* Image gallery styling */
             .image-gallery {
                 position: relative;
+                display: inline-block;
             }
 
             .image-gallery img {
                 transition: transform 0.2s ease;
+                border: 2px solid transparent;
             }
 
             .image-gallery img:hover {
                 transform: scale(1.05);
+                border-color: #8b5cf6;
             }
 
-            .image-gallery .badge {
-                font-size: 0.7em;
+            /* Badge styling - transparan dan kecil, positioned di dalam gambar */
+            .image-count-badge {
+                top: 4px;
+                right: 4px;
+                background: rgba(0, 0, 0, 0.7) !important;
+                color: white !important;
+                border-radius: 10px;
+                padding: 2px 6px;
+                font-size: 0.65rem;
+                font-weight: 600;
+                line-height: 1;
+                min-width: 18px;
+                text-align: center;
+                backdrop-filter: blur(4px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                z-index: 2;
+            }
+
+            /* Hover effect untuk badge */
+            .image-gallery:hover .image-count-badge {
+                background: rgba(139, 92, 246, 0.85) !important;
+                transform: scale(1.05);
+            }
+
+            /* Loading state for select elements */
+            .form-select:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                background-color: #f8f9fa !important;
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
             }
 
             /* Preview container styling */
             #project_image_preview,
             #material_image_preview {
-                max-height: 300px;
+                max-height: 250px;
                 overflow-y: auto;
                 border: 1px solid #dee2e6;
-                border-radius: 5px;
-                padding: 10px;
+                border-radius: 8px;
+                padding: 8px;
+            }
+
+            .table {
+                font-size: 14px;
+                min-width: auto;
+                /* Remove minimum width constraint */
+            }
+
+            .table thead th,
+            .table tbody td {
+                padding: 14px 10px;
+                /* More padding on desktop */
+                font-size: 16px;
+            }
+            }
+
+            @media (max-width: 1200px) {
+                .main-container {
+                    margin: 10px;
+                    padding: 15px;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .header-section {
+                    padding: 12px 15px;
+                }
+
+                .header-section h2 {
+                    font-size: 1.3rem;
+                }
+
+                .header-section .d-flex {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+
+                .top-buttons {
+                    justify-content: center;
+                    width: 100%;
+                }
+
+                .btn-modern {
+                    font-size: 13px;
+                    padding: 6px 12px;
+                }
+
+                .form-section,
+                .table-section {
+                    padding: 15px;
+                }
+
+                .form-group {
+                    margin-bottom: 15px;
+                }
+
+                .drop-zone {
+                    padding: 20px;
+                }
+
+                .drop-zone i {
+                    font-size: 1.5rem;
+                }
+
+                .table thead th,
+                .table tbody td {
+                    padding: 8px 4px;
+                }
+
+                .table {
+                    min-width: 800px;
+                    /* Smaller minimum width for mobile */
+                }
+
+                .table-responsive {
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                    border: 1px solid #dee2e6;
+                    border-radius: 8px;
+                }
+
+                .table .form-select {
+                    font-size: 11px;
+                    padding: 3px 6px;
+                    min-width: 80px;
+                }
+
+                .btn-sm {
+                    font-size: 10px;
+                    padding: 3px 8px;
+                }
+
+                /* Mobile styling untuk image gallery */
+                .image-gallery img {
+                    width: 45px !important;
+                    height: 45px !important;
+                }
+
+                .image-count-badge {
+                    top: 2px !important;
+                    right: 2px !important;
+                    font-size: 0.55rem !important;
+                    padding: 1px 4px !important;
+                    min-width: 14px !important;
+                }
+
+                .dataTables_filter input {
+                    padding: 5px 10px !important;
+                    font-size: 13px !important;
+                }
+
+                /* Mobile positioning for floating buttons */
+                .floating-buttons {
+                    bottom: 20px;
+                    right: 15px;
+                }
+
+                .floating-btn {
+                    width: 45px;
+                    height: 45px;
+                    font-size: 10px;
+                }
+
+                #scrollToTopBtn {
+                    bottom: 80px;
+                    right: 15px;
+                    width: 45px;
+                    height: 45px;
+                }
+
+                #scrollToProjectBtn {
+                    bottom: 130px;
+                    right: 15px;
+                    width: 45px;
+                    height: 45px;
+                }
+            }
+
+            @media (max-width: 576px) {
+                .main-container {
+                    margin: 5px;
+                    padding: 10px;
+                    border-radius: 10px;
+                }
+
+                .header-section {
+                    padding: 10px;
+                    border-radius: 8px;
+                }
+
+                .header-section h2 {
+                    font-size: 1.2rem;
+                }
+
+                .table-section h2 {
+                    font-size: 1.2rem;
+                }
+
+                .form-section,
+                .table-section {
+                    padding: 12px;
+                    border-radius: 8px;
+                }
+
+                .table {
+                    font-size: 10px;
+                    min-width: 700px;
+                    /* Even smaller for very small screens */
+                }
+
+                .table thead th,
+                .table tbody td {
+                    padding: 6px 3px;
+                }
+
+                .table-responsive {
+                    border-radius: 6px;
+                    margin: 0 -5px;
+                    /* Negative margin to utilize full width */
+                }
+
+                .btn-upload {
+                    padding: 10px 20px;
+                    font-size: 14px;
+                }
             }
         </style>
     </head>
 
     <body>
-        <div class="container">
-            <div class="top-left">
-                <a href="logout.php">
-                    <button type="button" class="btn btn-danger">Logout</button>
-                </a>
-                <a href="mascot_index.php" class="ml-2" target="_blank">
-                    <button type="button" class="btn btn-success">View Mascot Projects</button>
-                </a>
+        <div class="main-container">
+            <div class="header-section">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2><i class="bi bi-gear-fill me-2"></i>Admin Mascot Project</h2>
+                    <div class="top-buttons">
+                        <a href="logout.php">
+                            <button type="button" class="btn btn-modern btn-danger">
+                                <i class="bi bi-box-arrow-right me-2"></i>Logout
+                            </button>
+                        </a>
+                        <a href="mascot_index.php" target="_blank">
+                            <button type="button" class="btn btn-modern btn-success">
+                                <i class="bi bi-eye me-2"></i>View Projects
+                            </button>
+                        </a>
+                    </div>
+                </div>
             </div>
 
-            <h2 class="text-center">Upload Project Mascot</h2>
-            <form id="uploadForm" action="mascot_upload.php" method="POST" enctype="multipart/form-data" novalidate>
-                <div class="form-group">
-                    <label for="project_name">Project Name:</label>
-                    <input type="text" class="form-control" id="project_name" name="project_name" required>
-                    <div class="error" id="project_name_error"></div>
-                </div>
-
-                <div class="form-group">
-                    <label for="subform_embed">Submission Form Embed Link:</label>
-                    <textarea type="text" class="form-control" id="subform_embed" name="subform_embed"
-                        placeholder="Link Example: https://docs.google.com/presentation/d/e/2PACX-.../edit"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="project_status" class="form-label">Project Status</label>
-                    <select class="form-select col-6" name="project_status" id="project_status"
-                        aria-label="Default select example" required>
-                        <option value="">Select Status</option>
-                        <option value="Upcoming">Upcoming</option>
-                        <option value="Urgent">Urgent</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Revision">Revision</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Archived">Archived</option>
-                    </select>
-                    <div class="error" id="project_status_error"></div>
-                </div>
-
-                <div class="form-group">
-                    <label for="priority" class="form-label">Priority</label>
-                    <select class="form-select col-6" name="priority" id="priority" required>
-                        <option value="">Select Priority</option> <!-- Ubah dari selected ke value="" -->
-                        <option value="High">High</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Normal">Normal</option>
-                        <option value="Low">Low</option>
-                    </select>
-                    <div class="error" id="priority_error"></div>
-                </div>
-
-                <div class="form-group">
-                    <label for="quantity">Quantity:</label>
-                    <input type="number" class="form-control col-6" id="quantity" name="quantity" min="1"
-                        required>
-                    <div class="error" id="quantity_error"></div>
-                </div>
-
-                <div class="form-group">
-                    <label for="deadline">Deadline:</label>
-                    <input type="date" class="form-control w-auto" id="deadline" name="deadline" required>
-                    <div class="error" id="deadline_error"></div>
-                </div>
-                <div class="form-group">
-                    <label for="description">Description:</label>
-                    <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
-                    <div class="error" id="description_error"></div>
-                </div>
-
-                <div class="form-group">
-                    <label>Project Images:</label>
-                    <div class="drop-zone" onclick="document.getElementById('project_image').click();">
-                        Click or Drag to Upload Project Images (Multiple files allowed)
+            <div class="form-section">
+                <h5 class="mb-3"><i class="bi bi-plus-circle me-2"></i>Upload New Project</h5>
+                <form id="uploadForm" action="mascot_upload.php" method="POST" enctype="multipart/form-data"
+                    novalidate>
+                    <div class="form-group">
+                        <label for="project_name">Project Name:</label>
+                        <input type="text" class="form-control" id="project_name" name="project_name" required>
+                        <div class="error" id="project_name_error"></div>
                     </div>
-                    <input type="file" id="project_image" name="project_image[]" accept="image/*"
-                        style="display:none;" multiple required>
-                    <div id="project_image_preview" class="mt-2"></div>
-                    <div class="error" id="project_image_error"></div>
-                </div>
-                <div class="form-group">
-                    <label>Submission Notes:</label>
-                    <div class="drop-zone" onclick="document.getElementById('material_image').click();">
-                        Click or Drag to Upload Submission Notes (Multiple files allowed)
-                    </div>
-                    <input type="file" id="material_image" name="material_image[]" accept="image/*"
-                        style="display:none;" multiple required>
-                    <div id="material_image_preview" class="mt-2"></div>
-                    <div class="error" id="material_image_error"></div>
-                </div>
 
-                <button type="submit" class="btn btn-primary btn-block">Upload</button>
-            </form>
-        </div>
-        <hr id="alertMessage">
-        <div class="container mt-3">
-            <?php if (isset($_SESSION['message'])): ?>
-            <div class="alert alert-<?= $_SESSION['message_type'] ?> alert-dismissible fade show" role="alert">
-                <?= $_SESSION['message'] ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="form-group">
+                        <label for="subform_embed">Submission Form Embed Link:</label>
+                        <textarea type="text" class="form-control" id="subform_embed" name="subform_embed"
+                            placeholder="Link Example: https://docs.google.com/presentation/d/e/2PACX-.../edit"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="project_status" class="form-label">Project Status</label>
+                                <select class="form-select" name="project_status" id="project_status"
+                                    aria-label="Default select example" required>
+                                    <option value="">Select Status</option>
+                                    <option value="Upcoming">Upcoming</option>
+                                    <option value="Urgent">Urgent</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Revision">Revision</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Archived">Archived</option>
+                                </select>
+                                <div class="error" id="project_status_error"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="priority" class="form-label">Priority</label>
+                                <select class="form-select" name="priority" id="priority" required>
+                                    <option value="">Select Priority</option>
+                                    <!-- Ubah dari selected ke value="" -->
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                                <div class="error" id="priority_error"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="quantity">Quantity:</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" min="1"
+                                    required>
+                                <div class="error" id="quantity_error"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="deadline">Deadline:</label>
+                                <input type="date" class="form-control" id="deadline" name="deadline" required>
+                                <div class="error" id="deadline_error"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                        <div class="error" id="description_error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Project Images:</label>
+                        <div class="drop-zone" onclick="document.getElementById('project_image').click();">
+                            <i class="bi bi-cloud-upload"></i>
+                            <div class="drop-zone-text">Click or Drag to Upload Project Images<br><small>Multiple files
+                                    allowed</small></div>
+                        </div>
+                        <input type="file" id="project_image" name="project_image[]" accept="image/*"
+                            style="display:none;" multiple required>
+                        <div id="project_image_preview" class="mt-2"></div>
+                        <div class="error" id="project_image_error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Submission Notes:</label>
+                        <div class="drop-zone" onclick="document.getElementById('material_image').click();">
+                            <i class="bi bi-file-earmark-image"></i>
+                            <div class="drop-zone-text">Click or Drag to Upload Submission Notes<br><small>Multiple
+                                    files allowed</small></div>
+                        </div>
+                        <input type="file" id="material_image" name="material_image[]" accept="image/*"
+                            style="display:none;" multiple required>
+                        <div id="material_image_preview" class="mt-2"></div>
+                        <div class="error" id="material_image_error"></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-upload">
+                        <i class="bi bi-upload me-2"></i>Upload Project
+                    </button>
+                </form>
             </div>
-            <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
-            <?php endif; ?>
-            <h2 class="mt-2">Daftar Project</h2>
-            <table id="projectTable" class="table table-bordered table-hover">
-                <thead>
-                    <tr>
-                        <th>Project Name</th>
-                        <th>Status</th>
-                        <th>Priority</th>
-                        <th>Quantity</th>
-                        <th>Project Image</th>
-                        <th>Submission Notes</th>
-                        <th>Sub Form</th>
-                        <th>Description</th>
-                        <th>Deadline</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
+            <hr id="alertMessage">
+            <div class="table-section">
+                <?php if (isset($_SESSION['message'])): ?>
+                <div class="alert alert-<?= $_SESSION['message_type'] ?> alert-dismissible fade show" role="alert">
+                    <?= $_SESSION['message'] ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
+                <?php endif; ?>
+                <h2><i class="bi bi-table me-2"></i>Project List</h2>
+                <div class="table-responsive">
+                    <table id="projectTable" class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Quantity</th>
+                                <th>Project Image</th>
+                                <th>Submission Notes</th>
+                                <th>Sub Form</th>
+                                <th>Description</th>
+                                <th>Deadline</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
                 $stmt = $pdo->query("SELECT * FROM gallery WHERE category = 'mascot' ORDER BY id DESC");
                 while ($row = $stmt->fetch()):
                 ?>
-                    <tr>
-                        <td><?= htmlspecialchars($row['project_name']) ?></td>
-                        <td>
-                            <select class="form-select"
-                                onchange="updateStatus(<?= $row['id'] ?>, this.value, 'mascot')">
-                                <option value="Upcoming"
-                                    <?= $row['project_status'] === 'Upcoming' ? 'selected' : '' ?>>
-                                    Upcoming
-                                </option>
-                                <option value="Urgent" <?= $row['project_status'] === 'Urgent' ? 'selected' : '' ?>>
-                                    Urgent
-                                </option>
-                                <option value="In Progress"
-                                    <?= $row['project_status'] === 'In Progress' ? 'selected' : '' ?>>In Progress
-                                </option>
-                                <option value="Revision"
-                                    <?= $row['project_status'] === 'Revision' ? 'selected' : '' ?>>
-                                    Revision</option>
-                                <option value="Completed"
-                                    <?= $row['project_status'] === 'Completed' ? 'selected' : '' ?>>
-                                    Completed</option>
-                                <option value="Archived"
-                                    <?= $row['project_status'] === 'Archived' ? 'selected' : '' ?>>
-                                    Archived</option>
-                            </select>
-                        </td>
-                        <td>
-                            <select class="form-select" onchange="updatePriority(<?= $row['id'] ?>, this.value)">
-                                <option value="High" <?= $row['priority'] === 'High' ? 'selected' : '' ?>>High
-                                </option>
-                                <option value="Medium" <?= $row['priority'] === 'Medium' ? 'selected' : '' ?>>Medium
-                                </option>
-                                <option value="Normal" <?= $row['priority'] === 'Normal' ? 'selected' : '' ?>>Normal
-                                </option>
-                                <option value="Low" <?= $row['priority'] === 'Low' ? 'selected' : '' ?>>Low
-                                </option>
-                            </select>
-                        </td>
-                        <td><?= htmlspecialchars($row['quantity']) ?></td>
-                        <td>
-                            <?= generateImageGallery($row['project_image'], 'projects', 'project-' . $row['id'], $row['project_name'], 'Project') ?>
-                        </td>
-                        <td>
-                            <?= generateImageGallery($row['material_image'], 'materials', 'material-' . $row['id'], $row['project_name'], 'Material') ?>
-                        </td>
-                        <td>
-                            <?php if (!empty($row['subform_embed'])): ?>
-                            <button type="button" class="btn btn-sm btn-primary"
-                                onclick="openGoogleSlideModal('<?= htmlspecialchars($row['subform_embed']) ?>')">
-                                View
-                            </button>
-                            <?php else: ?>
-                            <span class="text-muted">No Link</span>
-                            <?php endif; ?>
-                        </td>
-                        <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
-                        <td><?= !empty($row['deadline']) ? htmlspecialchars($row['deadline']) : '-' ?></td>
-                        <td>
-                            <a href="mascot_edit.php?id=<?= $row['id'] ?>"
-                                class="btn btn-warning btn-sm mb-1">Edit</a>
-                            <a href="#" class="btn btn-danger btn-sm"
-                                onclick="confirmDelete(event, <?= $row['id'] ?>)">Delete</a>
+                            <tr>
+                                <td><?= htmlspecialchars($row['project_name']) ?></td>
+                                <td>
+                                    <select class="form-select"
+                                        onchange="updateStatus(<?= $row['id'] ?>, this.value, 'mascot')">
+                                        <option value="Upcoming"
+                                            <?= $row['project_status'] === 'Upcoming' ? 'selected' : '' ?>>
+                                            Upcoming
+                                        </option>
+                                        <option value="Urgent"
+                                            <?= $row['project_status'] === 'Urgent' ? 'selected' : '' ?>>
+                                            Urgent
+                                        </option>
+                                        <option value="In Progress"
+                                            <?= $row['project_status'] === 'In Progress' ? 'selected' : '' ?>>In
+                                            Progress
+                                        </option>
+                                        <option value="Revision"
+                                            <?= $row['project_status'] === 'Revision' ? 'selected' : '' ?>>
+                                            Revision</option>
+                                        <option value="Completed"
+                                            <?= $row['project_status'] === 'Completed' ? 'selected' : '' ?>>
+                                            Completed</option>
+                                        <option value="Archived"
+                                            <?= $row['project_status'] === 'Archived' ? 'selected' : '' ?>>
+                                            Archived</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="form-select"
+                                        onchange="updatePriority(<?= $row['id'] ?>, this.value)">
+                                        <option value="High"
+                                            <?= $row['priority'] === 'High' ? 'selected' : '' ?>>
+                                            High
+                                        </option>
+                                        <option value="Medium"
+                                            <?= $row['priority'] === 'Medium' ? 'selected' : '' ?>>
+                                            Medium
+                                        </option>
+                                        <option value="Normal"
+                                            <?= $row['priority'] === 'Normal' ? 'selected' : '' ?>>
+                                            Normal
+                                        </option>
+                                        <option value="Low"
+                                            <?= $row['priority'] === 'Low' ? 'selected' : '' ?>>
+                                            Low
+                                        </option>
+                                    </select>
+                                </td>
+                                <td><?= htmlspecialchars($row['quantity']) ?></td>
+                                <td class="text-center">
+                                    <?= generateImageGallery($row['project_image'], 'projects', 'project-' . $row['id'], $row['project_name'], 'Project') ?>
+                                </td>
+                                <td class="text-center">
+                                    <?= generateImageGallery($row['material_image'], 'materials', 'material-' . $row['id'], $row['project_name'], 'Material') ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($row['subform_embed'])): ?>
+                                    <button type="button" class="btn btn-sm btn-primary"
+                                        onclick="openGoogleSlideModal('<?= htmlspecialchars($row['subform_embed']) ?>')">
+                                        View
+                                    </button>
+                                    <?php else: ?>
+                                    <span class="text-muted">No Link</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
+                                <td><?= !empty($row['deadline']) ? htmlspecialchars($row['deadline']) : '-' ?></td>
+                                <td>
+                                    <a href="mascot_edit.php?id=<?= $row['id'] ?>"
+                                        class="btn btn-warning btn-sm">Edit</a>
+                                    <a href="#" class="btn btn-danger btn-sm"
+                                        onclick="confirmDelete(event, <?= $row['id'] ?>)">Delete</a>
 
-                            <script>
-                                function confirmDelete(event, id) {
-                                    event.preventDefault();
+                                    <script>
+                                        function confirmDelete(event, id) {
+                                            event.preventDefault();
 
-                                    Swal.fire({
-                                        title: 'Are you sure?',
-                                        text: "You won't be able to revert this!",
-                                        icon: 'warning',
-                                        showCancelButton: true,
-                                        confirmButtonColor: '#d33',
-                                        cancelButtonColor: '#3085d6',
-                                        confirmButtonText: 'Yes, delete it!'
-                                    }).then((result) => {
-                                        if (result.isConfirmed) {
-                                            window.location.href = `mascot_delete.php?id=${id}`;
+                                            Swal.fire({
+                                                title: 'Are you sure?',
+                                                text: "You won't be able to revert this!",
+                                                icon: 'warning',
+                                                showCancelButton: true,
+                                                confirmButtonColor: '#d33',
+                                                cancelButtonColor: '#3085d6',
+                                                confirmButtonText: 'Yes, delete it!'
+                                            }).then((result) => {
+                                                if (result.isConfirmed) {
+                                                    window.location.href = `mascot_delete.php?id=${id}`;
+                                                }
+                                            });
                                         }
-                                    });
-                                }
-                            </script>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
+                                    </script>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
-        <!-- Floating Buttons -->
-        <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px;">
-            <!-- Scroll to Top Button -->
-            <button id="scrollToTopBtn" class="btn btn-warning"
-                style="display: none; border-radius: 50%; width: 50px; height: 50px;">
-                <i class="bi bi-arrow-up" style="color: #198754;"></i>
-            </button>
+        <!-- Scroll to Project List Button -->
+        <button id="scrollToProjectBtn" style="display: none;" title="Go to Project List">
+            <i class="bi bi-list-ul" style="color: white; font-size: 18px;"></i>
+        </button>
 
+        <!-- Scroll to Top Button -->
+        <button id="scrollToTopBtn" style="display: none;">
+            <i class="bi bi-arrow-up" style="color: white; font-size: 18px;"></i>
+        </button>
+
+        <!-- Floating Buttons -->
+        <div class="floating-buttons">
             <!-- Helpdesk Button -->
-            <a href="https://wa.me/6287721988393" target="_blank" class="btn btn-success"
-                style="border-radius: 50%; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center;">
-                <i style="font-size: 16px;">Help!</i>
+            <a href="https://wa.me/6287721988393" target="_blank" class="floating-btn">
+                Help!
             </a>
         </div>
 
@@ -420,6 +1022,8 @@ $result = $pdo->query($sql);
         <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Fancybox JS -->
+        <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
         <script>
             // Fungsi untuk menampilkan preview gambar multiple
             function previewMultipleImages(input, previewContainerId) {
@@ -444,9 +1048,22 @@ $result = $pdo->query($sql);
                             img.style.borderRadius = '5px';
 
                             const badge = document.createElement('span');
-                            badge.className = 'badge bg-primary position-absolute';
-                            badge.style.top = '5px';
-                            badge.style.left = '5px';
+                            badge.className = 'image-count-badge position-absolute';
+                            badge.style.top = '4px';
+                            badge.style.right = '4px';
+                            badge.style.background = 'rgba(0, 0, 0, 0.7)';
+                            badge.style.color = 'white';
+                            badge.style.borderRadius = '10px';
+                            badge.style.padding = '2px 6px';
+                            badge.style.fontSize = '0.65rem';
+                            badge.style.fontWeight = '600';
+                            badge.style.lineHeight = '1';
+                            badge.style.minWidth = '18px';
+                            badge.style.textAlign = 'center';
+                            badge.style.backdropFilter = 'blur(4px)';
+                            badge.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                            badge.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
+                            badge.style.zIndex = '2';
                             badge.textContent = i + 1;
 
                             imgWrapper.appendChild(img);
@@ -562,6 +1179,11 @@ $result = $pdo->query($sql);
             });
 
             function updateStatus(id, status, category) {
+                // Show loading state
+                const selectElement = event.target;
+                const originalValue = selectElement.getAttribute('data-original-value') || selectElement.value;
+                selectElement.disabled = true;
+
                 fetch('update_status.php', {
                         method: 'POST',
                         headers: {
@@ -573,32 +1195,52 @@ $result = $pdo->query($sql);
                             category: category
                         }),
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
+                        selectElement.disabled = false;
+
                         if (data.success) {
+                            // Store new value as original
+                            selectElement.setAttribute('data-original-value', status);
+
+                            // Show success message
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Success',
-                                text: 'Status updated successfully!',
-                                confirmButtonText: 'OK'
+                                text: data.message || 'Status updated successfully!',
+                                timer: 2000,
+                                showConfirmButton: false,
+                                toast: true,
+                                position: 'top-end'
                             });
                         } else {
+                            // Revert to original value on error
+                            selectElement.value = originalValue;
+
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
-                                text: 'Failed to update status.',
+                                text: data.message || 'Failed to update status.',
                                 confirmButtonText: 'OK'
                             });
                         }
                     })
                     .catch(error => {
+                        selectElement.disabled = false;
+                        selectElement.value = originalValue;
+
+                        console.error('Error:', error);
                         Swal.fire({
                             icon: 'error',
-                            title: 'Error',
-                            text: 'An error occurred.',
+                            title: 'Network Error',
+                            text: 'An error occurred while updating status. Please check your connection.',
                             confirmButtonText: 'OK'
                         });
-                        console.error('Error:', error);
                     });
             }
 
@@ -616,30 +1258,54 @@ $result = $pdo->query($sql);
 
             $(document).ready(function() {
                 $('#projectTable').DataTable({
-                    paging: true, // Aktifkan pagination
-                    searching: true, // Aktifkan pencarian
-                    ordering: true, // Aktifkan pengurutan
-                    info: true, // Tampilkan informasi jumlah data
-                    lengthChange: true, // Pilihan jumlah data per halaman
-                    pageLength: 25, // Default jumlah data per halaman
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    info: true,
+                    lengthChange: true,
+                    pageLength: 25,
                     order: [
                         [9, 'desc']
-                    ], // Urutkan berdasarkan kolom ke-9 (createAt) secara descending
+                    ],
                     language: {
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_ data per halaman",
-                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                        search: "Search Projects:",
+                        lengthMenu: "Show _MENU_ entries per page",
+                        info: "Showing _START_ to _END_ of _TOTAL_ projects",
                         paginate: {
-                            first: "Pertama",
-                            last: "Terakhir",
-                            next: "Berikutnya",
-                            previous: "Sebelumnya",
+                            first: "First",
+                            last: "Last",
+                            next: "Next",
+                            previous: "Previous",
                         },
+                    },
+                });
+
+                // Initialize Fancybox for image galleries
+                Fancybox.bind("[data-fancybox]", {
+                    Toolbar: {
+                        display: {
+                            left: ["infobar"],
+                            middle: ["zoomIn", "zoomOut", "toggle1to1", "rotateCCW", "rotateCW"],
+                            right: ["slideshow", "download", "thumbs", "close"],
+                        },
+                    },
+                    Thumbs: {
+                        autoStart: false,
+                        showOnStart: false,
+                    },
+                    Images: {
+                        zoom: true,
+                        protect: false,
                     },
                 });
             });
 
             function updatePriority(id, priority) {
+                // Show loading state
+                const selectElement = event.target;
+                const originalValue = selectElement.getAttribute('data-original-value') || selectElement.value;
+                selectElement.disabled = true;
+
                 fetch('update_priority.php', {
                         method: 'POST',
                         headers: {
@@ -650,44 +1316,75 @@ $result = $pdo->query($sql);
                             priority: priority
                         }),
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
+                        selectElement.disabled = false;
+
                         if (data.success) {
+                            // Store new value as original
+                            selectElement.setAttribute('data-original-value', priority);
+
+                            // Show success message
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Success',
-                                text: 'Priority updated successfully!',
-                                confirmButtonText: 'OK'
+                                text: data.message || 'Priority updated successfully!',
+                                timer: 2000,
+                                showConfirmButton: false,
+                                toast: true,
+                                position: 'top-end'
                             });
                         } else {
+                            // Revert to original value on error
+                            selectElement.value = originalValue;
+
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
-                                text: 'Failed to update priority.',
+                                text: data.message || 'Failed to update priority.',
                                 confirmButtonText: 'OK'
                             });
                         }
                     })
                     .catch(error => {
+                        selectElement.disabled = false;
+                        selectElement.value = originalValue;
+
+                        console.error('Error:', error);
                         Swal.fire({
                             icon: 'error',
-                            title: 'Error',
-                            text: 'An error occurred.',
+                            title: 'Network Error',
+                            text: 'An error occurred while updating priority. Please check your connection.',
                             confirmButtonText: 'OK'
                         });
-                        console.error('Error:', error);
                     });
             }
 
             // Ambil elemen tombol
             const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+            const scrollToProjectBtn = document.getElementById('scrollToProjectBtn');
 
             // Tampilkan tombol saat pengguna menggulir ke bawah
             window.addEventListener('scroll', () => {
+                const projectListSection = document.querySelector('.table-section');
+                const projectListOffset = projectListSection ? projectListSection.offsetTop : 800;
+
                 if (window.scrollY > 200) { // Tampilkan tombol jika scroll lebih dari 200px
                     scrollToTopBtn.style.display = 'block';
                 } else {
                     scrollToTopBtn.style.display = 'none';
+                }
+
+                // Show scroll to project button when not in project list area
+                if (window.scrollY < projectListOffset - 100) {
+                    scrollToProjectBtn.style.display = 'block';
+                } else {
+                    scrollToProjectBtn.style.display = 'none';
                 }
             });
 
@@ -697,6 +1394,17 @@ $result = $pdo->query($sql);
                     top: 0,
                     behavior: 'smooth' // Gulir dengan animasi halus
                 });
+            });
+
+            // Fungsi untuk menggulir ke Project List
+            scrollToProjectBtn.addEventListener('click', () => {
+                const projectListSection = document.querySelector('.table-section');
+                if (projectListSection) {
+                    projectListSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
             });
         </script>
         <?php if (isset($_SESSION['message'])): ?>

@@ -99,7 +99,7 @@ function getPriorityClass($priority)
         case 'medium':
             return 'background-color: #ffc107;'; // Yellow
         case 'normal':
-            return 'background-color: #8b5cf6;'; // Purple accent
+            return 'background-color: #007bff;'; // Purple accent
         case 'low':
             return 'background-color: #28a745;'; // Green
         default:
@@ -313,6 +313,32 @@ $username = $isLoggedIn ? $_SESSION : null;
                 flex-wrap: wrap;
                 gap: 0.5rem;
                 align-items: center;
+            }
+
+            /* Reset button styling */
+            .btn-outline-secondary {
+                border: 1px solid #94a3b8;
+                color: #64748b;
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(5px);
+                transition: all 0.3s ease;
+                font-weight: 300;
+                padding: 0.4rem 0.675rem;
+                border-radius: 0.5rem;
+                font-size: 0.7rem;
+            }
+
+            .btn-outline-secondary:hover {
+                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                border-color: #8b5cf6;
+                color: white;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+            }
+
+            .btn-outline-secondary:active {
+                transform: translateY(0);
+                box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
             }
 
             .filter-divider {
@@ -823,6 +849,13 @@ $username = $isLoggedIn ? $_SESSION : null;
                 .filter-group {
                     justify-content: center;
                     width: 100%;
+                }
+
+                /* Reset button mobile styling */
+                .btn-outline-secondary {
+                    font-size: 0.8rem;
+                    padding: 0.4rem 0.75rem;
+                    min-width: 120px;
                 }
             }
 
@@ -1408,6 +1441,13 @@ $username = $isLoggedIn ? $_SESSION : null;
                                     <input type="hidden" name="this_week"
                                         value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
                                 </form>
+                            </div>
+
+                            <div class="filter-group">
+                                <a href="mascot_index.php" class="btn btn-outline-secondary"
+                                    title="Reset all filters">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>
+                                </a>
                             </div>
                         </div>
                     </div>

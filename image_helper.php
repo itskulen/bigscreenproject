@@ -73,7 +73,7 @@ function generateImageGallery($imageData, $folder, $galleryName, $projectName, $
         return '<span class="text-muted">No Image</span>';
     }
 
-    $html = '<div class="image-gallery">';
+    $html = '<div class="image-gallery position-relative d-inline-block">';
 
     foreach ($images as $index => $image) {
         $caption = htmlspecialchars($projectName) . ' - ' . $imageType . ' ' . ($index + 1);
@@ -94,19 +94,15 @@ function generateImageGallery($imageData, $folder, $galleryName, $projectName, $
             '>';
 
         if ($index === 0) {
-            $html .= '<img src="' . $imagePath . '" width="100" class="rounded">';
+            $html .= '<img src="' . $imagePath . '" width="60" height="60" class="rounded" style="object-fit: cover; cursor: pointer; transition: transform 0.2s ease;">';
         }
 
         $html .= '</a>';
     }
 
+    // Badge di dalam gambar - hanya tampil jika lebih dari 1 gambar
     if (count($images) > 1) {
-        $html .=
-            '<div class="text-center mt-1">
-                    <small class="badge bg-primary">' .
-            count($images) .
-            ' images</small>
-                  </div>';
+        $html .= '<span class="image-count-badge position-absolute">' . count($images) . '</span>';
     }
 
     $html .= '</div>';
