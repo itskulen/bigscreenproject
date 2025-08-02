@@ -2,6 +2,7 @@
 session_start();
 include 'db.php';
 include 'middleware.php';
+include 'image_helper.php';
 checkUserRole('mascot'); // Hanya mascot admin yang bisa mengakses
 
 $sql = "SELECT project_name, project_status, priority, quantity, project_image, material_image, description, deadline,
@@ -125,6 +126,33 @@ $result = $pdo->query($sql);
                 width: 100%;
                 /* Pastikan select form memenuhi lebar kolom */
             }
+
+            /* Image gallery styling */
+            .image-gallery {
+                position: relative;
+            }
+
+            .image-gallery img {
+                transition: transform 0.2s ease;
+            }
+
+            .image-gallery img:hover {
+                transform: scale(1.05);
+            }
+
+            .image-gallery .badge {
+                font-size: 0.7em;
+            }
+
+            /* Preview container styling */
+            #project_image_preview,
+            #material_image_preview {
+                max-height: 300px;
+                overflow-y: auto;
+                border: 1px solid #dee2e6;
+                border-radius: 5px;
+                padding: 10px;
+            }
         </style>
     </head>
 
@@ -199,25 +227,23 @@ $result = $pdo->query($sql);
                 </div>
 
                 <div class="form-group">
-                    <label>Project Image:</label>
+                    <label>Project Images:</label>
                     <div class="drop-zone" onclick="document.getElementById('project_image').click();">
-                        Click or Drag to Upload Project Image
+                        Click or Drag to Upload Project Images (Multiple files allowed)
                     </div>
-                    <input type="file" id="project_image" name="project_image" accept="image/*"
-                        style="display:none;" required>
-                    <img id="project_image_preview" src="#" alt="Project Image Preview"
-                        style="display:none; margin-top:10px; max-width: 200px; border: 1px solid #ddd; padding: 5px;">
+                    <input type="file" id="project_image" name="project_image[]" accept="image/*"
+                        style="display:none;" multiple required>
+                    <div id="project_image_preview" class="mt-2"></div>
                     <div class="error" id="project_image_error"></div>
                 </div>
                 <div class="form-group">
                     <label>Submission Notes:</label>
                     <div class="drop-zone" onclick="document.getElementById('material_image').click();">
-                        Click or Drag to Upload Submission Notes
+                        Click or Drag to Upload Submission Notes (Multiple files allowed)
                     </div>
-                    <input type="file" id="material_image" name="material_image" accept="image/*"
-                        style="display:none;" required>
-                    <img id="material_image_preview" src="#" alt="Submission Notes Preview"
-                        style="display:none; margin-top:10px; max-width: 200px; border: 1px solid #ddd; padding: 5px;">
+                    <input type="file" id="material_image" name="material_image[]" accept="image/*"
+                        style="display:none;" multiple required>
+                    <div id="material_image_preview" class="mt-2"></div>
                     <div class="error" id="material_image_error"></div>
                 </div>
 
@@ -293,8 +319,12 @@ $result = $pdo->query($sql);
                             </select>
                         </td>
                         <td><?= htmlspecialchars($row['quantity']) ?></td>
-                        <td><img src="uploads/projects/<?= $row['project_image'] ?>" width="100"></td>
-                        <td><img src="uploads/materials/<?= $row['material_image'] ?>" width="100"></td>
+                        <td>
+                            <?= generateImageGallery($row['project_image'], 'projects', 'project-' . $row['id'], $row['project_name'], 'Project') ?>
+                        </td>
+                        <td>
+                            <?= generateImageGallery($row['material_image'], 'materials', 'material-' . $row['id'], $row['project_name'], 'Material') ?>
+                        </td>
                         <td>
                             <?php if (!empty($row['subform_embed'])): ?>
                             <button type="button" class="btn btn-sm btn-primary"
@@ -391,7 +421,45 @@ $result = $pdo->query($sql);
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            // Fungsi untuk menampilkan preview gambar
+            // Fungsi untuk menampilkan preview gambar multiple
+            function previewMultipleImages(input, previewContainerId) {
+                const previewContainer = document.getElementById(previewContainerId);
+                previewContainer.innerHTML = ''; // Clear previous previews
+
+                if (input.files && input.files.length > 0) {
+                    for (let i = 0; i < input.files.length; i++) {
+                        const file = input.files[i];
+                        const reader = new FileReader();
+
+                        reader.onload = function(e) {
+                            const imgWrapper = document.createElement('div');
+                            imgWrapper.className = 'd-inline-block position-relative me-2 mb-2';
+
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.style.maxWidth = '120px';
+                            img.style.maxHeight = '120px';
+                            img.style.border = '1px solid #ddd';
+                            img.style.padding = '5px';
+                            img.style.borderRadius = '5px';
+
+                            const badge = document.createElement('span');
+                            badge.className = 'badge bg-primary position-absolute';
+                            badge.style.top = '5px';
+                            badge.style.left = '5px';
+                            badge.textContent = i + 1;
+
+                            imgWrapper.appendChild(img);
+                            imgWrapper.appendChild(badge);
+                            previewContainer.appendChild(imgWrapper);
+                        };
+
+                        reader.readAsDataURL(file);
+                    }
+                }
+            }
+
+            // Fungsi untuk menampilkan preview gambar (backward compatibility)
             function previewImage(input, previewId) {
                 const file = input.files[0];
                 if (file) {
@@ -429,12 +497,12 @@ $result = $pdo->query($sql);
 
             // Event listener untuk Project Image
             document.getElementById('project_image').addEventListener('change', function() {
-                previewImage(this, 'project_image_preview');
+                previewMultipleImages(this, 'project_image_preview');
             });
 
             // Event listener untuk Submission Notes
             document.getElementById('material_image').addEventListener('change', function() {
-                previewImage(this, 'material_image_preview');
+                previewMultipleImages(this, 'material_image_preview');
             });
 
             // Validasi Form

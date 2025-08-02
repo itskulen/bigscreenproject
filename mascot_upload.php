@@ -13,60 +13,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validasi subformEmbed
     if (!empty($subformEmbed) && !filter_var($subformEmbed, FILTER_VALIDATE_URL)) {
-        $_SESSION['message'] = "Invalid Google Slide URL.";
-        $_SESSION['message_type'] = "danger";
-        header("Location: mascot_admin.php#alertMessage");
-        exit;
+        $_SESSION['message'] = 'Invalid Google Slide URL.';
+        $_SESSION['message_type'] = 'danger';
+        header('Location: mascot_admin.php#alertMessage');
+        exit();
     }
 
     // Validasi quantity
     if (empty($quantity) || !is_numeric($quantity) || intval($quantity) <= 0) {
-        $_SESSION['message'] = "Quantity must be a positive number.";
-        $_SESSION['message_type'] = "danger";
-        header("Location: mascot_admin.php#alertMessage");
-        exit;
+        $_SESSION['message'] = 'Quantity must be a positive number.';
+        $_SESSION['message_type'] = 'danger';
+        header('Location: mascot_admin.php#alertMessage');
+        exit();
     }
 
     if (empty($_POST['deadline'])) {
         $_SESSION['message'] = 'Deadline is required.';
         $_SESSION['message_type'] = 'danger';
         header('Location: mascot_admin.php');
-        exit;
+        exit();
     }
 
     // Validasi deadline
     if (!empty($deadline) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $deadline)) {
-        $_SESSION['message'] = "Invalid deadline format.";
-        $_SESSION['message_type'] = "danger";
-        header("Location: mascot_admin.php#alertMessage");
-        exit;
+        $_SESSION['message'] = 'Invalid deadline format.';
+        $_SESSION['message_type'] = 'danger';
+        header('Location: mascot_admin.php#alertMessage');
+        exit();
     }
 
-    // Validasi file upload
-    $projectImage = null;
-    if (isset($_FILES['project_image']) && $_FILES['project_image']['error'] === UPLOAD_ERR_OK) {
-        $projectImage = uniqid() . "_" . basename($_FILES['project_image']['name']);
-        move_uploaded_file($_FILES['project_image']['tmp_name'], "uploads/projects/$projectImage");
+    // Validasi file upload - Multiple files
+    $projectImages = [];
+    if (isset($_FILES['project_image']) && !empty($_FILES['project_image']['name'][0])) {
+        for ($i = 0; $i < count($_FILES['project_image']['name']); $i++) {
+            if ($_FILES['project_image']['error'][$i] === UPLOAD_ERR_OK) {
+                $projectImage = uniqid() . '_' . basename($_FILES['project_image']['name'][$i]);
+                if (move_uploaded_file($_FILES['project_image']['tmp_name'][$i], "uploads/projects/$projectImage")) {
+                    $projectImages[] = $projectImage;
+                }
+            }
+        }
     }
-    $materialImage = null;
-    if (isset($_FILES['material_image']) && $_FILES['material_image']['error'] === UPLOAD_ERR_OK) {
-        $materialImage = uniqid() . "_" . basename($_FILES['material_image']['name']);
-        move_uploaded_file($_FILES['material_image']['tmp_name'], "uploads/materials/$materialImage");
+
+    $materialImages = [];
+    if (isset($_FILES['material_image']) && !empty($_FILES['material_image']['name'][0])) {
+        for ($i = 0; $i < count($_FILES['material_image']['name']); $i++) {
+            if ($_FILES['material_image']['error'][$i] === UPLOAD_ERR_OK) {
+                $materialImage = uniqid() . '_' . basename($_FILES['material_image']['name'][$i]);
+                if (move_uploaded_file($_FILES['material_image']['tmp_name'][$i], "uploads/materials/$materialImage")) {
+                    $materialImages[] = $materialImage;
+                }
+            }
+        }
     }
+
+    // Convert arrays to JSON for database storage
+    $projectImagesJson = !empty($projectImages) ? json_encode($projectImages) : null;
+    $materialImagesJson = !empty($materialImages) ? json_encode($materialImages) : null;
 
     // Simpan data ke database
-    $stmt = $pdo->prepare("INSERT INTO gallery (project_name, project_status, priority, quantity, project_image, material_image, description, deadline, category, subform_embed) 
+    $stmt = $pdo->prepare("INSERT INTO gallery (project_name, project_status, priority, quantity, project_image, material_image, description, deadline, category, subform_embed)
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'mascot', ?)");
-    $success = $stmt->execute([$projectName, $projectStatus, $priority, $quantity, $projectImage, $materialImage, $description, $deadline, $subformEmbed]);
+    $success = $stmt->execute([$projectName, $projectStatus, $priority, $quantity, $projectImagesJson, $materialImagesJson, $description, $deadline, $subformEmbed]);
     if ($success) {
-        $_SESSION['message'] = "Project successfully uploaded!";
-        $_SESSION['message_type'] = "success";
-        header("Location: mascot_admin.php#alertMessage"); // Arahkan ke bagian alert message
-        exit;
+        $_SESSION['message'] = 'Project successfully uploaded!';
+        $_SESSION['message_type'] = 'success';
+        header('Location: mascot_admin.php#alertMessage'); // Arahkan ke bagian alert message
+        exit();
     } else {
-        $_SESSION['message'] = "Failed to upload project.";
-        $_SESSION['message_type'] = "error";
-        header("Location: mascot_admin.php#alertMessage"); // Arahkan ke bagian alert message
-        exit;
+        $_SESSION['message'] = 'Failed to upload project.';
+        $_SESSION['message_type'] = 'error';
+        header('Location: mascot_admin.php#alertMessage'); // Arahkan ke bagian alert message
+        exit();
     }
 }

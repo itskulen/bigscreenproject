@@ -2,6 +2,7 @@
 session_start();
 require 'config.php';
 include 'db.php';
+include 'image_helper.php';
 require 'vendor/autoload.php';
 
 use Carbon\Carbon;
@@ -154,6 +155,8 @@ $username = $isLoggedIn ? $_SESSION : null;
         <link rel="icon" type="image/x-icon" href="favicon.ico">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+        <!-- Fancybox CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
         <style>
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -550,7 +553,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             .card-body {
-                padding: 1rem;
+                padding: 0.5rem;
                 background: rgba(255, 255, 255, 0.9);
                 color: var(--bs-body-color);
             }
@@ -580,7 +583,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             .deadline {
                 font-size: 13px;
                 color: var(--bs-secondary-color);
-                margin: 4px 0;
+                margin: 3px 0;
                 font-weight: 500;
                 display: inline-block;
             }
@@ -992,6 +995,207 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: white;
                 border-color: #8b5cf6;
             }
+
+            /* Fancybox Custom Styling */
+            .fancybox__backdrop {
+                background: rgba(0, 0, 0, 0.9) !important;
+            }
+
+            .fancybox__button {
+                color: #8b5cf6 !important;
+                transition: all 0.3s ease !important;
+                border-radius: 8px !important;
+            }
+
+            .fancybox__button:hover {
+                background: rgba(139, 92, 246, 0.2) !important;
+                transform: scale(1.1) !important;
+            }
+
+            .fancybox__infobar {
+                color: #8b5cf6 !important;
+                font-weight: 600 !important;
+                font-size: 14px !important;
+            }
+
+            .fancybox__content {
+                border-radius: 5px !important;
+                overflow: hidden !important;
+            }
+
+            .fancybox__caption {
+                font-weight: 600 !important;
+                text-align: center !important;
+                border-radius: 10px !important;
+                padding: 5px 10px !important;
+                backdrop-filter: blur(10px) !important;
+            }
+
+            /* Dark mode untuk Fancybox */
+            [data-bs-theme="dark"] .fancybox__button {
+                color: #a78bfa !important;
+            }
+
+            [data-bs-theme="dark"] .fancybox__button:hover {
+                background: rgba(167, 139, 250, 0.2) !important;
+            }
+
+            [data-bs-theme="dark"] .fancybox__infobar,
+            [data-bs-theme="dark"] .fancybox__caption {
+                color: #a78bfa !important;
+            }
+
+            /* Gallery View Buttons Styling */
+            .btn-outline-purple {
+                color: #8b5cf6 !important;
+                border-color: #8b5cf6 !important;
+                background: transparent !important;
+                border-radius: 8px !important;
+                transition: all 0.3s ease !important;
+                padding: 0.375rem 0.5rem !important;
+                font-size: 0.875rem !important;
+            }
+
+            .btn-outline-purple:hover {
+                background-color: #8b5cf6 !important;
+                border-color: #8b5cf6 !important;
+                color: white !important;
+                transform: translateY(-1px) !important;
+                box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
+            }
+
+            .btn-outline-purple:focus {
+                box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25) !important;
+            }
+
+            /* Gallery actions container */
+            .gallery-actions .btn {
+                width: 36px !important;
+                height: 36px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 !important;
+            }
+
+            /* Vertical divider */
+            .vr {
+                width: 1px !important;
+                background: rgba(139, 92, 246, 0.3) !important;
+                opacity: 1 !important;
+            }
+
+            /* Dark mode untuk gallery buttons */
+            [data-bs-theme="dark"] .btn-outline-purple {
+                color: #a78bfa !important;
+                border-color: #a78bfa !important;
+            }
+
+            [data-bs-theme="dark"] .btn-outline-purple:hover {
+                background-color: #a78bfa !important;
+                border-color: #a78bfa !important;
+                color: white !important;
+            }
+
+            [data-bs-theme="dark"] .vr {
+                background: rgba(167, 139, 250, 0.4) !important;
+            }
+
+            /* Responsive behavior untuk gallery buttons */
+            @media (max-width: 992px) {
+                .gallery-actions .btn {
+                    width: 32px !important;
+                    height: 32px !important;
+                    font-size: 0.8rem !important;
+                }
+
+                .vr {
+                    height: 24px !important;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .gallery-actions {
+                    order: -1;
+                    /* Pindah ke kiri pada mobile */
+                    margin-right: auto;
+                }
+
+                .gallery-actions .btn {
+                    width: 30px !important;
+                    height: 30px !important;
+                    font-size: 0.75rem !important;
+                }
+
+                .vr {
+                    height: 20px !important;
+                    margin: 0 8px !important;
+                }
+            }
+
+            @media (max-width: 576px) {
+                .header-section .d-flex {
+                    flex-wrap: wrap !important;
+                }
+
+                .gallery-actions {
+                    order: 1;
+                    margin-top: 10px;
+                    width: 100%;
+                    justify-content: center !important;
+                }
+
+                .vr {
+                    display: none !important;
+                }
+
+                .text-header {
+                    font-size: 1.25rem !important;
+                }
+            }
+
+            .btn-group .btn {
+                border-radius: 25px !important;
+                margin: 0 5px;
+                transition: all 0.3s ease;
+                font-weight: 500;
+            }
+
+            .btn-group .btn:first-child {
+                margin-left: 0;
+            }
+
+            .btn-group .btn:last-child {
+                margin-right: 0;
+            }
+
+            .btn-outline-primary:hover {
+                background-color: #8b5cf6;
+                border-color: #8b5cf6;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+            }
+
+            .btn-outline-secondary:hover {
+                background-color: #6c757d;
+                border-color: #6c757d;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+            }
+
+            /* Dark mode untuk gallery buttons */
+            [data-bs-theme="dark"] .btn-outline-primary {
+                color: #a78bfa;
+                border-color: #a78bfa;
+            }
+
+            [data-bs-theme="dark"] .btn-outline-primary:hover {
+                background-color: #a78bfa;
+                border-color: #a78bfa;
+                color: white;
+            }
         </style>
     </head>
 
@@ -1009,8 +1213,28 @@ $username = $isLoggedIn ? $_SESSION : null;
                         </div>
                         <h3 class="fw-bold text-header mb-0">Mascot Project List</h3>
                     </div>
-                    <!-- Tombol Login atau Dashboard -->
-                    <div class="d-flex gap-2">
+
+                    <!-- Gallery View Buttons - Compact -->
+                    <div class="d-flex align-items-center gap-2">
+                        <?php if (!empty($projects)): ?>
+                        <div class="gallery-actions d-flex gap-1">
+                            <button type="button" class="btn btn-sm btn-outline-purple"
+                                onclick="viewAllProjectImages()"
+                                title="View All Project Images (<?= count($projects) ?> projects)"
+                                data-bs-toggle="tooltip">
+                                <i class="bi bi-images"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-purple"
+                                onclick="viewAllMaterialImages()"
+                                title="View All Submission Notes (<?= count($projects) ?> notes)"
+                                data-bs-toggle="tooltip">
+                                <i class="bi bi-file-earmark-image"></i>
+                            </button>
+                        </div>
+                        <div class="vr mx-2" style="height: 30px;"></div>
+                        <?php endif; ?>
+
+                        <!-- Tombol Login atau Dashboard -->
                         <button id="toggleDarkMode" class="btn btn-outline-secondary">
                             <i class="bi bi-moon"></i>
                         </button>
@@ -1194,15 +1418,51 @@ $username = $isLoggedIn ? $_SESSION : null;
                 <?php if (empty($projects)): ?>
                 <p class="text-center">No projects found for the selected filters.</p>
                 <?php else: ?>
-                <?php foreach ($projects as $row): ?>
+                <?php foreach ($projects as $index => $row): ?>
                 <div class="card">
                     <?php if (isThisWeek($row['deadline'])): ?>
                     <div class="this-week-badge">
                         <i class="bi bi-calendar-event me-1"></i>This Week!
                     </div>
                     <?php endif; ?>
-                    <img src="uploads/projects/<?= htmlspecialchars($row['project_image']) ?>"
-                        style="cursor: pointer;" alt="No Image Project yet" onclick="openModal(this.src)">
+
+                    <?php 
+                    // Handle multiple project images
+                    $projectImages = [];
+                    if (!empty($row['project_image'])) {
+                        $decoded = json_decode($row['project_image'], true);
+                        $projectImages = is_array($decoded) ? $decoded : [$row['project_image']];
+                    }
+                    
+                    if (!empty($projectImages)): ?>
+                    <div class="position-relative">
+                        <?php foreach ($projectImages as $imgIndex => $image): ?>
+                        <a href="uploads/projects/<?= htmlspecialchars($image) ?>"
+                            data-fancybox="gallery-project-<?= $row['id'] ?>"
+                            data-caption="<?= htmlspecialchars($row['project_name']) ?> - Image <?= $imgIndex + 1 ?>"
+                            <?= $imgIndex === 0 ? '' : 'style="display:none;"' ?>>
+                            <?php if ($imgIndex === 0): ?>
+                            <img src="uploads/projects/<?= htmlspecialchars($image) ?>" style="cursor: pointer;"
+                                alt="No Image Project yet">
+                            <?php endif; ?>
+                        </a>
+                        <?php endforeach; ?>
+
+                        <?php if (count($projectImages) > 1): ?>
+                        <div class="position-absolute bottom-0 start-0 m-1">
+                            <span class="badge bg-dark bg-opacity-25 text-white"
+                                style="font-size: 0.65rem; padding: 2px 6px;">
+                                <i class="bi bi-images" style="font-size: 0.7rem;"></i> <?= count($projectImages) ?>
+                            </span>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php else: ?>
+                    <div class="text-center p-2 bg-light">
+                        <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
+                        <p class="text-muted my-0">No Image</p>
+                    </div>
+                    <?php endif; ?>
                     <div class="card-body">
                         <strong style="cursor: pointer; font-size: 1.1rem; margin-bottom: 0.3rem; display: block;"
                             onclick="openGoogleSlideModal('<?= htmlspecialchars($row['subform_embed']) ?>')">
@@ -1236,28 +1496,83 @@ $username = $isLoggedIn ? $_SESSION : null;
 
                         <!-- Material image dengan purple accent container -->
                         <div class="material-container"
-                            style="margin-top: 8px; cursor: pointer; border-radius: 10px; overflow: hidden; border: 2px solid rgba(139, 92, 246, 0.1); transition: border-color 0.3s ease;">
-                            <img src="uploads/materials/<?= htmlspecialchars($row['material_image']) ?>"
-                                alt="No Submission Notes yet"
-                                style="width: 100%; height: 150px; object-fit: contain; background-color: #f8f9fa;"
-                                onclick="openModal(this.src)">
+                            style="margin-top: 8px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(139, 92, 246, 0.1); transition: border-color 0.3s ease;">
+
+                            <?php 
+                            // Handle multiple material images
+                            $materialImages = [];
+                            if (!empty($row['material_image'])) {
+                                $decoded = json_decode($row['material_image'], true);
+                                $materialImages = is_array($decoded) ? $decoded : [$row['material_image']];
+                            }
+                            
+                            if (!empty($materialImages)): ?>
+                            <div class="position-relative">
+                                <?php foreach ($materialImages as $imgIndex => $image): ?>
+                                <a href="uploads/materials/<?= htmlspecialchars($image) ?>"
+                                    data-fancybox="gallery-material-<?= $row['id'] ?>"
+                                    data-caption="<?= htmlspecialchars($row['project_name']) ?> - Material <?= $imgIndex + 1 ?>"
+                                    <?= $imgIndex === 0 ? '' : 'style="display:none;"' ?>>
+                                    <?php if ($imgIndex === 0): ?>
+                                    <img src="uploads/materials/<?= htmlspecialchars($image) ?>"
+                                        alt="No Submission Notes yet"
+                                        style="width: 100%; height: 150px; object-fit: contain; background-color: #f8f9fa; cursor: pointer;">
+                                    <?php endif; ?>
+                                </a>
+                                <?php endforeach; ?>
+
+                                <?php if (count($materialImages) > 1): ?>
+                                <div class="position-absolute bottom-0 start-0 m-1">
+                                    <span class="badge bg-dark bg-opacity-25 text-white"
+                                        style="font-size: 0.65rem; padding: 2px 6px;">
+                                        <i class="bi bi-images" style="font-size: 0.7rem;"></i>
+                                        <?= count($materialImages) ?>
+                                    </span>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                            <?php else: ?>
+                            <div class="text-center p-2 bg-light">
+                                <i class="bi bi-file-earmark text-muted" style="font-size: 1.5rem;"></i>
+                                <p class="text-muted my-0 small">No Submission Notes yet</p>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
                 <?php endforeach; ?>
                 <?php endif; ?>
             </div>
+
+            <!-- Hidden links for gallery view all -->
+            <?php if (!empty($projects)): ?>
+            <div id="hiddenGalleryLinks" style="display: none;">
+                <!-- All project images -->
+                <?php foreach ($projects as $index => $row): ?>
+                <?php 
+                    $projectImages = parseImageData($row['project_image']);
+                    foreach ($projectImages as $imgIndex => $image): ?>
+                <a href="uploads/projects/<?= htmlspecialchars($image) ?>" data-fancybox="all-projects"
+                    data-caption="<?= htmlspecialchars($row['project_name']) ?> - Project Image <?= $imgIndex + 1 ?>"></a>
+                <?php endforeach; ?>
+                <?php endforeach; ?>
+
+                <!-- All material images -->
+                <?php foreach ($projects as $index => $row): ?>
+                <?php 
+                    $materialImages = parseImageData($row['material_image']);
+                    foreach ($materialImages as $imgIndex => $image): ?>
+                <a href="uploads/materials/<?= htmlspecialchars($image) ?>" data-fancybox="all-materials"
+                    data-caption="<?= htmlspecialchars($row['project_name']) ?> - Material <?= $imgIndex + 1 ?>"></a>
+                <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
         </div>
         <footer class="text-center py-1">
             <div class="mb-0">Create with ❤️ by <a class="fw-bold" href=""
                     style="text-decoration: none; color: #8b5cf6;">IT DCM</a></div>
         </footer>
-
-        <!-- Modal for Images-->
-        <div id="imgModal" class="modal" onclick="closeModal()">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <img class="modal-content" id="modalImage" alt="Preview Image">
-        </div>
 
         <!-- Modal for Google Slide -->
         <div class="modal fade" id="googleSlideModal" tabindex="-1" aria-labelledby="googleSlideModalLabel"
@@ -1280,19 +1595,6 @@ $username = $isLoggedIn ? $_SESSION : null;
         </div>
 
         <script>
-            function openModal(src) {
-                const modal = document.getElementById("imgModal");
-                const modalImage = document.getElementById("modalImage");
-
-                modal.style.display = "block";
-                modalImage.src = src;
-            }
-
-            function closeModal() {
-                const modal = document.getElementById("imgModal");
-                modal.style.display = "none";
-            }
-
             function openGoogleSlideModal(embedLink) {
                 function isWebOS() {
                     const userAgent = navigator.userAgent.toLowerCase();
@@ -1352,6 +1654,130 @@ $username = $isLoggedIn ? $_SESSION : null;
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <!-- Fancybox JavaScript -->
+        <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+        <script>
+            // Initialize Fancybox
+            Fancybox.bind("[data-fancybox]", {
+                // Configuration options
+                Toolbar: {
+                    display: {
+                        left: ["infobar"],
+                        middle: [
+                            "zoomIn",
+                            "zoomOut",
+                            "toggle1to1",
+                            "rotateCCW",
+                            "rotateCW",
+                            "flipX",
+                            "flipY",
+                        ],
+                        right: ["slideshow", "download", "thumbs", "close"],
+                    },
+                },
+                Thumbs: {
+                    autoStart: false,
+                    showOnStart: false,
+                    type: "classic",
+                },
+                Images: {
+                    zoom: true,
+                    protect: false,
+                    Panzoom: {
+                        maxScale: 3,
+                        step: 0.5,
+                    },
+                },
+                Carousel: {
+                    infinite: true,
+                    transition: "slide",
+                    preload: 3,
+                },
+                Slideshow: {
+                    autoStart: false,
+                    speed: 3000,
+                },
+                // Animation and UI
+                showClass: "f-fadeIn",
+                hideClass: "f-fadeOut",
+                animated: true,
+                dragToClose: true,
+                hideScrollbar: true,
+                // Custom styling
+                l10n: {
+                    CLOSE: "Tutup",
+                    NEXT: "Selanjutnya",
+                    PREV: "Sebelumnya",
+                    MODAL: "Modal",
+                    ERROR: "Gambar tidak dapat dimuat",
+                    IMAGE_ERROR: "Gambar tidak ditemukan",
+                    ELEMENT_NOT_FOUND: "Elemen HTML tidak ditemukan",
+                    AJAX_NOT_FOUND: "Error memuat AJAX: Tidak ditemukan",
+                    AJAX_FORBIDDEN: "Error memuat AJAX: Dilarang",
+                    IFRAME_ERROR: "Error memuat halaman",
+                    TOGGLE_ZOOM: "Toggle tingkat zoom",
+                    TOGGLE_THUMBS: "Toggle thumbnails",
+                    TOGGLE_SLIDESHOW: "Toggle slideshow",
+                    TOGGLE_FULLSCREEN: "Toggle fullscreen",
+                    DOWNLOAD: "Download"
+                },
+                // Event callbacks
+                on: {
+                    reveal: (fancybox, slide) => {
+                        // Add custom effects when image is revealed
+                        console.log(`Menampilkan: ${slide.caption || 'Gambar'}`);
+                    },
+                    "Carousel.ready": (fancybox) => {
+                        // When carousel is ready
+                        console.log("Fancybox gallery siap");
+                    }
+                }
+            });
+
+            // Tambahkan efek hover untuk link gambar
+            document.addEventListener('DOMContentLoaded', function() {
+                const imageLinks = document.querySelectorAll('[data-fancybox]');
+                imageLinks.forEach(link => {
+                    link.addEventListener('mouseenter', function() {
+                        this.style.transform = 'scale(1.02)';
+                        this.style.transition = 'transform 0.3s ease';
+                    });
+                    link.addEventListener('mouseleave', function() {
+                        this.style.transform = 'scale(1)';
+                    });
+                });
+            });
+
+            // Fungsi untuk melihat semua gambar project
+            function viewAllProjectImages() {
+                const projectLinks = document.querySelectorAll('[data-fancybox="all-projects"]');
+                if (projectLinks.length > 0) {
+                    // Trigger fancybox pada link pertama
+                    projectLinks[0].click();
+                } else {
+                    alert('Tidak ada gambar project yang tersedia');
+                }
+            }
+
+            // Fungsi untuk melihat semua gambar material
+            function viewAllMaterialImages() {
+                const materialLinks = document.querySelectorAll('[data-fancybox="all-materials"]');
+                if (materialLinks.length > 0) {
+                    // Trigger fancybox pada link pertama
+                    materialLinks[0].click();
+                } else {
+                    alert('Tidak ada gambar submission notes yang tersedia');
+                }
+            }
+
+            // Initialize Bootstrap tooltips
+            document.addEventListener('DOMContentLoaded', function() {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            });
+        </script>
     </body>
 
 </html>
