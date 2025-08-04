@@ -450,7 +450,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </a>
                     <a href="mascot_admin.php" class="floating-btn">
                         <i class="bi bi-arrow-left"></i>
-                        Kembali
+                        Back
                     </a>
                 </div>
                 <h2><i class="bi bi-pencil-square me-2"></i>Edit Project</h2>
@@ -542,7 +542,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             accept="image/*">
                         <div class="file-info">
                             <i class="bi bi-info-circle me-1"></i>
-                            Pilih beberapa gambar untuk mengganti semua gambar project yang ada
+                            Select multiple images to replace all existing project images
                         </div>
 
                         <div class="current-images-section">
@@ -579,7 +579,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             multiple accept="image/*">
                         <div class="file-info">
                             <i class="bi bi-info-circle me-1"></i>
-                            Pilih beberapa gambar untuk mengganti semua gambar Submission Notes yang ada
+                            Select multiple images to replace all existing Submission Notes images
                         </div>
 
                         <div class="current-images-section">
@@ -610,7 +610,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     <div class="btn-group-modern">
                         <button type="submit" class="btn btn-modern btn-primary">
-                            <i class="bi bi-check-circle me-2"></i>Simpan Perubahan
+                            <i class="bi bi-check-circle me-2"></i>Save Changes
                         </button>
                     </div>
                 </form>

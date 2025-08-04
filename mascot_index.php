@@ -7,26 +7,26 @@ require 'vendor/autoload.php';
 
 use Carbon\Carbon;
 
-// Ambil keyword dan filter status dari URL
+// Get keyword and filter status from URL
 $search = $_GET['search'] ?? '';
 $filter = $_GET['project_status'] ?? '';
 
 function isThisWeek($deadline)
 {
     if (empty($deadline)) {
-        return false; // Jika deadline kosong, kembalikan false
+        return false; // If deadline is empty, return false
     }
 
     $currentDate = new DateTime();
-    $startOfWeek = (clone $currentDate)->modify('this week')->setTime(0, 0, 0); // Awal minggu (Senin)
-    $endOfWeek = (clone $startOfWeek)->modify('+6 days')->setTime(23, 59, 59); // Akhir minggu (Minggu)
+    $startOfWeek = (clone $currentDate)->modify('this week')->setTime(0, 0, 0); // Start of week (Monday)
+    $endOfWeek = (clone $startOfWeek)->modify('+6 days')->setTime(23, 59, 59); // End of week (Sunday)
 
     $deadlineDate = new DateTime($deadline);
 
     return $deadlineDate >= $startOfWeek && $deadlineDate <= $endOfWeek;
 }
 
-// Filter berdasarkan kategori
+// Filter by category
 $sql = "SELECT * FROM gallery WHERE category = 'mascot' AND project_status != 'archived' AND project_name LIKE ?";
 $params = ["%$search%"];
 
@@ -111,7 +111,7 @@ $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'm
 $stmt->execute();
 $total_projects = $stmt->fetchColumn();
 
-// Hitung jumlah proyek berdasarkan status untuk kategori
+// Count projects by status for category
 $status_counts = [
     'Upcoming' => 0,
     'Completed' => 0,
@@ -124,7 +124,7 @@ foreach ($status_counts as $status => &$count) {
     $sql = "SELECT COUNT(*) AS total FROM gallery WHERE category = 'mascot' AND project_status = ?";
     $params = [$status];
 
-    // Tambahkan filter priority jika ada
+    // Add priority filter if exists
     if (!empty($_GET['priority'])) {
         $sql .= ' AND priority = ?';
         $params[] = $_GET['priority'];
@@ -136,12 +136,12 @@ foreach ($status_counts as $status => &$count) {
 }
 unset($count);
 
-// Hitung total proyek (kecuali Archived)
+// Count total projects (except Archived)
 $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'mascot' AND project_status != 'Archived'");
 $stmt->execute();
 $total_projects = $stmt->fetchColumn();
 
-// Periksa apakah pengguna sudah login
+// Check if user is logged in
 $isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
 $username = $isLoggedIn ? $_SESSION : null;
 ?>
@@ -195,7 +195,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 overflow: hidden;
             }
 
-            /* Purple accent border/gradient di bagian atas header */
+            /* Purple accent border/gradient at the top of header */
             .header-section::before {
                 content: '';
                 position: absolute;
@@ -220,13 +220,13 @@ $username = $isLoggedIn ? $_SESSION : null;
                 }
             }
 
-            /* Purple accent untuk logo container */
+            /* Purple accent for logo container */
             .logo-container {
                 position: relative;
                 display: inline-block;
             }
 
-            /* Purple accent untuk title */
+            /* Purple accent for title */
             .text-header {
                 color: #334155;
                 text-shadow: none;
@@ -257,7 +257,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-color: rgba(139, 92, 246, 0.3);
             }
 
-            /* Dark mode untuk header accent */
+            /* Dark mode for header accent */
             [data-bs-theme="dark"] .header-section {
                 background: rgba(30, 41, 59, 0.95);
                 border: 1px solid rgba(139, 92, 246, 0.3);
@@ -388,7 +388,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             .btn-secondary.active,
             .btn-secondary:active {
                 background-color: #adb5bd !important;
-                /* Lebih terang dari default */
+                /* Brighter than default */
                 border-color: #adb5bd !important;
                 color: #fff !important;
             }
@@ -396,7 +396,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             .btn-danger.active,
             .btn-danger:active {
                 background-color: #EF4444 !important;
-                /* Lebih terang dari default */
+                /* Brighter than default */
                 border-color: #EF4444 !important;
                 color: #fff !important;
                 box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.3) !important;
@@ -405,7 +405,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             .btn-success.active,
             .btn-success:active {
                 background-color: #28A745 !important;
-                /* Lebih terang dari default */
+                /* Brighter than default */
                 border-color: #28A745 !important;
                 color: #fff !important;
                 box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.3) !important;
@@ -414,7 +414,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             .btn-info.active,
             .btn-info:active {
                 background-color: #0DCAF0 !important;
-                /* Lebih terang dari default */
+                /* Brighter than default */
                 border-color: #0DCAF0 !important;
                 box-shadow: 0 0 0 3px rgba(13, 202, 240, 0.3) !important;
             }
@@ -422,10 +422,10 @@ $username = $isLoggedIn ? $_SESSION : null;
             .btn-warning.active,
             .btn-warning:active {
                 background-color: #FFCA2C !important;
-                /* Lebih terang dari default */
+                /* Brighter than default */
                 border-color: #FFCA2C !important;
                 color: #000 !important;
-                /* Teks hitam untuk kontras yang baik */
+                /* Black text for good contrast */
                 box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.3) !important;
             }
 
@@ -499,7 +499,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: #721c24 !important;
                 font-weight: 600 !important;
                 outline: 2px solid #dc3545 !important;
-                /* Tambahkan outline */
+                /* Add outline */
                 outline-offset: 2px !important;
                 transform: scale(1.02) !important;
             }
@@ -535,7 +535,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             .input-group .btn:hover {
                 transform: none;
-                /* Menghilangkan efek hover untuk semua tombol di area search-filter */
+                /* Remove hover effect for all buttons in search-filter area */
             }
 
             .search-filter {
@@ -645,7 +645,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 position: absolute;
                 top: 10px;
                 right: 10px;
-                background: linear-gradient(45deg, rgba(239, 68, 68, 0.6), #dc2626);
+                background: linear-gradient(45deg, rgba(239, 68, 68, 0.6), #dc2626d7);
                 color: white;
                 padding: 4px 8px;
                 border-radius: 15px;
@@ -1012,7 +1012,6 @@ $username = $isLoggedIn ? $_SESSION : null;
             #searchInput:focus {
                 box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
                 border-color: #8b5cf6;
-                transform: scale(1.02);
             }
 
             /* Search button loading state */
@@ -1507,11 +1506,12 @@ $username = $isLoggedIn ? $_SESSION : null;
                             <div class="filter-group">
                                 <form method="GET" action="mascot_index.php" class="d-flex align-items-center">
                                     <div class="input-group">
-                                        <span class="input-group-text"
-                                            style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border-color: #8b5cf6;"><i
-                                                class="bi bi-funnel"></i></span>
+                                        <span class="input-group-text" id="priorityDropdownBtn"
+                                            style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border-color: #8b5cf6; cursor:pointer;">
+                                            <i class="bi bi-funnel"></i>
+                                        </span>
                                         <select name="priority" class="form-select border-start-0"
-                                            onchange="this.form.submit()">
+                                            id="prioritySelect" onchange="this.form.submit()">
                                             <option value="">All Priority</option>
                                             <option value="High"
                                                 <?= isset($_GET['priority']) && $_GET['priority'] === 'High' ? 'selected' : '' ?>>
@@ -1747,7 +1747,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                     return userAgent.includes("webos") || userAgent.includes("smarttv");
                 }
 
-                // Jika bukan WebOS, tampilkan embed iframe
+                // If not WebOS, display embed iframe
                 const embedUrl = embedLink.replace('/edit', '/embed');
                 const iframe = document.getElementById('googleSlideIframe');
                 const fallbackLink = document.getElementById('fallbackLink');
@@ -1756,7 +1756,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 iframe.src = embedUrl;
                 googleSlideLink.href = embedLink;
 
-                // Cek apakah iframe didukung
+                // Check if iframe is supported
                 iframe.onload = function() {
                     fallbackLink.style.display = 'none';
                 };
@@ -1779,13 +1779,13 @@ $username = $isLoggedIn ? $_SESSION : null;
             const toggleDarkMode = document.getElementById('toggleDarkMode');
             const html = document.documentElement;
 
-            // Periksa preferensi dark mode dari localStorage
+            // Check dark mode preference from localStorage
             if (localStorage.getItem('theme') === 'dark') {
                 html.setAttribute('data-bs-theme', 'dark');
                 toggleDarkMode.innerHTML = '<i class="bi bi-sun"></i>';
             }
 
-            // Tambahkan event listener untuk tombol toggle
+            // Add event listener for toggle button
             toggleDarkMode.addEventListener('click', () => {
                 if (html.getAttribute('data-bs-theme') === 'dark') {
                     html.setAttribute('data-bs-theme', 'light');
@@ -1851,17 +1851,17 @@ $username = $isLoggedIn ? $_SESSION : null;
                 hideScrollbar: true,
                 // Custom styling
                 l10n: {
-                    CLOSE: "Tutup",
-                    NEXT: "Selanjutnya",
-                    PREV: "Sebelumnya",
+                    CLOSE: "Close",
+                    NEXT: "Next",
+                    PREV: "Previous",
                     MODAL: "Modal",
-                    ERROR: "Gambar tidak dapat dimuat",
-                    IMAGE_ERROR: "Gambar tidak ditemukan",
-                    ELEMENT_NOT_FOUND: "Elemen HTML tidak ditemukan",
-                    AJAX_NOT_FOUND: "Error memuat AJAX: Tidak ditemukan",
-                    AJAX_FORBIDDEN: "Error memuat AJAX: Dilarang",
-                    IFRAME_ERROR: "Error memuat halaman",
-                    TOGGLE_ZOOM: "Toggle tingkat zoom",
+                    ERROR: "Image could not be loaded",
+                    IMAGE_ERROR: "Image not found",
+                    ELEMENT_NOT_FOUND: "HTML element not found",
+                    AJAX_NOT_FOUND: "AJAX loading error: Not found",
+                    AJAX_FORBIDDEN: "AJAX loading error: Forbidden",
+                    IFRAME_ERROR: "Page loading error",
+                    TOGGLE_ZOOM: "Toggle zoom level",
                     TOGGLE_THUMBS: "Toggle thumbnails",
                     TOGGLE_SLIDESHOW: "Toggle slideshow",
                     TOGGLE_FULLSCREEN: "Toggle fullscreen",
@@ -1871,7 +1871,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 on: {
                     "Carousel.ready": (fancybox) => {
                         // When carousel is ready
-                        console.log("Fancybox gallery siap");
+                        console.log("Fancybox gallery ready");
                     }
                 }
             });
@@ -1890,25 +1890,25 @@ $username = $isLoggedIn ? $_SESSION : null;
                 });
             });
 
-            // Fungsi untuk melihat semua gambar project
+            // Function to view all project images
             function viewAllProjectImages() {
                 const projectLinks = document.querySelectorAll('[data-fancybox="all-projects"]');
                 if (projectLinks.length > 0) {
-                    // Trigger fancybox pada link pertama
+                    // Trigger fancybox on first link
                     projectLinks[0].click();
                 } else {
-                    alert('Tidak ada gambar project yang tersedia');
+                    alert('No project images available');
                 }
             }
 
-            // Fungsi untuk melihat semua gambar material
+            // Function to view all material images
             function viewAllMaterialImages() {
                 const materialLinks = document.querySelectorAll('[data-fancybox="all-materials"]');
                 if (materialLinks.length > 0) {
-                    // Trigger fancybox pada link pertama
+                    // Trigger fancybox on first link
                     materialLinks[0].click();
                 } else {
-                    alert('Tidak ada gambar submission notes yang tersedia');
+                    alert('No submission notes images available');
                 }
             }
 
@@ -1919,7 +1919,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                     return new bootstrap.Tooltip(tooltipTriggerEl);
                 });
 
-                // Live Search Functionality (seperti DataTables)
+                // Live Search Functionality (like DataTables)
                 const searchInput = document.getElementById('searchInput');
                 const projectCards = document.querySelectorAll('.project-card');
                 const cardGrid = document.querySelector('.card-grid');
@@ -1928,7 +1928,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
                 let searchTimeout;
 
-                // Debounce function untuk smooth performance
+                // Debounce function for smooth performance
                 function debounce(func, delay) {
                     return function(args) {
                         clearTimeout(searchTimeout);
@@ -1936,13 +1936,13 @@ $username = $isLoggedIn ? $_SESSION : null;
                     };
                 }
 
-                // Fungsi untuk melakukan filtering real-time
+                // Function to perform real-time filtering
                 function performRealTimeFilter() {
                     const searchValue = searchInput.value.toLowerCase().trim();
                     let visibleCount = 0;
                     const totalCards = projectCards.length;
 
-                    // Sembunyikan pesan "No projects found" original jika ada
+                    // Hide original "No projects found" message if exists
                     if (originalNoProjectsMessage && totalCards > 0) {
                         originalNoProjectsMessage.style.display = 'none';
                     }
@@ -1953,7 +1953,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                         const status = card.getAttribute('data-status') || '';
                         const priority = card.getAttribute('data-priority') || '';
 
-                        // Gabungkan semua text yang bisa dicari
+                        // Combine all searchable text
                         const searchableText = (projectName + ' ' + description + ' ' + status + ' ' + priority)
                             .toLowerCase();
 
@@ -1968,36 +1968,36 @@ $username = $isLoggedIn ? $_SESSION : null;
                         }
                     });
 
-                    // Update search info dan no results message
+                    // Update search info and no results message
                     updateSearchResults(searchValue, visibleCount, totalCards);
                 }
 
-                // Fungsi untuk update search results info
+                // Function to update search results info
                 function updateSearchResults(searchValue, visibleCount, totalCards) {
                     if (searchValue === '') {
-                        // Tidak ada pencarian
+                        // No search
                         noResults.style.display = 'none';
                     } else if (visibleCount === 0) {
-                        // Tidak ada hasil
+                        // No results
                         noResults.style.display = 'block';
                         noResults.scrollIntoView({
                             behavior: 'smooth',
                             block: 'center'
                         });
                     } else {
-                        // Ada hasil
+                        // Has results
                         noResults.style.display = 'none';
                     }
                 }
 
-                // Event listener untuk real-time search
+                // Event listener for real-time search
                 if (searchInput && projectCards.length > 0) {
                     const debouncedFilter = debounce(performRealTimeFilter, 150); // 150ms delay untuk responsiveness
 
                     searchInput.addEventListener('input', function(e) {
                         const searchButton = document.querySelector('.input-group-text');
 
-                        // Visual feedback saat mengetik
+                        // Visual feedback while typing
                         this.classList.add('typing');
 
                         if (this.value.length > 0) {
@@ -2008,10 +2008,10 @@ $username = $isLoggedIn ? $_SESSION : null;
                             searchButton.style.opacity = '1';
                         }
 
-                        // Jalankan filter dengan debounce
+                        // Run filter with debounce
                         debouncedFilter();
 
-                        // Remove typing class setelah delay
+                        // Remove typing class after delay
                         setTimeout(() => {
                             this.classList.remove('typing');
                             searchButton.innerHTML = '<i class="bi bi-search"></i>';
@@ -2019,12 +2019,12 @@ $username = $isLoggedIn ? $_SESSION : null;
                         }, 300);
                     });
 
-                    // Jalankan filter awal jika ada nilai search dari URL
+                    // Run initial filter if there's search value from URL
                     if (searchInput.value.trim() !== '') {
                         performRealTimeFilter();
                     }
 
-                    // Tambahkan placeholder interaktif
+                    // Add interactive placeholder
                     const originalPlaceholder = searchInput.placeholder;
                     searchInput.addEventListener('focus', function() {
                         this.placeholder = 'Search Project...';
@@ -2036,6 +2036,18 @@ $username = $isLoggedIn ? $_SESSION : null;
                         }
                     });
                 }
+            });
+
+            document.getElementById('priorityDropdownBtn').addEventListener('click', function() {
+                document.getElementById('prioritySelect').focus();
+                // Untuk browser modern, ini akan membuka dropdown jika user menekan tombol panah bawah
+                // Untuk Chrome/Edge, bisa juga trigger event keydown:
+                const select = document.getElementById('prioritySelect');
+                const event = new KeyboardEvent('keydown', {
+                    key: 'ArrowDown',
+                    bubbles: true
+                });
+                select.dispatchEvent(event);
             });
         </script>
     </body>

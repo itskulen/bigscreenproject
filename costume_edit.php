@@ -206,8 +206,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             width="150" alt="Material Image" class="mt-2 border">
                     </div>
                     <div class="d-flex justify-content-between">
-                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                        <a href="costume_admin.php" class="btn btn-secondary">Kembali</a>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <a href="costume_admin.php" class="btn btn-secondary">Back</a>
                     </div>
                 </form>
             </div>

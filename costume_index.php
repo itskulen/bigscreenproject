@@ -31,8 +31,12 @@ $sql = "SELECT * FROM gallery WHERE category = 'costume' AND project_status != '
 $params = ["%$search%"];
 
 if (isset($_GET['this_week']) && $_GET['this_week'] == '1') {
-    $startOfWeek = new DateTime()->modify('this week')->format('Y-m-d');
-    $endOfWeek = new DateTime()->modify('this week +6 days')->format('Y-m-d');
+    $startOfWeekObj = new DateTime();
+    $startOfWeekObj->modify('this week');
+    $startOfWeek = $startOfWeekObj->format('Y-m-d');
+    $endOfWeekObj = clone $startOfWeekObj;
+    $endOfWeekObj->modify('+6 days');
+    $endOfWeek = $endOfWeekObj->format('Y-m-d');
     $sql .= ' AND deadline BETWEEN ? AND ?';
     $params[] = $startOfWeek;
     $params[] = $endOfWeek;
@@ -54,8 +58,12 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $projects = $stmt->fetchAll();
 
-$startOfWeek = new DateTime()->modify('this week')->format('Y-m-d');
-$endOfWeek = new DateTime()->modify('this week +6 days')->format('Y-m-d');
+$startOfWeekObj = new DateTime();
+$startOfWeekObj->modify('this week');
+$startOfWeek = $startOfWeekObj->format('Y-m-d');
+$endOfWeekObj = clone $startOfWeekObj;
+$endOfWeekObj->modify('+6 days');
+$endOfWeek = $endOfWeekObj->format('Y-m-d');
 
 $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'costume' AND project_status != 'archived' AND deadline BETWEEN ? AND ?");
 $stmt->execute([$startOfWeek, $endOfWeek]);

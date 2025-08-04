@@ -196,7 +196,8 @@ $result = $pdo->query($sql);
             }
 
             .btn-upload:hover {
-                transform: translateY(-2px);
+                transform: translateY(-1px);
+                color: whitesmoke;
                 box-shadow: 0 12px 35px rgba(139, 92, 246, 0.4);
                 background: linear-gradient(135deg, #7c3aed, #6d28d9);
             }
@@ -333,8 +334,8 @@ $result = $pdo->query($sql);
 
             .floating-btn {
                 border-radius: 50%;
-                width: 50px;
-                height: 50px;
+                width: 40px;
+                height: 40px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -365,8 +366,8 @@ $result = $pdo->query($sql);
                 right: 30px;
                 z-index: 1000;
                 border-radius: 50%;
-                width: 50px;
-                height: 50px;
+                width: 40px;
+                height: 40px;
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                 transition: all 0.3s ease;
                 background: linear-gradient(135deg, #8b5cf6, #7c3aed);
@@ -390,8 +391,8 @@ $result = $pdo->query($sql);
                 right: 30px;
                 z-index: 1000;
                 border-radius: 50%;
-                width: 50px;
-                height: 50px;
+                width: 40px;
+                height: 40px;
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                 transition: all 0.3s ease;
                 background: linear-gradient(135deg, #fbbf24, #f59e0b);
@@ -642,8 +643,8 @@ $result = $pdo->query($sql);
                 }
 
                 .floating-btn {
-                    width: 45px;
-                    height: 45px;
+                    width: 40px;
+                    height: 40px;
                     font-size: 10px;
                 }
 
