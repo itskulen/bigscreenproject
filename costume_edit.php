@@ -172,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="mb-3">
                                 <label for="deadline" class="form-label">Deadline</label>
                                 <input type="date" name="deadline" id="deadline" class="form-control"
-                                    value="<?= htmlspecialchars($data['deadline'] ?? '') ?>" required>
+                                    value="<?= htmlspecialchars($data['deadline'] ?? '') ?>">
                             </div>
                         </div>
                     </div>

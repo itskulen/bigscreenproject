@@ -1690,6 +1690,10 @@ $username = $isLoggedIn ? $_SESSION : null;
                                 <i class="bi bi-calendar-check me-1"></i>Deadline:
                                 <?= htmlspecialchars(Carbon::parse($row['deadline'])->format('d M Y')) ?>
                             </div>
+                            <?php else: ?>
+                            <div class="deadline">
+                                <i class="bi bi-calendar-x me-1"></i>Deadline: -
+                            </div>
                             <?php endif; ?>
                         </div>
 

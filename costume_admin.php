@@ -514,7 +514,7 @@ $result = $pdo->query($sql);
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="deadline">Deadline:</label>
-                                <input type="date" class="form-control" id="deadline" name="deadline" required>
+                                <input type="date" class="form-control" id="deadline" name="deadline">
                                 <div class="error" id="deadline_error"></div>
                             </div>
                         </div>

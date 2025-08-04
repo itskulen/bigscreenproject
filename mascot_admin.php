@@ -52,7 +52,7 @@ $result = $pdo->query($sql);
                 padding: 15px 20px;
                 border-radius: 12px;
                 margin-bottom: 20px;
-                box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+                box-shadow: 0 0px 10px rgba(139, 92, 246, 0.3);
             }
 
             .header-section h2 {
@@ -108,8 +108,6 @@ $result = $pdo->query($sql);
             .form-select {
                 border-radius: 10px;
                 border: 2px solid #e9ecef;
-                padding: 10px 14px;
-                font-size: 14px;
                 transition: all 0.3s ease;
                 background: rgba(255, 255, 255, 0.9);
             }
@@ -124,16 +122,16 @@ $result = $pdo->query($sql);
             .form-label {
                 font-weight: 600;
                 color: #4a5568;
-                margin-bottom: 8px;
+                margin-bottom: 4px;
                 display: block;
             }
 
             .drop-zone {
-                border: 3px dashed #8b5cf6;
-                padding: 25px;
+                border: 2px dashed #8b5cf6;
+                padding: 10px;
                 text-align: center;
                 background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(124, 58, 237, 0.05));
-                margin-bottom: 12px;
+                margin-bottom: 6px;
                 cursor: pointer;
                 border-radius: 12px;
                 transition: all 0.3s ease;
@@ -159,14 +157,12 @@ $result = $pdo->query($sql);
             .drop-zone:hover {
                 background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.1));
                 border-color: #7c3aed;
-                transform: translateY(-2px);
-                box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
             }
 
             .drop-zone i {
                 font-size: 2rem;
                 color: #8b5cf6;
-                margin-bottom: 10px;
+                margin-bottom: 2px;
                 display: block;
             }
 
@@ -733,21 +729,30 @@ $result = $pdo->query($sql);
                     </div>
                 </div>
             </div>
-
+            <?php
+            if (isset($_SESSION['message']) && $_SESSION['message_type'] === 'danger'): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <?= $_SESSION['message'] ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['message'], $_SESSION['message_type']); endif; ?>
             <div class="form-section">
                 <h5 class="mb-3"><i class="bi bi-plus-circle me-2"></i>Upload New Project</h5>
                 <form id="uploadForm" action="mascot_upload.php" method="POST" enctype="multipart/form-data"
                     novalidate>
+                    <?php
+                    $old = $_SESSION['old'] ?? [];
+                    ?>
                     <div class="form-group">
-                        <label for="project_name">Project Name:</label>
-                        <input type="text" class="form-control" id="project_name" name="project_name" required>
-                        <div class="error" id="project_name_error"></div>
+                        <label for="project_name" class="form-label">Project Name</label>
+                        <input type="text" class="form-control" id="project_name" name="project_name" required
+                            value="<?= htmlspecialchars($old['project_name'] ?? '') ?>">
                     </div>
 
                     <div class="form-group">
-                        <label for="subform_embed">Submission Form Embed Link:</label>
+                        <label for="subform_embed" class="form-label">Submission Form Embed Link</label>
                         <textarea type="text" class="form-control" id="subform_embed" name="subform_embed"
-                            placeholder="Link Example: https://docs.google.com/presentation/d/e/2PACX-.../edit"></textarea>
+                            placeholder="Link Example: https://docs.google.com/presentation/d/e/2PACX-.../edit"><?= htmlspecialchars($old['subform_embed'] ?? '') ?></textarea>
                     </div>
 
                     <div class="row">
@@ -757,13 +762,22 @@ $result = $pdo->query($sql);
                                 <select class="form-select" name="project_status" id="project_status"
                                     aria-label="Default select example" required>
                                     <option value="">Select Status</option>
-                                    <option value="Upcoming">Upcoming</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Revision">Revision</option>
-                                    <option value="Completed">Completed</option>
-                                    <option value="Archived">Archived</option>
+                                    <option value="Upcoming"
+                                        <?= isset($old['project_status']) && $old['project_status'] == 'Upcoming' ? 'selected' : '' ?>>
+                                        Upcoming</option>
+                                    <option value="In Progress"
+                                        <?= isset($old['project_status']) && $old['project_status'] == 'In Progress' ? 'selected' : '' ?>>
+                                        In Progress</option>
+                                    <option value="Revision"
+                                        <?= isset($old['project_status']) && $old['project_status'] == 'Revision' ? 'selected' : '' ?>>
+                                        Revision</option>
+                                    <option value="Completed"
+                                        <?= isset($old['project_status']) && $old['project_status'] == 'Completed' ? 'selected' : '' ?>>
+                                        Completed</option>
+                                    <option value="Archived"
+                                        <?= isset($old['project_status']) && $old['project_status'] == 'Archived' ? 'selected' : '' ?>>
+                                        Archived</option>
                                 </select>
-                                <div class="error" id="project_status_error"></div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -771,12 +785,19 @@ $result = $pdo->query($sql);
                                 <label for="priority" class="form-label">Priority</label>
                                 <select class="form-select" name="priority" id="priority" required>
                                     <option value="">Select Priority</option>
-                                    <option value="Urgent">Urgent</option>
-                                    <option value="High">High</option>
-                                    <option value="Normal">Normal</option>
-                                    <option value="Low">Low</option>
+                                    <option value="Urgent"
+                                        <?= isset($old['priority']) && $old['priority'] == 'Urgent' ? 'selected' : '' ?>>
+                                        Urgent</option>
+                                    <option value="High"
+                                        <?= isset($old['priority']) && $old['priority'] == 'High' ? 'selected' : '' ?>>
+                                        High</option>
+                                    <option value="Normal"
+                                        <?= isset($old['priority']) && $old['priority'] == 'Normal' ? 'selected' : '' ?>>
+                                        Normal</option>
+                                    <option value="Low"
+                                        <?= isset($old['priority']) && $old['priority'] == 'Low' ? 'selected' : '' ?>>
+                                        Low</option>
                                 </select>
-                                <div class="error" id="priority_error"></div>
                             </div>
                         </div>
                     </div>
@@ -784,28 +805,29 @@ $result = $pdo->query($sql);
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="quantity">Quantity:</label>
-                                <input type="number" class="form-control" id="quantity" name="quantity" min="1"
-                                    required>
-                                <div class="error" id="quantity_error"></div>
+                                <label for="quantity" class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity"
+                                    min="1" required value="<?= htmlspecialchars($old['quantity'] ?? '') ?>">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="deadline">Deadline:</label>
-                                <input type="date" class="form-control" id="deadline" name="deadline" required>
-                                <div class="error" id="deadline_error"></div>
+                                <label for="deadline" class="form-label">Deadline</label>
+                                <input type="date" class="form-control" id="deadline" name="deadline"
+                                    value="<?= htmlspecialchars($old['deadline'] ?? '') ?>">
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="description">Description:</label>
-                        <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
-                        <div class="error" id="description_error"></div>
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required><?= htmlspecialchars($old['description'] ?? '') ?></textarea>
                     </div>
+                    <?php if (isset($_SESSION['old'])) {
+                        unset($_SESSION['old']);
+                    } ?>
 
                     <div class="form-group">
-                        <label>Project Images:</label>
+                        <label for="project_image" class="form-label">Project Images:</label>
                         <div class="drop-zone" onclick="document.getElementById('project_image').click();">
                             <i class="bi bi-cloud-upload"></i>
                             <div class="drop-zone-text">Click or Drag to Upload Project Images<br><small>Multiple files
@@ -817,7 +839,7 @@ $result = $pdo->query($sql);
                         <div class="error" id="project_image_error"></div>
                     </div>
                     <div class="form-group">
-                        <label>Submission Notes:</label>
+                        <label for="material_image" class="form-label">Submission Notes:</label>
                         <div class="drop-zone" onclick="document.getElementById('material_image').click();">
                             <i class="bi bi-file-earmark-image"></i>
                             <div class="drop-zone-text">Click or Drag to Upload Submission Notes<br><small>Multiple
@@ -834,7 +856,12 @@ $result = $pdo->query($sql);
                     </button>
                 </form>
             </div>
-            <hr id="alertMessage">
+            <?php if (isset($_SESSION['message']) && $_SESSION['message_type'] === 'success'): ?>
+            <div class="alert alert-success alert-dismissible fade show" id="alertSuccessMessage" role="alert">
+                <?= $_SESSION['message'] ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['message'], $_SESSION['message_type']); endif; ?>
             <div class="table-section">
                 <?php if (isset($_SESSION['message'])): ?>
                 <div class="alert alert-<?= $_SESSION['message_type'] ?> alert-dismissible fade show" role="alert">
@@ -1117,62 +1144,6 @@ $result = $pdo->query($sql);
                 previewMultipleImages(this, 'material_image_preview');
             });
 
-            // Validasi Form
-            document.getElementById('uploadForm').addEventListener('submit', function(e) {
-                let isValid = true;
-
-                // Validasi Project Name
-                const projectName = document.getElementById('project_name');
-                if (!projectName.value.trim()) {
-                    isValid = false;
-                    document.getElementById('project_name_error').textContent = "Project Name is required.";
-                } else {
-                    document.getElementById('project_name_error').textContent = "";
-                }
-
-                // Validasi Project Status
-                const projectStatus = document.getElementById('project_status');
-                if (!projectStatus.value || projectStatus.value === "Select Status") {
-                    isValid = false;
-                    document.getElementById('project_status_error').textContent = "Project Status is required.";
-                } else {
-                    document.getElementById('project_status_error').textContent = "";
-                }
-
-                // Validasi Project Priority
-                const priority = document.getElementById('priority');
-                if (!priority.value || priority.value === "Select Priority") {
-                    isValid = false;
-                    document.getElementById('priority_error').textContent = "Priority Status is required.";
-                } else {
-                    document.getElementById('priority_error').textContent = "";
-                }
-
-                // Validasi Quantity
-                const quantity = document.getElementById('quantity');
-                if (!quantity.value || isNaN(quantity.value) || parseInt(quantity.value) <= 0) {
-                    isValid = false;
-                    document.getElementById('quantity_error').textContent = "Quantity must be a positive number.";
-                } else {
-                    document.getElementById('quantity_error').textContent = "";
-                }
-
-                // Validasi Deadline
-                const deadline = document.getElementById('deadline');
-                if (!deadline.value) {
-                    isValid = false;
-                    document.getElementById('deadline_error').textContent = "Deadline is required.";
-                } else {
-                    document.getElementById('deadline_error').textContent = "";
-                }
-
-                // Jika ada error, cegah pengiriman form
-                if (!isValid) {
-                    e.preventDefault();
-                    alert("Please fill out all required fields.");
-                }
-            });
-
             function updateStatus(id, status, category) {
                 // Show loading state
                 const selectElement = event.target;
@@ -1238,18 +1209,6 @@ $result = $pdo->query($sql);
                         });
                     });
             }
-
-            // Hapus alert setelah 5 detik
-            setTimeout(() => {
-                const alert = document.querySelector('.alert');
-                if (alert) {
-                    alert.classList.remove('show');
-                    alert.classList.add('fade');
-                    setTimeout(() => {
-                        alert.remove(); // Hapus elemen alert dari DOM
-                    }, 150); // Tunggu animasi selesai (150ms)
-                }
-            }, 5000);
 
             $(document).ready(function() {
                 $('#projectTable').DataTable({
@@ -1396,6 +1355,16 @@ $result = $pdo->query($sql);
                 const projectListSection = document.querySelector('.table-section');
                 if (projectListSection) {
                     projectListSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', function() {
+                var alertSuccess = document.getElementById('alertSuccessMessage');
+                if (alertSuccess) {
+                    alertSuccess.scrollIntoView({
                         behavior: 'smooth',
                         block: 'start'
                     });

@@ -31,6 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $projectImages = [];
     $materialImages = [];
 
+    if ($deadline === '') {
+        $deadline = null;
+    }
+
     // Get existing images
     if (!empty($data['project_image'])) {
         $decoded = json_decode($data['project_image'], true);
@@ -523,7 +527,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="mb-3">
                                 <label for="deadline" class="form-label">Deadline</label>
                                 <input type="date" name="deadline" id="deadline" class="form-control"
-                                    value="<?= htmlspecialchars($data['deadline'] ?? '') ?>" required>
+                                    value="<?= htmlspecialchars($data['deadline'] ?? '') ?>">
                             </div>
                         </div>
                     </div>
