@@ -278,6 +278,53 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-color: rgba(139, 92, 246, 0.5);
             }
 
+            [data-bs-theme="dark"] .text-center.p-2.bg-light {
+                background: #212429 !important;
+                color: #cbd5e1 !important;
+                border: 1px solid rgba(71, 85, 105, 0.2);
+            }
+
+            .no-image-soft,
+            .no-notes-soft {
+                background: rgba(255, 255, 255, 0.171) !important;
+                color: #b0b4bb !important;
+                border: none !important;
+                font-size: 0.97rem;
+                padding: 16px 0 10px 0;
+                box-shadow: none !important;
+            }
+
+            .no-image-soft i,
+            .no-notes-soft i {
+                font-size: 1.3rem !important;
+                color: #b0b4bb !important;
+                opacity: 0.7;
+            }
+
+            .no-image-soft p,
+            .no-notes-soft p {
+                color: #b0b4bb !important;
+                font-size: 0.97rem;
+                margin: 0;
+                opacity: 0.85;
+            }
+
+            [data-bs-theme="dark"] .no-image-soft,
+            [data-bs-theme="dark"] .no-notes-soft {
+                background: rgba(36, 39, 44, 0.082) !important;
+                color: #6c7383 !important;
+            }
+
+            [data-bs-theme="dark"] .no-image-soft i,
+            [data-bs-theme="dark"] .no-notes-soft i {
+                color: #6c7383 !important;
+            }
+
+            [data-bs-theme="dark"] .no-image-soft p,
+            [data-bs-theme="dark"] .no-notes-soft p {
+                color: #6c7383 !important;
+            }
+
             /* Search section improvements */
             .search-section {
                 background: rgba(255, 255, 255, 0.95);
@@ -919,7 +966,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             [data-bs-theme="dark"] .card-body p {
-                color: #e9ecef !important;
+                color: #e9ecef;
             }
 
             [data-bs-theme="dark"] .deadline {
@@ -1604,9 +1651,9 @@ $username = $isLoggedIn ? $_SESSION : null;
                         <?php endif; ?>
                     </div>
                     <?php else: ?>
-                    <div class="text-center p-2 bg-light">
-                        <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
-                        <p class="text-muted my-0">No Image</p>
+                    <div class="text-center p-2 no-image-soft">
+                        <i class="bi bi-image"></i>
+                        <p>No Image Available</p>
                     </div>
                     <?php endif; ?>
                     <div class="card-body">
@@ -1635,10 +1682,6 @@ $username = $isLoggedIn ? $_SESSION : null;
                             </div>
                             <?php endif; ?>
                         </div>
-
-                        <p style="margin: 6px 0; font-size: 14px; line-height: 1.4;">
-                            <?= nl2br(htmlspecialchars($row['description'])) ?>
-                        </p>
 
                         <!-- Material image dengan purple accent container -->
                         <div class="material-container"
@@ -1678,12 +1721,17 @@ $username = $isLoggedIn ? $_SESSION : null;
                                 <?php endif; ?>
                             </div>
                             <?php else: ?>
-                            <div class="text-center p-2 bg-light">
-                                <i class="bi bi-file-earmark text-muted" style="font-size: 1.5rem;"></i>
-                                <p class="text-muted my-0 small">No Submission Notes yet</p>
+                            <div class="text-center p-2 no-notes-soft">
+                                <i class="bi bi-file-earmark text-muted"></i>
+                                <p>No Submission Notes yet</p>
                             </div>
                             <?php endif; ?>
                         </div>
+
+                        <p style="margin: 6px 0 0 0; font-size: 14px; line-height: 1.4;">
+                            <?= nl2br(htmlspecialchars($row['description'])) ?>
+                        </p>
+
                     </div>
                 </div>
                 <?php endforeach; ?>

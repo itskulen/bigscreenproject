@@ -517,7 +517,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="quantity">Quantity:</label>
+                                <label for="quantity" class="form-label">Quantity:</label>
                                 <input type="number" class="form-control" id="quantity" name="quantity"
                                     value="<?= htmlspecialchars($data['quantity']) ?>" min="1" required>
                             </div>
