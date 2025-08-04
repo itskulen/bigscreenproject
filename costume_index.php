@@ -546,10 +546,16 @@ $username = $isLoggedIn ? $_SESSION : null;
                     <img src="uploads/projects/<?= htmlspecialchars($row['project_image']) ?>"
                         style="cursor: pointer;" alt="No Image Project yet" onclick="openModal(this.src)">
                     <div class="card-body">
+                        <?php if (!empty($row['subform_embed'])): ?>
                         <strong style="cursor: pointer;"
                             onclick="openGoogleSlideModal('<?= htmlspecialchars($row['subform_embed']) ?>')">
                             <?= htmlspecialchars($row['project_name']) ?>
                         </strong><br>
+                        <?php else: ?>
+                        <strong>
+                            <?= htmlspecialchars($row['project_name']) ?>
+                        </strong><br>
+                        <?php endif; ?>
                         <span class="status-label" style="<?= getStatusClass($row['project_status']) ?>">
                             <?= htmlspecialchars($row['project_status']) ?>
                         </span>

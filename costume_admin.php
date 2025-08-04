@@ -115,7 +115,6 @@ $result = $pdo->query($sql);
                 border-radius: 10px;
                 overflow-x: auto;
                 overflow-y: visible;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
                 max-width: 100%;
                 -webkit-overflow-scrolling: touch;
             }
@@ -141,7 +140,7 @@ $result = $pdo->query($sql);
             }
 
             table.dataTable thead th {
-                background: linear-gradient(135deg, #667eea, #764ba2);
+                background: #667eea;
                 color: white;
                 border: none;
                 padding: 15px;

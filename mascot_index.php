@@ -656,7 +656,6 @@ $username = $isLoggedIn ? $_SESSION : null;
             .card-body strong {
                 color: var(--bs-body-color);
                 font-size: 16px;
-                cursor: pointer;
                 position: relative;
                 transition: color 0.3s ease;
             }
@@ -1662,10 +1661,16 @@ $username = $isLoggedIn ? $_SESSION : null;
                     </div>
                     <?php endif; ?>
                     <div class="card-body">
+                        <?php if (!empty($row['subform_embed'])): ?>
                         <strong style="cursor: pointer; font-size: 1.1rem; margin-bottom: 0.3rem; display: block;"
                             onclick="openGoogleSlideModal('<?= htmlspecialchars($row['subform_embed']) ?>')">
                             <i class="bi bi-file-earmark-slides me-1"></i><?= htmlspecialchars($row['project_name']) ?>
                         </strong>
+                        <?php else: ?>
+                        <strong style="font-size: 1.1rem; margin-bottom: 0.3rem; display: block;">
+                            <?= htmlspecialchars($row['project_name']) ?>
+                        </strong>
+                        <?php endif; ?>
 
                         <div class="d-flex flex-wrap gap-1">
                             <span class="status-label" style="<?= getStatusClass($row['project_status']) ?>">

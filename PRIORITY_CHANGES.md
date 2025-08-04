@@ -27,13 +27,13 @@ Telah berhasil memindahkan "Urgent" dari status ke priority dengan struktur baru
 
 ### 2. Mascot Files:
 
-- `mascot_index.php` - Updated getPriorityClass, status_counts, dropdown priority filter (removed redundant buttons)
+- `mascot_index.php` - Updated getPriorityClass, status_counts, dropdown priority filter (removed redundant buttons), conditional subform display
 - `mascot_admin.php` - Updated form dropdowns dan table dropdowns
 - `mascot_edit.php` - Updated form dropdowns
 
 ### 3. Costume Files:
 
-- `costume_index.php` - Updated getPriorityClass, status_counts, dropdown priority filter (removed redundant buttons)
+- `costume_index.php` - Updated getPriorityClass, status_counts, dropdown priority filter (removed redundant buttons), conditional subform display
 - `costume_admin.php` - Updated form dropdowns dan table dropdowns
 - `costume_edit.php` - Updated form dropdowns
 
@@ -42,6 +42,7 @@ Telah berhasil memindahkan "Urgent" dari status ke priority dengan struktur baru
 - **Removed redundant priority filter buttons** - Priority filtering hanya menggunakan dropdown untuk efisiensi resource dan menghindari duplikasi UI
 - **Status filter tetap menggunakan buttons** - Karena lebih visual dan intuitif untuk status
 - **Priority filter hanya dropdown** - Lebih clean dan tidak menggunakan resource berlebihan
+- **Conditional subform display** - Project name hanya clickable jika ada subform_embed, menampilkan icon slides hanya jika ada subform
 
 ## Langkah Selanjutnya:
 
