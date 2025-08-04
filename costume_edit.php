@@ -128,9 +128,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <option value="Upcoming"
                                         <?= $data['project_status'] === 'Upcoming' ? 'selected' : '' ?>>
                                         Upcoming</option>
-                                    <option value="Urgent"
-                                        <?= $data['project_status'] === 'Urgent' ? 'selected' : '' ?>>
-                                        Urgent</option>
                                     <option value="In Progress"
                                         <?= $data['project_status'] === 'In Progress' ? 'selected' : '' ?>>
                                         In Progress</option>
@@ -150,10 +147,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="mb-3">
                                 <label for="priority" class="form-label">Priority</label>
                                 <select name="priority" id="priority" class="form-select" required>
+                                    <option value="Urgent" <?= $data['priority'] === 'Urgent' ? 'selected' : '' ?>>
+                                        Urgent</option>
                                     <option value="High" <?= $data['priority'] === 'High' ? 'selected' : '' ?>>
                                         High</option>
-                                    <option value="Medium" <?= $data['priority'] === 'Medium' ? 'selected' : '' ?>>
-                                        Medium</option>
+                                    <option value="Normal" <?= $data['priority'] === 'Normal' ? 'selected' : '' ?>>
+                                        Normal</option>
                                     <option value="Low" <?= $data['priority'] === 'Low' ? 'selected' : '' ?>>Low
                                     </option>
                                 </select>

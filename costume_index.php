@@ -75,8 +75,6 @@ function getStatusClass($status)
     switch (strtolower($status)) {
         case 'upcoming':
             return 'background-color: #31D2F2;'; // blue
-        case 'urgent':
-            return 'background-color: #ef4444;'; // red
         case 'in progress':
             return 'background-color: #FFCA2C;'; // yellow
         case 'revision':
@@ -91,12 +89,14 @@ function getStatusClass($status)
 function getPriorityClass($priority)
 {
     switch (strtolower($priority)) {
-        case 'high':
+        case 'urgent':
             return 'background-color: #dc3545;'; // Red
-        case 'medium':
+        case 'high':
             return 'background-color: #ffc107;'; // Yellow
+        case 'normal':
+            return 'background-color: #007bff;'; // Blue
         case 'low':
-            return 'background-color: #28a745;'; // Green
+            return 'background-color: #6c757d;'; // Gray
         default:
             return 'background-color: #6c757d;'; // Gray
     }
@@ -112,7 +112,6 @@ $status_counts = [
     'Completed' => 0,
     'In Progress' => 0,
     'Revision' => 0,
-    'Urgent' => 0,
 ];
 
 foreach ($status_counts as $status => &$count) {
@@ -123,6 +122,30 @@ foreach ($status_counts as $status => &$count) {
     if (!empty($_GET['priority'])) {
         $sql .= ' AND priority = ?';
         $params[] = $_GET['priority'];
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $count = $stmt->fetchColumn();
+}
+unset($count);
+
+// Count projects by priority for category
+$priority_counts = [
+    'Urgent' => 0,
+    'High' => 0,
+    'Normal' => 0,
+    'Low' => 0,
+];
+
+foreach ($priority_counts as $priority => &$count) {
+    $sql = "SELECT COUNT(*) AS total FROM gallery WHERE category = 'costume' AND priority = ? AND project_status != 'archived'";
+    $params = [$priority];
+
+    // Add status filter if exists
+    if (!empty($_GET['project_status'])) {
+        $sql .= ' AND project_status = ?';
+        $params[] = $_GET['project_status'];
     }
 
     $stmt = $pdo->prepare($sql);
@@ -471,13 +494,6 @@ $username = $isLoggedIn ? $_SESSION : null;
                     <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
                 </form>
                 <form method="GET" action="costume_index.php">
-                    <button type="submit" name="project_status" value="Urgent"
-                        class="btn btn-danger <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Urgent' ? 'active' : '' ?>">
-                        Urgent: <?= $status_counts['Urgent'] ?? 0 ?>
-                    </button>
-                    <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-                </form>
-                <form method="GET" action="costume_index.php">
                     <button type="submit" name="project_status" value="Revision"
                         class="btn btn-indigo <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Revision' ? 'active' : '' ?>">
                         Revision: <?= $status_counts['Revision'] ?? 0 ?>
@@ -497,13 +513,15 @@ $username = $isLoggedIn ? $_SESSION : null;
                 <form method="GET" action="costume_index.php" class="d-flex align-items-center">
                     <select name="priority" class="form-select me-2" onchange="this.form.submit()">
                         <option value="">Filter by Priority</option>
+                        <option value="Urgent"
+                            <?= isset($_GET['priority']) && $_GET['priority'] === 'Urgent' ? 'selected' : '' ?>>
+                            Urgent</option>
                         <option value="High"
                             <?= isset($_GET['priority']) && $_GET['priority'] === 'High' ? 'selected' : '' ?>>
                             High</option>
-                        <option value="Medium"
-                            <?= isset($_GET['priority']) && $_GET['priority'] === 'Medium' ? 'selected' : '' ?>>
-                            Medium
-                        </option>
+                        <option value="Normal"
+                            <?= isset($_GET['priority']) && $_GET['priority'] === 'Normal' ? 'selected' : '' ?>>
+                            Normal</option>
                         <option value="Low"
                             <?= isset($_GET['priority']) && $_GET['priority'] === 'Low' ? 'selected' : '' ?>>Low
                         </option>

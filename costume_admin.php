@@ -481,7 +481,6 @@ $result = $pdo->query($sql);
                                     aria-label="Default select example" required>
                                     <option selected>Select Status</option>
                                     <option value="Upcoming">Upcoming</option>
-                                    <option value="Urgent">Urgent</option>
                                     <option value="In Progress">In Progress</option>
                                     <option value="Revision">Revision</option>
                                     <option value="Completed">Completed</option>
@@ -495,8 +494,9 @@ $result = $pdo->query($sql);
                                 <label for="priority" class="form-label">Priority</label>
                                 <select class="form-select" name="priority" id="priority" required>
                                     <option selected>Select Priority</option>
+                                    <option value="Urgent">Urgent</option>
                                     <option value="High">High</option>
-                                    <option value="Medium">Medium</option>
+                                    <option value="Normal">Normal</option>
                                     <option value="Low">Low</option>
                                 </select>
                             </div>
@@ -593,10 +593,6 @@ $result = $pdo->query($sql);
                                             <?= $row['project_status'] === 'Upcoming' ? 'selected' : '' ?>>
                                             Upcoming
                                         </option>
-                                        <option value="Urgent"
-                                            <?= $row['project_status'] === 'Urgent' ? 'selected' : '' ?>>
-                                            Urgent
-                                        </option>
                                         <option value="In Progress"
                                             <?= $row['project_status'] === 'In Progress' ? 'selected' : '' ?>>In
                                             Progress
@@ -615,11 +611,14 @@ $result = $pdo->query($sql);
                                 <td>
                                     <select class="form-select"
                                         onchange="updatePriority(<?= $row['id'] ?>, this.value)">
+                                        <option value="Urgent"
+                                            <?= $row['priority'] === 'Urgent' ? 'selected' : '' ?>>Urgent
+                                        </option>
                                         <option value="High"
                                             <?= $row['priority'] === 'High' ? 'selected' : '' ?>>High
                                         </option>
-                                        <option value="Medium"
-                                            <?= $row['priority'] === 'Medium' ? 'selected' : '' ?>>Medium
+                                        <option value="Normal"
+                                            <?= $row['priority'] === 'Normal' ? 'selected' : '' ?>>Normal
                                         </option>
                                         <option value="Low"
                                             <?= $row['priority'] === 'Low' ? 'selected' : '' ?>>Low
