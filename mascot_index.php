@@ -332,7 +332,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             [data-bs-theme="dark"] .no-image-soft,
             [data-bs-theme="dark"] .no-notes-soft {
-                background: rgba(36, 39, 44, 0.082) !important;
+                background-color: #23272f !important;
                 color: #6c7383 !important;
             }
 
@@ -632,7 +632,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             .card:hover {
-                transform: scale(1.06);
+                transform: scale(1.02);
                 box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
                 border-color: rgba(139, 92, 246, 0.8);
                 z-index: 10;
@@ -1169,7 +1169,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             #toggleDarkMode:hover {
-                background: #6c757d;
+                background: #6c757d9a;
                 color: white;
                 border-color: #6c757d;
                 transform: scale(1.05);
@@ -1183,14 +1183,14 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             [data-bs-theme="dark"] #toggleDarkMode:hover {
-                background: #8b5cf6;
+                background: #8a5cf671;
                 color: white;
                 border-color: #8b5cf6;
             }
 
             /* Fancybox Custom Styling */
             .fancybox__backdrop {
-                background: rgba(0, 0, 0, 0.9) !important;
+                background: rgba(0, 0, 0, 0.85) !important;
             }
 
             .fancybox__button {
@@ -1235,6 +1235,15 @@ $username = $isLoggedIn ? $_SESSION : null;
             [data-bs-theme="dark"] .fancybox__infobar,
             [data-bs-theme="dark"] .fancybox__caption {
                 color: #a78bfa !important;
+            }
+
+            .fancybox__slide .fancybox__image {
+                width: 100% !important;
+                height: auto !important;
+                max-width: 100vw !important;
+                max-height: 90vh !important;
+                object-fit: contain !important;
+                image-rendering: auto;
             }
 
             /* Gallery View Buttons Styling */
@@ -1413,13 +1422,13 @@ $username = $isLoggedIn ? $_SESSION : null;
                             <button type="button" class="btn btn-sm btn-outline-purple"
                                 onclick="viewAllProjectImages()"
                                 title="View All Project Images (<?= count($projects) ?> projects)"
-                                data-bs-toggle="tooltip">
+                                data-bs-toggle="tooltip" data-bs-placement="bottom">
                                 <i class="bi bi-images"></i>
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-purple"
                                 onclick="viewAllMaterialImages()"
-                                title="View All Submission Notes (<?= count($projects) ?> notes)"
-                                data-bs-toggle="tooltip">
+                                title="View All Submission Notes (<?= count($projects) ?> images)"
+                                data-bs-toggle="tooltip" data-bs-placement="bottom">
                                 <i class="bi bi-file-earmark-image"></i>
                             </button>
                         </div>
@@ -1697,12 +1706,12 @@ $username = $isLoggedIn ? $_SESSION : null;
                             <?php endif; ?>
                         </div>
 
-                        <!-- Material image dengan purple accent container -->
+                        <!-- Submission Note image dengan purple accent container -->
                         <div class="material-container"
                             style="margin-top: 8px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(139, 92, 246, 0.1); transition: border-color 0.3s ease;">
 
-                            <?php 
-                            // Handle multiple material images
+                            <?php
+                            // Handle multiple submission note images
                             $materialImages = [];
                             if (!empty($row['material_image'])) {
                                 $decoded = json_decode($row['material_image'], true);
@@ -1714,7 +1723,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                                 <?php foreach ($materialImages as $imgIndex => $image): ?>
                                 <a href="uploads/materials/<?= htmlspecialchars($image) ?>"
                                     data-fancybox="gallery-material-<?= $row['id'] ?>"
-                                    data-caption="<?= htmlspecialchars($row['project_name']) ?> - Material <?= $imgIndex + 1 ?>"
+                                    data-caption="<?= htmlspecialchars($row['project_name']) ?> - Submission Note <?= $imgIndex + 1 ?>"
                                     <?= $imgIndex === 0 ? '' : 'style="display:none;"' ?>>
                                     <?php if ($imgIndex === 0): ?>
                                     <img src="uploads/materials/<?= htmlspecialchars($image) ?>"
@@ -1737,7 +1746,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                             <?php else: ?>
                             <div class="text-center p-2 no-notes-soft">
                                 <i class="bi bi-file-earmark text-muted"></i>
-                                <p>No Submission Notes yet</p>
+                                <p class="m-0">No Submission Notes yet</p>
                             </div>
                             <?php endif; ?>
                         </div>
@@ -1765,13 +1774,13 @@ $username = $isLoggedIn ? $_SESSION : null;
                 <?php endforeach; ?>
                 <?php endforeach; ?>
 
-                <!-- All material images -->
+                <!-- All Submission Note images -->
                 <?php foreach ($projects as $index => $row): ?>
                 <?php 
                     $materialImages = parseImageData($row['material_image']);
                     foreach ($materialImages as $imgIndex => $image): ?>
                 <a href="uploads/materials/<?= htmlspecialchars($image) ?>" data-fancybox="all-materials"
-                    data-caption="<?= htmlspecialchars($row['project_name']) ?> - Material <?= $imgIndex + 1 ?>"></a>
+                    data-caption="<?= htmlspecialchars($row['project_name']) ?> - Submission Note <?= $imgIndex + 1 ?>"></a>
                 <?php endforeach; ?>
                 <?php endforeach; ?>
             </div>
@@ -1880,7 +1889,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                             "flipX",
                             "flipY",
                         ],
-                        right: ["slideshow", "download", "thumbs", "close"],
+                        right: ["slideshow", "thumbs", "fullscreen", "close"],
                     },
                 },
                 Thumbs: {
