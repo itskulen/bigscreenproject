@@ -11,6 +11,11 @@ use Carbon\Carbon;
 $search = $_GET['search'] ?? '';
 $filter = $_GET['project_status'] ?? '';
 
+// Pagination settings
+$itemsPerPage = 12; // Menampilkan 12 item per halaman untuk performa lebih baik
+$currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$offset = ($currentPage - 1) * $itemsPerPage;
+
 function isThisWeek($deadline)
 {
     if (empty($deadline)) {
@@ -52,11 +57,42 @@ if (!empty($_GET['priority'])) {
     $params[] = $_GET['priority'];
 }
 
-$sql .= ' ORDER BY createAt DESC';
+$sql .= ' ORDER BY createAt DESC LIMIT ' . $itemsPerPage . ' OFFSET ' . $offset;
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $projects = $stmt->fetchAll();
+
+// Count total projects for pagination
+$countSql = "SELECT COUNT(*) FROM gallery WHERE category = 'costume' AND project_status != 'archived' AND project_name LIKE ?";
+$countParams = ["%$search%"];
+
+if (isset($_GET['this_week']) && $_GET['this_week'] == '1') {
+    $startOfWeekObj = new DateTime();
+    $startOfWeekObj->modify('this week');
+    $startOfWeek = $startOfWeekObj->format('Y-m-d');
+    $endOfWeekObj = clone $startOfWeekObj;
+    $endOfWeekObj->modify('+6 days');
+    $endOfWeek = $endOfWeekObj->format('Y-m-d');
+    $countSql .= ' AND deadline BETWEEN ? AND ?';
+    $countParams[] = $startOfWeek;
+    $countParams[] = $endOfWeek;
+}
+
+if (!empty($_GET['project_status'])) {
+    $countSql .= ' AND project_status = ?';
+    $countParams[] = $_GET['project_status'];
+}
+
+if (!empty($_GET['priority'])) {
+    $countSql .= ' AND priority = ?';
+    $countParams[] = $_GET['priority'];
+}
+
+$countStmt = $pdo->prepare($countSql);
+$countStmt->execute($countParams);
+$totalProjects = $countStmt->fetchColumn();
+$totalPages = ceil($totalProjects / $itemsPerPage);
 
 $startOfWeekObj = new DateTime();
 $startOfWeekObj->modify('this week');
@@ -173,6 +209,7 @@ $username = $isLoggedIn ? $_SESSION : null;
         <link rel="icon" type="image/x-icon" href="favicon.ico">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
         <style>
             body {
                 font-family: Arial, sans-serif;
@@ -241,11 +278,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             .card:hover {
-                transform: scale(1.040);
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-                box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
                 border-color: rgb(179, 179, 179);
-                z-index: 99;
             }
 
             /* .card img {
@@ -314,9 +347,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             .modal-content,
-            .close {
-                animation: fadein 0.3s;
-            }
+            .close {}
 
             .close {
                 position: absolute;
@@ -371,23 +402,6 @@ $username = $isLoggedIn ? $_SESSION : null;
                 height: 100%;
             }
 
-            @keyframes fadein {
-                from {
-                    opacity: 0;
-                }
-
-                to {
-                    opacity: 1;
-                }
-            }
-
-            @keyframes fadeInUp {
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-
             .status-badge {
                 padding: 4px 8px;
                 border-radius: 5px;
@@ -423,6 +437,31 @@ $username = $isLoggedIn ? $_SESSION : null;
                 /* Warna teks dinamis berdasarkan tema */
                 font-size: 16px;
                 margin-top: 20px;
+            }
+
+            /* Pagination styling */
+            .pagination .page-link {
+                color: #6610f2;
+                border-color: #e2e8f0;
+                background-color: #ffffff;
+            }
+
+            .pagination .page-link:hover {
+                color: #520dc2;
+                background-color: #f8fafc;
+                border-color: #6610f2;
+            }
+
+            .pagination .page-item.active .page-link {
+                background-color: #6610f2;
+                border-color: #6610f2;
+                color: #ffffff;
+            }
+
+            .pagination .page-item.disabled .page-link {
+                color: #94a3b8;
+                background-color: #f8fafc;
+                border-color: #e2e8f0;
             }
         </style>
     </head>
@@ -543,8 +582,41 @@ $username = $isLoggedIn ? $_SESSION : null;
                         This Week!
                     </small>
                     <?php endif; ?>
-                    <img src="uploads/projects/<?= htmlspecialchars($row['project_image']) ?>"
-                        style="cursor: pointer;" alt="No Image Project yet" onclick="openModal(this.src)">
+
+                    <?php
+                    // Parse project image (support both old and new format)
+                    $projectImages = parseImageData($row['project_image']);
+                    $firstProjectImage = !empty($projectImages) ? $projectImages[0] : null;
+                    ?>
+
+                    <?php if ($firstProjectImage): ?>
+                    <?php if (count($projectImages) > 1): ?>
+                    <!-- Multiple images - use gallery -->
+                    <div style="position: relative; cursor: pointer;"
+                        onclick="openProjectGallery(<?= htmlspecialchars(json_encode($projectImages)) ?>, 0)">
+                        <img src="uploads/projects/<?= htmlspecialchars($firstProjectImage) ?>"
+                            style="width: 100%; height: 200px; object-fit: contain;" alt="Project Image">
+                        <div
+                            style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                            <i class="bi bi-images"></i> <?= count($projectImages) ?>
+                        </div>
+                    </div>
+                    <?php else: ?>
+                    <!-- Single image -->
+                    <img src="uploads/projects/<?= htmlspecialchars($firstProjectImage) ?>"
+                        style="cursor: pointer; width: 100%; height: 200px; object-fit: contain;" alt="Project Image"
+                        onclick="openModal(this.src)">
+                    <?php endif; ?>
+                    <?php else: ?>
+                    <div class="no-image-soft d-flex align-items-center justify-content-center"
+                        style="height: 200px; background: #f8f9fa;">
+                        <div class="text-center">
+                            <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
+                            <p class="text-muted mb-0 mt-2">No Image</p>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
                     <div class="card-body">
                         <?php if (!empty($row['subform_embed'])): ?>
                         <strong style="cursor: pointer;"
@@ -573,17 +645,127 @@ $username = $isLoggedIn ? $_SESSION : null;
                         <p style="margin-top: 8px; font-size: 14px;">
                             <?= nl2br(htmlspecialchars($row['description'])) ?>
                         </p>
+
+                        <!-- Material Images Section -->
+                        <?php
+                        $materialImages = parseImageData($row['material_image']);
+                        $firstMaterialImage = !empty($materialImages) ? $materialImages[0] : null;
+                        ?>
+
+                        <?php if ($firstMaterialImage): ?>
+                        <?php if (count($materialImages) > 1): ?>
+                        <!-- Multiple material images - use gallery -->
+                        <div style="margin-top: 5px; position: relative; cursor: pointer;"
+                            onclick="openMaterialGallery(<?= htmlspecialchars(json_encode($materialImages)) ?>, 0)">
+                            <img src="uploads/materials/<?= htmlspecialchars($firstMaterialImage) ?>"
+                                alt="Submission Notes"
+                                style="width: 100%; height: 150px; object-fit: contain; border-radius: 4px;">
+                            <div
+                                style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                                <i class="bi bi-images"></i> <?= count($materialImages) ?>
+                            </div>
+                        </div>
+                        <?php else: ?>
+                        <!-- Single material image -->
                         <div style="margin-top: 5px; cursor: pointer;">
-                            <img src="uploads/materials/<?= htmlspecialchars($row['material_image']) ?>"
-                                alt="No Submission Notes yet"
+                            <img src="uploads/materials/<?= htmlspecialchars($firstMaterialImage) ?>"
+                                alt="Submission Notes"
                                 style="width: 100%; height: 150px; object-fit: contain; border-radius: 4px;"
                                 onclick="openModal(this.src)">
                         </div>
+                        <?php endif; ?>
+                        <?php else: ?>
+                        <div class="no-image-soft d-flex align-items-center justify-content-center"
+                            style="height: 150px; background: #f8f9fa; margin-top: 5px; border-radius: 4px;">
+                            <div class="text-center">
+                                <i class="bi bi-file-earmark text-muted" style="font-size: 1.5rem;"></i>
+                                <p class="text-muted mb-0 mt-1" style="font-size: 0.9rem;">No Submission Notes</p>
+                            </div>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <?php endforeach; ?>
                 <?php endif; ?>
             </div>
+
+            <!-- Pagination -->
+            <?php if ($totalPages > 1): ?>
+            <?php
+            // Build pagination URL parameters once to avoid formatter issues
+            $searchParam = !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '';
+            $statusParam = !empty($_GET['project_status']) ? '&project_status=' . urlencode($_GET['project_status']) : '';
+            $priorityParam = !empty($_GET['priority']) ? '&priority=' . urlencode($_GET['priority']) : '';
+            $weekParam = !empty($_GET['this_week']) ? '&this_week=1' : '';
+            $urlParams = $searchParam . $statusParam . $priorityParam . $weekParam;
+            ?>
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <!-- Previous button -->
+                    <?php if ($currentPage > 1): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<?= $currentPage - 1 . $urlParams ?>">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    <?php else: ?>
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="bi bi-chevron-left"></i>
+                        </span>
+                    </li>
+                    <?php endif; ?>
+
+                    <!-- Page numbers -->
+                    <?php
+                    $startPage = max(1, $currentPage - 2);
+                    $endPage = min($totalPages, $currentPage + 2);
+                    
+                    if ($startPage > 1): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1<?= $urlParams ?>">1</a>
+                    </li>
+                    <?php if ($startPage > 2): ?>
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    <?php endif; ?>
+                    <?php endif; ?>
+
+                    <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
+                    <li class="page-item <?= $i == $currentPage ? 'active' : '' ?>">
+                        <a class="page-link" href="?page=<?= $i . $urlParams ?>"><?= $i ?></a>
+                    </li>
+                    <?php endfor; ?>
+
+                    <?php if ($endPage < $totalPages): ?>
+                    <?php if ($endPage < $totalPages - 1): ?>
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    <?php endif; ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<?= $totalPages . $urlParams ?>"><?= $totalPages ?></a>
+                    </li>
+                    <?php endif; ?>
+
+                    <!-- Next button -->
+                    <?php if ($currentPage < $totalPages): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<?= $currentPage + 1 . $urlParams ?>">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    <?php else: ?>
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="bi bi-chevron-right"></i>
+                        </span>
+                    </li>
+                    <?php endif; ?>
+                </ul>
+            </nav>
+            <?php endif; ?>
         </div>
         <footer class="text-secondary text-center py-1 mt-4 rounded" style="background-color: rgba(0, 0, 0, 0.05);">
             <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href=""
@@ -629,6 +811,37 @@ $username = $isLoggedIn ? $_SESSION : null;
             function closeModal() {
                 const modal = document.getElementById("imgModal");
                 modal.style.display = "none";
+            }
+
+            // Gallery functions for multiple images
+            function openProjectGallery(images, startIndex = 0) {
+                const galleryItems = images.map(image => ({
+                    src: `uploads/projects/${image}`,
+                    type: 'image'
+                }));
+
+                Fancybox.show(galleryItems, {
+                    startIndex: startIndex,
+                    groupAll: false,
+                    Thumbs: {
+                        showOnStart: false
+                    }
+                });
+            }
+
+            function openMaterialGallery(images, startIndex = 0) {
+                const galleryItems = images.map(image => ({
+                    src: `uploads/materials/${image}`,
+                    type: 'image'
+                }));
+
+                Fancybox.show(galleryItems, {
+                    startIndex: startIndex,
+                    groupAll: false,
+                    Thumbs: {
+                        showOnStart: false
+                    }
+                });
             }
 
             function openGoogleSlideModal(embedLink) {
@@ -689,6 +902,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             });
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </body>
 

@@ -11,6 +11,11 @@ use Carbon\Carbon;
 $search = $_GET['search'] ?? '';
 $filter = $_GET['project_status'] ?? '';
 
+// Pagination settings
+$itemsPerPage = 18; // Optimized: Menampilkan 18 item per halaman untuk performa lebih baik
+$currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$offset = ($currentPage - 1) * $itemsPerPage;
+
 function isThisWeek($deadline)
 {
     if (empty($deadline)) {
@@ -54,19 +59,55 @@ if (!empty($_GET['priority'])) {
     $params[] = $_GET['priority'];
 }
 
-$sql .= ' ORDER BY createAt DESC';
+$sql .= ' ORDER BY createAt DESC LIMIT ' . $itemsPerPage . ' OFFSET ' . $offset;
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $projects = $stmt->fetchAll();
 
-$startOfWeekObj = new DateTime();
-$startOfWeekObj->modify('this week');
-$startOfWeek = $startOfWeekObj->format('Y-m-d');
+// Count total projects for pagination
+$countSql = "SELECT COUNT(*) FROM gallery WHERE category = 'mascot' AND project_status != 'archived' AND project_name LIKE ?";
+$countParams = ["%$search%"];
 
-$endOfWeekObj = new DateTime();
-$endOfWeekObj->modify('this week +6 days');
-$endOfWeek = $endOfWeekObj->format('Y-m-d');
+if (isset($_GET['this_week']) && $_GET['this_week'] == '1') {
+    $startOfWeekObj = new DateTime();
+    $startOfWeekObj->modify('this week');
+    $startOfWeek = $startOfWeekObj->format('Y-m-d');
+
+    $endOfWeekObj = new DateTime();
+    $endOfWeekObj->modify('this week +6 days');
+    $endOfWeek = $endOfWeekObj->format('Y-m-d');
+
+    $countSql .= ' AND deadline BETWEEN ? AND ?';
+    $countParams[] = $startOfWeek;
+    $countParams[] = $endOfWeek;
+}
+
+if (!empty($_GET['project_status'])) {
+    $countSql .= ' AND project_status = ?';
+    $countParams[] = $_GET['project_status'];
+}
+
+if (!empty($_GET['priority'])) {
+    $countSql .= ' AND priority = ?';
+    $countParams[] = $_GET['priority'];
+}
+
+$countStmt = $pdo->prepare($countSql);
+$countStmt->execute($countParams);
+$totalProjects = $countStmt->fetchColumn();
+$totalPages = ceil($totalProjects / $itemsPerPage);
+
+// Calculate this week count (reuse variables from above if they exist)
+if (!isset($startOfWeek) || !isset($endOfWeek)) {
+    $startOfWeekObj = new DateTime();
+    $startOfWeekObj->modify('this week');
+    $startOfWeek = $startOfWeekObj->format('Y-m-d');
+
+    $endOfWeekObj = new DateTime();
+    $endOfWeekObj->modify('this week +6 days');
+    $endOfWeek = $endOfWeekObj->format('Y-m-d');
+}
 
 $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'mascot' AND project_status != 'archived' AND deadline BETWEEN ? AND ?");
 $stmt->execute([$startOfWeek, $endOfWeek]);
@@ -105,11 +146,7 @@ function getPriorityClass($priority)
     }
 }
 
-$stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'mascot'");
-$stmt->execute();
-$total_projects = $stmt->fetchColumn();
-
-// Count projects by status for category
+// Count projects by status for category (optimized with GROUP BY)
 $status_counts = [
     'Upcoming' => 0,
     'Completed' => 0,
@@ -117,23 +154,26 @@ $status_counts = [
     'Revision' => 0,
 ];
 
-foreach ($status_counts as $status => &$count) {
-    $sql = "SELECT COUNT(*) AS total FROM gallery WHERE category = 'mascot' AND project_status = ?";
-    $params = [$status];
+$sql = "SELECT project_status, COUNT(*) as count FROM gallery WHERE category = 'mascot' AND project_status IN ('Upcoming', 'Completed', 'In Progress', 'Revision')";
+$params = [];
 
-    // Add priority filter if exists
-    if (!empty($_GET['priority'])) {
-        $sql .= ' AND priority = ?';
-        $params[] = $_GET['priority'];
-    }
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $count = $stmt->fetchColumn();
+// Add priority filter if exists
+if (!empty($_GET['priority'])) {
+    $sql .= ' AND priority = ?';
+    $params[] = $_GET['priority'];
 }
-unset($count);
 
-// Count projects by priority for category
+$sql .= ' GROUP BY project_status';
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+
+while ($row = $stmt->fetch()) {
+    if (isset($status_counts[$row['project_status']])) {
+        $status_counts[$row['project_status']] = $row['count'];
+    }
+}
+
+// Count projects by priority for category (optimized with GROUP BY)
 $priority_counts = [
     'Urgent' => 0,
     'High' => 0,
@@ -141,21 +181,24 @@ $priority_counts = [
     'Low' => 0,
 ];
 
-foreach ($priority_counts as $priority => &$count) {
-    $sql = "SELECT COUNT(*) AS total FROM gallery WHERE category = 'mascot' AND priority = ? AND project_status != 'archived'";
-    $params = [$priority];
+$sql = "SELECT priority, COUNT(*) as count FROM gallery WHERE category = 'mascot' AND priority IN ('Urgent', 'High', 'Normal', 'Low') AND project_status != 'archived'";
+$params = [];
 
-    // Add status filter if exists
-    if (!empty($_GET['project_status'])) {
-        $sql .= ' AND project_status = ?';
-        $params[] = $_GET['project_status'];
-    }
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $count = $stmt->fetchColumn();
+// Add status filter if exists
+if (!empty($_GET['project_status'])) {
+    $sql .= ' AND project_status = ?';
+    $params[] = $_GET['project_status'];
 }
-unset($count);
+
+$sql .= ' GROUP BY priority';
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+
+while ($row = $stmt->fetch()) {
+    if (isset($priority_counts[$row['priority']])) {
+        $priority_counts[$row['priority']] = $row['count'];
+    }
+}
 
 // Count total projects (except Archived)
 $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'mascot' AND project_status != 'Archived'");
@@ -184,9 +227,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: #000;
                 padding: 0;
                 margin: 0;
-                background: linear-gradient(135deg, #f8fafc, #e2e8f0, #cbd5e1);
-                background-attachment: fixed;
-                background-size: cover;
+                background: #f8fafc;
                 min-height: 100vh;
             }
 
@@ -203,20 +244,16 @@ $username = $isLoggedIn ? $_SESSION : null;
                 margin: 0 auto;
             }
 
-            /* Header improvements */
+            /* Header improvements - Simplified */
             .header-section {
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 15px;
+                background: #ffffff;
+                border-radius: 8px;
                 padding: 0.8rem;
                 margin-bottom: 1.2rem;
-                border: 1px solid rgba(226, 232, 240, 0.8);
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-                position: relative;
-                overflow: hidden;
+                border: 1px solid #e2e8f0;
             }
 
-            /* Purple accent border/gradient at the top of header */
+            /* Purple accent border - Simplified */
             .header-section::before {
                 content: '';
                 position: absolute;
@@ -224,110 +261,55 @@ $username = $isLoggedIn ? $_SESSION : null;
                 left: 0;
                 right: 0;
                 height: 4px;
-                background: linear-gradient(90deg, #8b5cf6, #7c3aed, #6d28d9, #7c3aed, #8b5cf6);
-                background-size: 200% 100%;
-                animation: gradientShift 3s ease-in-out infinite;
+                background: #8b5cf6;
             }
 
-            @keyframes gradientShift {
-
-                0%,
-                100% {
-                    background-position: 0% 50%;
-                }
-
-                50% {
-                    background-position: 100% 50%;
-                }
-            }
-
-            /* Purple accent for logo container */
-            .logo-container {
-                position: relative;
-                display: inline-block;
-            }
-
-            /* Purple accent for title */
+            /* Purple accent for title - Simplified */
             .text-header {
                 color: #334155;
-                text-shadow: none;
                 font-weight: 600;
-                position: relative;
             }
 
-            .text-header::after {
-                content: '';
-                position: absolute;
-                bottom: -4px;
-                left: 0;
-                width: 0;
-                height: 2px;
-                background: linear-gradient(90deg, #8b5cf6, #7c3aed);
-                transition: width 0.3s ease;
-                border-radius: 1px;
-            }
-
-            .text-header:hover::after {
-                width: 100%;
-            }
-
-            /* Purple glow effect untuk header saat hover */
-            .header-section:hover {
-                box-shadow: 0 4px 20px rgba(139, 92, 246, 0.15),
-                    0 8px 40px rgba(139, 92, 246, 0.1);
-                border-color: rgba(139, 92, 246, 0.3);
-            }
-
-            /* Dark mode for header accent */
+            /* Dark mode for header - Simplified */
             [data-bs-theme="dark"] .header-section {
-                background: rgba(30, 41, 59, 0.95);
-                border: 1px solid rgba(139, 92, 246, 0.3);
+                background: #1e293b;
+                border: 1px solid #475569;
             }
 
             [data-bs-theme="dark"] .header-section::before {
-                background: linear-gradient(90deg, #a78bfa, #8b5cf6, #7c3aed, #8b5cf6, #a78bfa);
-                background-size: 200% 100%;
+                background: #a78bfa;
             }
 
             [data-bs-theme="dark"] .text-header {
                 color: #e2e8f0;
             }
 
-            [data-bs-theme="dark"] .header-section:hover {
-                box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25),
-                    0 8px 40px rgba(139, 92, 246, 0.15);
-                border-color: rgba(139, 92, 246, 0.5);
-            }
-
             [data-bs-theme="dark"] .text-center.p-2.bg-light {
                 background: #212429 !important;
                 color: #cbd5e1 !important;
-                border: 1px solid rgba(71, 85, 105, 0.2);
+                border: 1px solid #475569;
             }
 
             .no-image-soft,
             .no-notes-soft {
-                background: rgba(255, 255, 255, 0.171) !important;
-                color: #b0b4bb !important;
+                background: #f8f9fa !important;
+                color: #6c757d !important;
                 border: none !important;
                 font-size: 0.97rem;
                 padding: 16px 0 10px 0;
-                box-shadow: none !important;
             }
 
             .no-image-soft i,
             .no-notes-soft i {
                 font-size: 1.3rem !important;
-                color: #b0b4bb !important;
-                opacity: 0.7;
+                color: #6c757d !important;
             }
 
             .no-image-soft p,
             .no-notes-soft p {
-                color: #b0b4bb !important;
+                color: #6c757d !important;
                 font-size: 0.97rem;
                 margin: 0;
-                opacity: 0.85;
             }
 
             [data-bs-theme="dark"] .no-image-soft,
@@ -346,26 +328,14 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: #6c7383 !important;
             }
 
-            /* Search section improvements */
-            .search-section {
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 15px;
-                padding: 1rem;
-                margin-bottom: 1.2rem;
-                border: 1px solid rgba(226, 232, 240, 0.8);
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            }
-
-            /* Filter buttons improvements */
+            /* Search and Filter sections - Simplified */
+            .search-section,
             .filters-section {
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 15px;
+                background: #ffffff;
+                border-radius: 8px;
                 padding: 1rem;
                 margin-bottom: 1.2rem;
-                border: 1px solid rgba(226, 232, 240, 0.8);
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                border: 1px solid #e2e8f0;
             }
 
             .filters-container {
@@ -383,47 +353,37 @@ $username = $isLoggedIn ? $_SESSION : null;
                 align-items: center;
             }
 
-            /* Reset button styling */
+            /* Reset button styling - Simplified */
             .btn-outline-secondary {
                 border: 1px solid #94a3b8;
                 color: #64748b;
-                background: rgba(255, 255, 255, 0.8);
-                backdrop-filter: blur(5px);
-                transition: all 0.3s ease;
-                font-weight: 300;
+                background: #ffffff;
+                font-weight: 400;
                 padding: 0.4rem 0.675rem;
                 border-radius: 0.5rem;
                 font-size: 0.7rem;
             }
 
             .btn-outline-secondary:hover {
-                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                background: #8b5cf6;
                 border-color: #8b5cf6;
                 color: white;
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-            }
-
-            .btn-outline-secondary:active {
-                transform: translateY(0);
-                box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
             }
 
             .filter-divider {
                 width: 2px;
                 height: 30px;
-                background: rgba(148, 163, 184, 0.5);
-                margin: 0 0.5rem;
+                background: #cbd5e1;
+                margin: 0 0.3rem;
             }
 
             footer {
                 margin-top: auto;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
+                background: #ffffff;
                 text-align: center;
                 padding: 1rem;
                 color: #475569;
-                border-top: 1px solid rgba(226, 232, 240, 0.8);
+                border-top: 1px solid #e2e8f0;
             }
 
             /* Purple accents for small elements */
@@ -440,169 +400,206 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: #7c3aed !important;
             }
 
-            /* Button improvements */
+            /* Button improvements - Consolidated */
             .btn {
                 border-radius: 25px;
                 font-weight: 500;
-                transition: all 0.3s ease;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                border: 1px solid transparent;
+                transition: all 0.15s ease-in-out;
             }
 
-            .btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            /* btn-secondary (All) */
+            .btn-secondary {
+                background: transparent;
+                color: #6c757d;
+                border: 1.5px solid #6c757d;
             }
 
+            .btn-secondary:hover,
             .btn-secondary.active,
             .btn-secondary:active {
-                background-color: #adb5bd !important;
-                /* Brighter than default */
-                border-color: #adb5bd !important;
+                background: #6c757d !important;
                 color: #fff !important;
+                border: 1.5px solid #6c757d !important;
             }
 
-            .btn-danger.active,
-            .btn-danger:active {
-                background-color: #EF4444 !important;
-                /* Brighter than default */
-                border-color: #EF4444 !important;
-                color: #fff !important;
-                box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.3) !important;
+            [data-bs-theme="dark"] .btn-secondary {
+                background: transparent;
+                color: #a7adc3;
+                border: 1.5px solid #a7adc3;
             }
 
-            .btn-success.active,
-            .btn-success:active {
-                background-color: #28A745 !important;
-                /* Brighter than default */
-                border-color: #28A745 !important;
-                color: #fff !important;
-                box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.3) !important;
+            [data-bs-theme="dark"] .btn-secondary:hover,
+            [data-bs-theme="dark"] .btn-secondary.active,
+            [data-bs-theme="dark"] .btn-secondary:active {
+                background: #a7adc3 !important;
+                color: #23272f !important;
+                border: 1.5px solid #a7adc3 !important;
             }
 
+            /* btn-info (Upcoming) */
+            .btn-info {
+                background: transparent;
+                color: #0dcaf0;
+                border: 1.5px solid #0dcaf0;
+            }
+
+            .btn-info:hover,
             .btn-info.active,
             .btn-info:active {
-                background-color: #0DCAF0 !important;
-                /* Brighter than default */
-                border-color: #0DCAF0 !important;
-                box-shadow: 0 0 0 3px rgba(13, 202, 240, 0.3) !important;
+                background: #0dcaf0 !important;
+                color: #fff !important;
+                border: 1.5px solid #0dcaf0 !important;
             }
 
+            [data-bs-theme="dark"] .btn-info {
+                background: transparent;
+                color: #6dd5ed;
+                border: 1.5px solid #6dd5ed;
+            }
+
+            [data-bs-theme="dark"] .btn-info:hover,
+            [data-bs-theme="dark"] .btn-info.active,
+            [data-bs-theme="dark"] .btn-info:active {
+                background: #6dd5ed !important;
+                color: #0a1e24 !important;
+                border: 1.5px solid #6dd5ed !important;
+            }
+
+            /* btn-warning (In Progress) */
+            .btn-warning {
+                background: transparent;
+                color: #fbbf24;
+                border: 1.5px solid #fbbf24;
+            }
+
+            .btn-warning:hover,
             .btn-warning.active,
             .btn-warning:active {
-                background-color: #FFCA2C !important;
-                /* Brighter than default */
-                border-color: #FFCA2C !important;
-                color: #000 !important;
-                /* Black text for good contrast */
-                box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.3) !important;
-            }
-
-            /* Dark mode untuk tombol filter status */
-            [data-bs-theme="dark"] .btn-secondary.active {
-                background-color: #6c757d !important;
-                border-color: #6c757d !important;
+                background: #fbbf24 !important;
                 color: #fff !important;
+                border: 1.5px solid #fbbf24 !important;
             }
 
-            [data-bs-theme="dark"] .btn-danger.active {
-                background-color: #e74c3c !important;
-                border-color: #e74c3c !important;
+            [data-bs-theme="dark"] .btn-warning {
+                background: transparent;
+                color: #ffd93d;
+                border: 1.5px solid #ffd93d;
+            }
+
+            [data-bs-theme="dark"] .btn-warning:hover,
+            [data-bs-theme="dark"] .btn-warning.active,
+            [data-bs-theme="dark"] .btn-warning:active {
+                background: #ffd93d !important;
+                color: #1a1300 !important;
+                border: 1.5px solid #ffd93d !important;
+            }
+
+            /* btn-success (Completed) */
+            .btn-success {
+                background: transparent;
+                color: #198754;
+                border: 1.5px solid #198754;
+            }
+
+            .btn-success:hover,
+            .btn-success.active,
+            .btn-success:active {
+                background: #198754 !important;
                 color: #fff !important;
+                border: 1.5px solid #198754 !important;
             }
 
-            [data-bs-theme="dark"] .btn-success.active {
-                background-color: #27ae60 !important;
-                border-color: #27ae60 !important;
-                color: #fff !important;
+            [data-bs-theme="dark"] .btn-success {
+                background: transparent;
+                color: #20c997;
+                border: 1.5px solid #20c997;
             }
 
-            [data-bs-theme="dark"] .btn-info.active {
-                background-color: #3498db !important;
-                border-color: #3498db !important;
-                color: #fff !important;
+            [data-bs-theme="dark"] .btn-success:hover,
+            [data-bs-theme="dark"] .btn-success.active,
+            [data-bs-theme="dark"] .btn-success:active {
+                background: #20c997 !important;
+                color: #0c1f1a !important;
+                border: 1.5px solid #20c997 !important;
             }
 
-            [data-bs-theme="dark"] .btn-warning.active {
-                background-color: #f39c12 !important;
-                border-color: #f39c12 !important;
-                color: #fff !important;
-            }
-
+            /* btn-indigo (Revision) */
             .btn-indigo {
-                background-color: #fd7e14;
-                color: #fff;
-                --btn-bg: #fd7e14;
+                background: transparent;
+                color: #fd7e14;
+                border: 1.5px solid #fd7e14;
             }
 
-            .btn-indigo:hover {
-                background-color: #e85d04;
-                color: #fff;
-                --btn-bg: #e85d04;
+            .btn-indigo:hover,
+            .btn-indigo.active,
+            .btn-indigo:active {
+                background: #fd7e14 !important;
+                color: #fff !important;
+                border: 1.5px solid #fd7e14 !important;
             }
 
-            .btn-indigo.active {
-                background-color: #fd7e14;
-                color: #fff;
-                border-color: #fd7e14;
+            [data-bs-theme="dark"] .btn-indigo {
+                background: transparent;
+                color: #ff922b;
+                border: 1.5px solid #ff922b;
+            }
+
+            [data-bs-theme="dark"] .btn-indigo:hover,
+            [data-bs-theme="dark"] .btn-indigo.active,
+            [data-bs-theme="dark"] .btn-indigo:active {
+                background: #ff922b !important;
+                color: #1a0d02 !important;
+                border: 1.5px solid #ff922b !important;
+            }
+
+            /* This Week button - outline saat tidak aktif */
+            .btn.bg-danger-subtle {
+                background: transparent !important;
+                color: #721c24 !important;
+                border: 1.5px solid #dc3545 !important;
+                font-weight: 600 !important;
+            }
+
+            /* Fill saat hover/active */
+            .btn.bg-danger-subtle:hover,
+            .btn.bg-danger-subtle.active,
+            .btn.bg-danger-subtle:active {
+                background-color: #f8d7da !important;
+                color: #721c24 !important;
+                border: 1.5px solid #920000 !important;
+            }
+
+            /* Dark mode */
+            [data-bs-theme="dark"] .btn.bg-danger-subtle {
+                background: transparent !important;
+                color: #f8d7da !important;
+                border: 1.5px solid #ff6b7a !important;
+            }
+
+            [data-bs-theme="dark"] .btn.bg-danger-subtle:hover,
+            [data-bs-theme="dark"] .btn.bg-danger-subtle.active,
+            [data-bs-theme="dark"] .btn.bg-danger-subtle:active {
+                background-color: #58151c !important;
+                color: #f8d7da !important;
+                border: 1.5px solid #ff6b7a !important;
             }
 
             .btn-primary-custom {
-                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                background: #8b5cf6;
                 border-color: #8b5cf6;
                 color: #fff;
                 font-weight: 500;
-                border-radius: 25px;
-                transition: all 0.3s ease;
+                border-radius: 6px;
             }
 
             .btn-primary-custom:hover {
-                background: linear-gradient(135deg, #7c3aed, #6d28d9);
+                background: #7c3aed;
                 border-color: #7c3aed;
                 color: #fff;
-                box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-            }
-
-            .btn.bg-danger-subtle.active {
-                background-color: #f8d7da !important;
-                color: #721c24 !important;
-                font-weight: 600 !important;
-                outline: 2px solid #dc3545 !important;
-                /* Add outline */
-                outline-offset: 2px !important;
-                transform: scale(1.02) !important;
-            }
-
-            .btn.bg-danger-subtle:hover {
-                background-color: #f5c2c7 !important;
-                border-color: #dc3545 !important;
-                color: #721c24 !important;
-            }
-
-            /* Dark mode untuk This Week button */
-            [data-bs-theme="dark"] .btn.bg-danger-subtle {
-                background-color: #2c0b0e !important;
-                color: #ea868f !important;
-                border-color: #842029 !important;
-            }
-
-            [data-bs-theme="dark"] .btn.bg-danger-subtle.active {
-                background-color: #58151c !important;
-                color: #f8d7da !important;
-                outline: 2px solid #dc3545 !important;
-                /* Tambahkan outline untuk dark mode */
-                outline-offset: 2px !important;
-                /* Tambahkan outline-offset untuk dark mode */
-                box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.3),
-                    0 4px 15px rgba(220, 53, 69, 0.4) !important;
-            }
-
-            [data-bs-theme="dark"] .btn.bg-danger-subtle:hover {
-                background-color: #842029 !important;
-                color: #f8d7da !important;
             }
 
             .input-group .btn:hover {
-                transform: none;
                 /* Remove hover effect for all buttons in search-filter area */
             }
 
@@ -621,20 +618,16 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             .card {
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 20px;
-                border: 2px solid rgba(139, 92, 246, 0.3);
+                background: #ffffff;
+                border-radius: 12px;
+                border: 1px solid #e2e8f0;
                 overflow: hidden;
-                transition: all 0.3s ease;
-                box-shadow: 0 8px 32px rgba(139, 92, 246, 0.08);
                 position: relative;
             }
 
             .card:hover {
-                transform: scale(1.02);
-                box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
-                border-color: rgba(139, 92, 246, 0.8);
+                border: 1px solid #8b5cf6;
+                transform: scale(1.05) !important;
                 z-index: 10;
             }
 
@@ -643,21 +636,18 @@ $username = $isLoggedIn ? $_SESSION : null;
                 height: 180px;
                 object-fit: contain;
                 background-color: #f8f9fa;
-                transition: none;
             }
 
             .card-body {
                 padding: 0.5rem;
-                background: rgba(255, 255, 255, 0.9);
+                background: #ffffff;
                 color: var(--bs-body-color);
             }
 
-            /* Purple accent untuk project title */
+            /* Project title - Simplified */
             .card-body strong {
                 color: var(--bs-body-color);
                 font-size: 16px;
-                position: relative;
-                transition: color 0.3s ease;
             }
 
             .card-body strong:hover {
@@ -682,12 +672,64 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             /* Purple accent untuk material image container */
-            .card:hover .material-container {
-                border-color: rgba(139, 92, 246, 0.3) !important;
+            .card:hover strong {
+                color: #8b5cf6 !important;
             }
 
-            [data-bs-theme="dark"] .card:hover .material-container {
-                border-color: rgba(139, 92, 246, 0.5) !important;
+            [data-bs-theme="dark"] .card:hover strong {
+                color: #b190fd !important;
+            }
+
+            /* Pagination styling */
+            .pagination .page-link {
+                color: #8b5cf6;
+                border-color: #e2e8f0;
+                background-color: #ffffff;
+            }
+
+            .pagination .page-link:hover {
+                color: #7c3aed;
+                background-color: #f8fafc;
+                border-color: #8b5cf6;
+            }
+
+            .pagination .page-item.active .page-link {
+                background-color: #8b5cf6;
+                border-color: #8b5cf6;
+                color: #ffffff;
+            }
+
+            .pagination .page-item.disabled .page-link {
+                color: #94a3b8;
+                background-color: #f8fafc;
+                border-color: #e2e8f0;
+            }
+
+            [data-bs-theme="dark"] .pagination .page-link {
+                color: #a78bfa;
+                border-color: #374151;
+                background-color: #1f2937;
+            }
+
+            [data-bs-theme="dark"] .pagination .page-link:hover {
+                color: #c4b5fd;
+                background-color: #374151;
+                border-color: #a78bfa;
+            }
+
+            [data-bs-theme="dark"] .pagination .page-item.active .page-link {
+                background-color: #8b5cf6;
+                border-color: #8b5cf6;
+                color: #ffffff;
+            }
+
+            /* Performance optimized animations - Remove heavy effects */
+            .btn {
+                transition: color 0.1s ease-in-out, background-color 0.1s ease-in-out, border-color 0.1s ease-in-out;
+            }
+
+            .card {
+                transition: border-color 0.1s ease-in-out;
             }
 
             .status-label {
@@ -712,29 +754,20 @@ $username = $isLoggedIn ? $_SESSION : null;
                 position: absolute;
                 top: 10px;
                 right: 10px;
-                background: linear-gradient(45deg, rgba(239, 68, 68, 0.6), #dc2626d7);
-                color: white;
-                padding: 4px 8px;
+                background: rgba(248, 215, 218, 0.7);
+                color: #b02a37;
+                border: 1px solid rgba(220, 53, 69, 0.5);
+                padding: 3px 6px;
                 border-radius: 15px;
                 font-size: 11px;
                 font-weight: 600;
-                box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
                 z-index: 5;
-                animation: pulse 2s infinite;
             }
 
-            @keyframes pulse {
-                0% {
-                    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
-                }
-
-                50% {
-                    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.7), 0 0 0 4px rgba(239, 68, 68, 0.2);
-                }
-
-                100% {
-                    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
-                }
+            [data-bs-theme="dark"] .this-week-badge {
+                background: rgba(44, 11, 14, 0.7);
+                color: #ea868f;
+                border: 1px solid rgba(132, 32, 41, 0.5);
             }
 
             /* Modal styles */
@@ -766,7 +799,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             .modal-content,
             .close {
-                animation: fadein 0.3s;
+                /* Removed animation */
             }
 
             .close {
@@ -822,36 +855,12 @@ $username = $isLoggedIn ? $_SESSION : null;
                 height: 100%;
             }
 
-            @keyframes fadein {
-                from {
-                    opacity: 0;
-                }
-
-                to {
-                    opacity: 1;
-                }
-            }
-
-            @keyframes fadeInUp {
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-
             .status-badge {
                 padding: 4px 8px;
                 border-radius: 5px;
                 color: white;
                 font-weight: bold;
                 display: inline-block;
-            }
-
-            .btn.active {
-                outline: 2px solid var(--btn-bg, var(--bs-btn-bg));
-                /* Tambahkan outline */
-                outline-offset: 2px;
-                /* Berikan jarak antara outline dan elemen */
             }
 
             p.text-center {
@@ -964,12 +973,10 @@ $username = $isLoggedIn ? $_SESSION : null;
             [data-bs-theme="dark"] .card {
                 background: rgba(33, 37, 41, 0.95);
                 border: 2px solid rgba(139, 92, 246, 0.4);
-                box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
             }
 
             [data-bs-theme="dark"] .card:hover {
                 border-color: rgba(139, 92, 246, 0.8);
-                box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
             }
 
             [data-bs-theme="dark"] .card-body {
@@ -1009,7 +1016,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 background: rgba(33, 37, 41, 1) !important;
                 color: #fff !important;
                 border-color: #8b5cf6 !important;
-                box-shadow: 0 0 20px rgba(139, 92, 246, 0.3) !important;
+                box-shadow: 0 0 0 rgba(138, 92, 246, 0) !important;
             }
 
             [data-bs-theme="dark"] .form-control::placeholder {
@@ -1033,13 +1040,13 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             /* Dark mode untuk live search */
             [data-bs-theme="dark"] #searchInput:focus {
-                box-shadow: 0 0 20px rgba(139, 92, 246, 0.5) !important;
+                box-shadow: 0 0 0 rgba(138, 92, 246, 0) !important;
                 border-color: #a78bfa !important;
             }
 
             [data-bs-theme="dark"] #searchInput.typing {
                 border-color: #f39c12 !important;
-                box-shadow: 0 0 15px rgba(243, 156, 18, 0.4) !important;
+                box-shadow: 0 0 0px rgba(243, 156, 18, 0) !important;
             }
 
             /* Dark mode untuk no results */
@@ -1051,14 +1058,14 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             [data-bs-theme="dark"] .project-card.search-highlight {
                 border-color: rgba(139, 92, 246, 0.8) !important;
-                box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3) !important;
+                box-shadow: 0 0px 0px rgba(138, 92, 246, 0) !important;
             }
 
             /* Form improvements */
             .form-control,
             .form-select {
                 border-radius: 25px;
-                border: 2px solid rgba(226, 232, 240, 0.8);
+                border: 1.5px solid rgba(226, 232, 240, 0.8);
                 background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 transition: all 0.3s ease;
@@ -1067,17 +1074,17 @@ $username = $isLoggedIn ? $_SESSION : null;
             .form-control:focus,
             .form-select:focus {
                 border-color: #8b5cf6;
-                box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+                box-shadow: 0 0 0 rgba(138, 92, 246, 0);
                 background: rgba(255, 255, 255, 1);
             }
 
             /* Live search enhancements */
             #searchInput {
-                transition: all 0.3s ease;
+                transition: all 0.1s ease;
             }
 
             #searchInput:focus {
-                box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+                box-shadow: 0 0 0 rgba(138, 92, 246, 0);
                 border-color: #8b5cf6;
             }
 
@@ -1090,22 +1097,10 @@ $username = $isLoggedIn ? $_SESSION : null;
                 animation: searchLoading 1s infinite ease-in-out;
             }
 
-            @keyframes searchLoading {
-
-                0%,
-                100% {
-                    transform: rotate(0deg) scale(1);
-                }
-
-                50% {
-                    transform: rotate(180deg) scale(1.1);
-                }
-            }
-
             /* Search input typing indicator */
             #searchInput.typing {
                 border-color: #ffc107;
-                box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+                box-shadow: 0 0 0 rgba(255, 193, 7, 0);
             }
 
             /* No results styling */
@@ -1114,30 +1109,11 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border: 1px solid rgba(255, 193, 7, 0.3);
                 color: #f59e0b;
                 border-radius: 15px;
-                backdrop-filter: blur(10px);
-            }
-
-            /* Animation untuk project cards */
-            .project-card {
-                transition: all 0.3s ease;
-            }
-
-            @keyframes fadeInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
             }
 
             /* Highlight search matches */
             .project-card.search-highlight {
                 border-color: rgba(139, 92, 246, 0.6) !important;
-                box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2) !important;
             }
 
             /* Combined search and filter section */
@@ -1148,7 +1124,6 @@ $username = $isLoggedIn ? $_SESSION : null;
                 padding: 1rem;
                 margin-bottom: 1.2rem;
                 border: 1px solid rgba(226, 232, 240, 0.8);
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             }
 
             /* Dark mode toggle button improvements */
@@ -1164,16 +1139,14 @@ $username = $isLoggedIn ? $_SESSION : null;
                 background: rgba(255, 255, 255, 0.95);
                 color: #6c757d;
                 transition: all 0.3s ease;
-                backdrop-filter: blur(10px);
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 0 0 rgba(0, 0, 0, 0);
             }
 
             #toggleDarkMode:hover {
                 background: #6c757d9a;
                 color: white;
                 border-color: #6c757d;
-                transform: scale(1.05);
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 0px 0px rgba(0, 0, 0, 0);
             }
 
             [data-bs-theme="dark"] #toggleDarkMode {
@@ -1261,13 +1234,9 @@ $username = $isLoggedIn ? $_SESSION : null;
                 background-color: #8b5cf6 !important;
                 border-color: #8b5cf6 !important;
                 color: white !important;
-                transform: translateY(-1px) !important;
-                box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
             }
 
-            .btn-outline-purple:focus {
-                box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25) !important;
-            }
+            .btn-outline-purple:focus {}
 
             /* Gallery actions container */
             .gallery-actions .btn {
@@ -1374,16 +1343,12 @@ $username = $isLoggedIn ? $_SESSION : null;
                 background-color: #8b5cf6;
                 border-color: #8b5cf6;
                 color: white;
-                transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
             }
 
             .btn-outline-secondary:hover {
                 background-color: #6c757d;
                 border-color: #6c757d;
                 color: white;
-                transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
             }
 
             /* Dark mode untuk gallery buttons */
@@ -1409,7 +1374,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                         <div class="logo-container me-3">
                             <a href="index.php">
                                 <img src="uploads/me.png" alt="ME Logo"
-                                    style="width: 50px; height: 50px; border-radius: 50%; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); border: 2px solid rgba(139, 92, 246, 0.2);">
+                                    style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(139, 92, 246, 0.2);">
                             </a>
                         </div>
                         <h3 class="fw-bold text-header mb-0">Mascot Project List</h3>
@@ -1561,7 +1526,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                                 </form>
                             </div>
 
-
+                            <div class="filter-divider"></div>
 
                             <div class="filter-group">
                                 <form method="GET" action="mascot_index.php" class="d-flex align-items-center">
@@ -1761,6 +1726,84 @@ $username = $isLoggedIn ? $_SESSION : null;
                 <?php endif; ?>
             </div>
 
+            <!-- Pagination -->
+            <?php if ($totalPages > 1): ?>
+            <?php
+            // Build pagination URL parameters once to avoid formatter issues
+            $searchParam = !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '';
+            $statusParam = !empty($_GET['project_status']) ? '&project_status=' . urlencode($_GET['project_status']) : '';
+            $priorityParam = !empty($_GET['priority']) ? '&priority=' . urlencode($_GET['priority']) : '';
+            $weekParam = !empty($_GET['this_week']) ? '&this_week=1' : '';
+            $urlParams = $searchParam . $statusParam . $priorityParam . $weekParam;
+            ?>
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <!-- Previous button -->
+                    <?php if ($currentPage > 1): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<?= $currentPage - 1 . $urlParams ?>" aria-label="Previous">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    <?php else: ?>
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-label="Previous">
+                            <i class="bi bi-chevron-left"></i>
+                        </span>
+                    </li>
+                    <?php endif; ?>
+
+                    <!-- Page numbers -->
+                    <?php
+                    $startPage = max(1, $currentPage - 2);
+                    $endPage = min($totalPages, $currentPage + 2);
+                    
+                    if ($startPage > 1): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1<?= $urlParams ?>">1</a>
+                    </li>
+                    <?php if ($startPage > 2): ?>
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    <?php endif; ?>
+                    <?php endif; ?>
+
+                    <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
+                    <li class="page-item <?= $i == $currentPage ? 'active' : '' ?>">
+                        <a class="page-link" href="?page=<?= $i . $urlParams ?>"><?= $i ?></a>
+                    </li>
+                    <?php endfor; ?>
+
+                    <?php if ($endPage < $totalPages): ?>
+                    <?php if ($endPage < $totalPages - 1): ?>
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    <?php endif; ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<?= $totalPages . $urlParams ?>"><?= $totalPages ?></a>
+                    </li>
+                    <?php endif; ?>
+
+                    <!-- Next button -->
+                    <?php if ($currentPage < $totalPages): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<?= $currentPage + 1 . $urlParams ?>" aria-label="Next">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    <?php else: ?>
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-label="Next">
+                            <i class="bi bi-chevron-right"></i>
+                        </span>
+                    </li>
+                    <?php endif; ?>
+                </ul>
+            </nav>
+            <?php endif; ?>
+
             <!-- Hidden links for gallery view all -->
             <?php if (!empty($projects)): ?>
             <div id="hiddenGalleryLinks" style="display: none;">
@@ -1947,18 +1990,9 @@ $username = $isLoggedIn ? $_SESSION : null;
                 }
             });
 
-            // Tambahkan efek hover untuk link gambar
+            // Hapus efek hover untuk link gambar untuk mengoptimalkan performa
             document.addEventListener('DOMContentLoaded', function() {
-                const imageLinks = document.querySelectorAll('[data-fancybox]');
-                imageLinks.forEach(link => {
-                    link.addEventListener('mouseenter', function() {
-                        this.style.transform = 'scale(1.02)';
-                        this.style.transition = 'transform 0.3s ease';
-                    });
-                    link.addEventListener('mouseleave', function() {
-                        this.style.transform = 'scale(1)';
-                    });
-                });
+                // Image hover effects dihapus untuk performa
             });
 
             // Function to view all project images
@@ -2032,7 +2066,6 @@ $username = $isLoggedIn ? $_SESSION : null;
 
                         if (isMatch) {
                             card.style.display = 'block';
-                            card.style.animation = 'fadeInUp 0.3s ease forwards';
                             visibleCount++;
                         } else {
                             card.style.display = 'none';
@@ -2051,10 +2084,6 @@ $username = $isLoggedIn ? $_SESSION : null;
                     } else if (visibleCount === 0) {
                         // No results
                         noResults.style.display = 'block';
-                        noResults.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center'
-                        });
                     } else {
                         // Has results
                         noResults.style.display = 'none';
@@ -2063,7 +2092,8 @@ $username = $isLoggedIn ? $_SESSION : null;
 
                 // Event listener for real-time search
                 if (searchInput && projectCards.length > 0) {
-                    const debouncedFilter = debounce(performRealTimeFilter, 150); // 150ms delay untuk responsiveness
+                    const debouncedFilter = debounce(performRealTimeFilter,
+                        100); // 100ms delay untuk responsiveness lebih baik
 
                     searchInput.addEventListener('input', function(e) {
                         const searchButton = document.querySelector('.input-group-text');
