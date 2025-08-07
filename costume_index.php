@@ -7,31 +7,31 @@ require 'vendor/autoload.php';
 
 use Carbon\Carbon;
 
-// Ambil keyword dan filter status dari URL
+// Get keyword and filter status from URL
 $search = $_GET['search'] ?? '';
 $filter = $_GET['project_status'] ?? '';
 
 // Pagination settings
-$itemsPerPage = 12; // Menampilkan 12 item per halaman untuk performa lebih baik
+$itemsPerPage = 18; // Optimized: Menampilkan 18 item per halaman untuk performa lebih baik
 $currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $offset = ($currentPage - 1) * $itemsPerPage;
 
 function isThisWeek($deadline)
 {
     if (empty($deadline)) {
-        return false; // Jika deadline kosong, kembalikan false
+        return false; // If deadline is empty, return false
     }
 
     $currentDate = new DateTime();
-    $startOfWeek = $currentDate->modify('this week')->setTime(0, 0, 0); // Awal minggu (Senin)
-    $endOfWeek = (clone $startOfWeek)->modify('+6 days')->setTime(23, 59, 59); // Akhir minggu (Minggu)
+    $startOfWeek = (clone $currentDate)->modify('this week')->setTime(0, 0, 0); // Start of week (Monday)
+    $endOfWeek = (clone $startOfWeek)->modify('+6 days')->setTime(23, 59, 59); // End of week (Sunday)
 
     $deadlineDate = new DateTime($deadline);
 
     return $deadlineDate >= $startOfWeek && $deadlineDate <= $endOfWeek;
 }
 
-// Filter berdasarkan kategori
+// Filter by category
 $sql = "SELECT * FROM gallery WHERE category = 'costume' AND project_status != 'archived' AND project_name LIKE ?";
 $params = ["%$search%"];
 
@@ -39,9 +39,11 @@ if (isset($_GET['this_week']) && $_GET['this_week'] == '1') {
     $startOfWeekObj = new DateTime();
     $startOfWeekObj->modify('this week');
     $startOfWeek = $startOfWeekObj->format('Y-m-d');
-    $endOfWeekObj = clone $startOfWeekObj;
-    $endOfWeekObj->modify('+6 days');
+
+    $endOfWeekObj = new DateTime();
+    $endOfWeekObj->modify('this week +6 days');
     $endOfWeek = $endOfWeekObj->format('Y-m-d');
+
     $sql .= ' AND deadline BETWEEN ? AND ?';
     $params[] = $startOfWeek;
     $params[] = $endOfWeek;
@@ -71,9 +73,11 @@ if (isset($_GET['this_week']) && $_GET['this_week'] == '1') {
     $startOfWeekObj = new DateTime();
     $startOfWeekObj->modify('this week');
     $startOfWeek = $startOfWeekObj->format('Y-m-d');
-    $endOfWeekObj = clone $startOfWeekObj;
-    $endOfWeekObj->modify('+6 days');
+
+    $endOfWeekObj = new DateTime();
+    $endOfWeekObj->modify('this week +6 days');
     $endOfWeek = $endOfWeekObj->format('Y-m-d');
+
     $countSql .= ' AND deadline BETWEEN ? AND ?';
     $countParams[] = $startOfWeek;
     $countParams[] = $endOfWeek;
@@ -94,12 +98,16 @@ $countStmt->execute($countParams);
 $totalProjects = $countStmt->fetchColumn();
 $totalPages = ceil($totalProjects / $itemsPerPage);
 
-$startOfWeekObj = new DateTime();
-$startOfWeekObj->modify('this week');
-$startOfWeek = $startOfWeekObj->format('Y-m-d');
-$endOfWeekObj = clone $startOfWeekObj;
-$endOfWeekObj->modify('+6 days');
-$endOfWeek = $endOfWeekObj->format('Y-m-d');
+// Calculate this week count (reuse variables from above if they exist)
+if (!isset($startOfWeek) || !isset($endOfWeek)) {
+    $startOfWeekObj = new DateTime();
+    $startOfWeekObj->modify('this week');
+    $startOfWeek = $startOfWeekObj->format('Y-m-d');
+
+    $endOfWeekObj = new DateTime();
+    $endOfWeekObj->modify('this week +6 days');
+    $endOfWeek = $endOfWeekObj->format('Y-m-d');
+}
 
 $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'costume' AND project_status != 'archived' AND deadline BETWEEN ? AND ?");
 $stmt->execute([$startOfWeek, $endOfWeek]);
@@ -114,7 +122,7 @@ function getStatusClass($status)
         case 'in progress':
             return 'background-color: #FFCA2C;'; // yellow
         case 'revision':
-            return 'background-color: #6610f2;'; // purple
+            return 'background-color: #fd7e14;'; // orange
         case 'completed':
             return 'background-color: #198754;'; // green
         default:
@@ -138,11 +146,7 @@ function getPriorityClass($priority)
     }
 }
 
-$stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'costume'");
-$stmt->execute();
-$total_projects = $stmt->fetchColumn();
-
-// Hitung jumlah proyek berdasarkan status untuk kategori
+// Count projects by status for category (optimized with GROUP BY)
 $status_counts = [
     'Upcoming' => 0,
     'Completed' => 0,
@@ -150,23 +154,26 @@ $status_counts = [
     'Revision' => 0,
 ];
 
-foreach ($status_counts as $status => &$count) {
-    $sql = "SELECT COUNT(*) AS total FROM gallery WHERE category = 'costume' AND project_status = ?";
-    $params = [$status];
+$sql = "SELECT project_status, COUNT(*) as count FROM gallery WHERE category = 'costume' AND project_status IN ('Upcoming', 'Completed', 'In Progress', 'Revision')";
+$params = [];
 
-    // Tambahkan filter priority jika ada
-    if (!empty($_GET['priority'])) {
-        $sql .= ' AND priority = ?';
-        $params[] = $_GET['priority'];
-    }
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $count = $stmt->fetchColumn();
+// Add priority filter if exists
+if (!empty($_GET['priority'])) {
+    $sql .= ' AND priority = ?';
+    $params[] = $_GET['priority'];
 }
-unset($count);
 
-// Count projects by priority for category
+$sql .= ' GROUP BY project_status';
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+
+while ($row = $stmt->fetch()) {
+    if (isset($status_counts[$row['project_status']])) {
+        $status_counts[$row['project_status']] = $row['count'];
+    }
+}
+
+// Count projects by priority for category (optimized with GROUP BY)
 $priority_counts = [
     'Urgent' => 0,
     'High' => 0,
@@ -174,28 +181,31 @@ $priority_counts = [
     'Low' => 0,
 ];
 
-foreach ($priority_counts as $priority => &$count) {
-    $sql = "SELECT COUNT(*) AS total FROM gallery WHERE category = 'costume' AND priority = ? AND project_status != 'archived'";
-    $params = [$priority];
+$sql = "SELECT priority, COUNT(*) as count FROM gallery WHERE category = 'costume' AND priority IN ('Urgent', 'High', 'Normal', 'Low') AND project_status != 'archived'";
+$params = [];
 
-    // Add status filter if exists
-    if (!empty($_GET['project_status'])) {
-        $sql .= ' AND project_status = ?';
-        $params[] = $_GET['project_status'];
-    }
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $count = $stmt->fetchColumn();
+// Add status filter if exists
+if (!empty($_GET['project_status'])) {
+    $sql .= ' AND project_status = ?';
+    $params[] = $_GET['project_status'];
 }
-unset($count);
 
-// Hitung total proyek (kecuali Archived)
+$sql .= ' GROUP BY priority';
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+
+while ($row = $stmt->fetch()) {
+    if (isset($priority_counts[$row['priority']])) {
+        $priority_counts[$row['priority']] = $row['count'];
+    }
+}
+
+// Count total projects (except Archived)
 $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM gallery WHERE category = 'costume' AND project_status != 'Archived'");
 $stmt->execute();
 $total_projects = $stmt->fetchColumn();
 
-// Periksa apakah pengguna sudah login
+// Check if user is logged in
 $isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
 $username = $isLoggedIn ? $_SESSION : null;
 ?>
@@ -209,114 +219,551 @@ $username = $isLoggedIn ? $_SESSION : null;
         <link rel="icon" type="image/x-icon" href="favicon.ico">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+        <!-- Fancybox CSS -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
         <style>
             body {
-                font-family: Arial, sans-serif;
-                color: #000;
-                padding: 12px;
-                text-align: center;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                color: #333333;
+                padding: 0;
+                margin: 0;
+                background: #FDFDFD;
+                min-height: 100vh;
             }
 
             html,
             body {
                 height: 100%;
-                /* Pastikan tinggi halaman penuh */
                 display: flex;
-                /* Gunakan flexbox */
                 flex-direction: column;
-                /* Atur elemen secara vertikal */
             }
 
             .container-fluid {
                 flex: 1;
-                /* Isi ruang yang tersedia di antara header dan footer */
+                padding: 1rem;
+                margin: 0 auto;
+            }
+
+            /* Header improvements - Simplified */
+            .header-section {
+                background: linear-gradient(135deg, #B6E388, #80C904);
+                border-radius: 15px;
+                padding: 0.8rem;
+                margin-bottom: 1.2rem;
+                border: 1px solid #B6E388;
+            }
+
+            /* Green accent border - Simplified */
+            .header-section::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: #80C904;
+            }
+
+            /* Green accent for title - Simplified */
+            .text-header {
+                color: #333333;
+                font-weight: 600;
+            }
+
+            /* Dark mode for header - Simplified */
+            [data-bs-theme="dark"] .header-section {
+                background: #1e293b;
+                border: 1px solid #475569;
+            }
+
+            [data-bs-theme="dark"] .header-section::before {
+                background: #80C904;
+            }
+
+            [data-bs-theme="dark"] .text-header {
+                color: #e2e8f0;
+            }
+
+            [data-bs-theme="dark"] .text-center.p-2.bg-light {
+                background: #212429 !important;
+                color: #cbd5e1 !important;
+                border: 1px solid #475569;
+            }
+
+            .no-image-soft,
+            .no-notes-soft {
+                background: #f8f9fa !important;
+                color: #6c757d !important;
+                border: none !important;
+                font-size: 0.97rem;
+                padding: 16px 0 10px 0;
+            }
+
+            .no-image-soft i,
+            .no-notes-soft i {
+                font-size: 1.3rem !important;
+                color: #6c757d !important;
+            }
+
+            .no-image-soft p,
+            .no-notes-soft p {
+                color: #6c757d !important;
+                font-size: 0.97rem;
+                margin: 0;
+            }
+
+            [data-bs-theme="dark"] .no-image-soft,
+            [data-bs-theme="dark"] .no-notes-soft {
+                background-color: #23272f !important;
+                color: #6c7383 !important;
+            }
+
+            [data-bs-theme="dark"] .no-image-soft i,
+            [data-bs-theme="dark"] .no-notes-soft i {
+                color: #6c7383 !important;
+            }
+
+            [data-bs-theme="dark"] .no-image-soft p,
+            [data-bs-theme="dark"] .no-notes-soft p {
+                color: #6c7383 !important;
+            }
+
+            /* Search and Filter sections - Simplified */
+            .search-section,
+            .filters-section {
+                background: #ffffff;
+                border-radius: 15px;
+                padding: 1rem;
+                margin-bottom: 1.2rem;
+                border: 1px solid #e2e8f0;
+            }
+
+            .filters-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .filter-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                align-items: center;
+            }
+
+            /* Reset button styling - Simplified */
+            .btn-outline-secondary {
+                border: 1px solid #94a3b8;
+                color: #64748b;
+                background: #ffffff;
+                font-weight: 400;
+                padding: 0.4rem 0.675rem;
+                border-radius: 0.5rem;
+                font-size: 0.7rem;
+            }
+
+            .btn-outline-secondary:hover {
+                background: #B6E388;
+                border-color: #B6E388;
+                color: white;
+            }
+
+            .filter-divider {
+                width: 2px;
+                height: 30px;
+                background: #cbd5e1;
+                margin: 0 0.3rem;
             }
 
             footer {
                 margin-top: auto;
-                /* Dorong footer ke bagian bawah */
-                background-color: rgba(0, 0, 0, 0.05);
-                /* Warna latar belakang */
+                background: #ffffff;
                 text-align: center;
-                padding: 10px;
+                padding: 1rem;
+                color: #475569;
+                border-top: 1px solid #e2e8f0;
             }
 
+            /* Green accents for small elements */
+            .green-accent {
+                background: linear-gradient(135deg, #B6E388, #80C904) !important;
+                color: white !important;
+            }
+
+            .green-border {
+                border-color: #B6E388 !important;
+            }
+
+            .green-text {
+                color: #80C904 !important;
+            }
+
+            /* Button improvements - Consolidated */
+            .btn {
+                border-radius: 25px;
+                font-weight: 500;
+                border: 1px solid transparent;
+                transition: all 0.1s ease-in-out;
+            }
+
+            /* btn-secondary (All) */
+            .btn-secondary {
+                background: transparent;
+                color: #6c757d;
+                border: 1.5px solid #6c757d;
+            }
+
+            .btn-secondary:hover,
+            .btn-secondary.active,
+            .btn-secondary:active {
+                background: #6c757d !important;
+                color: #fff !important;
+                border: 1.5px solid #6c757d !important;
+            }
+
+            [data-bs-theme="dark"] .btn-secondary {
+                background: transparent;
+                color: #a7adc3;
+                border: 1.5px solid #a7adc3;
+            }
+
+            [data-bs-theme="dark"] .btn-secondary:hover,
+            [data-bs-theme="dark"] .btn-secondary.active,
+            [data-bs-theme="dark"] .btn-secondary:active {
+                background: #a7adc3 !important;
+                color: #23272f !important;
+                border: 1.5px solid #a7adc3 !important;
+            }
+
+            /* btn-info (Upcoming) */
+            .btn-info {
+                background: transparent;
+                color: #0dcaf0;
+                border: 1.5px solid #0dcaf0;
+            }
+
+            .btn-info:hover,
+            .btn-info.active,
+            .btn-info:active {
+                background: #0dcaf0 !important;
+                color: #fff !important;
+                border: 1.5px solid #0dcaf0 !important;
+            }
+
+            [data-bs-theme="dark"] .btn-info {
+                background: transparent;
+                color: #6dd5ed;
+                border: 1.5px solid #6dd5ed;
+            }
+
+            [data-bs-theme="dark"] .btn-info:hover,
+            [data-bs-theme="dark"] .btn-info.active,
+            [data-bs-theme="dark"] .btn-info:active {
+                background: #6dd5ed !important;
+                color: #0a1e24 !important;
+                border: 1.5px solid #6dd5ed !important;
+            }
+
+            /* btn-warning (In Progress) */
+            .btn-warning {
+                background: transparent;
+                color: #fbbf24;
+                border: 1.5px solid #fbbf24;
+            }
+
+            .btn-warning:hover,
+            .btn-warning.active,
+            .btn-warning:active {
+                background: #fbbf24 !important;
+                color: #fff !important;
+                border: 1.5px solid #fbbf24 !important;
+            }
+
+            [data-bs-theme="dark"] .btn-warning {
+                background: transparent;
+                color: #ffd93d;
+                border: 1.5px solid #ffd93d;
+            }
+
+            [data-bs-theme="dark"] .btn-warning:hover,
+            [data-bs-theme="dark"] .btn-warning.active,
+            [data-bs-theme="dark"] .btn-warning:active {
+                background: #ffd93d !important;
+                color: #1a1300 !important;
+                border: 1.5px solid #ffd93d !important;
+            }
+
+            /* btn-success (Completed) */
+            .btn-success {
+                background: transparent;
+                color: #198754;
+                border: 1.5px solid #198754;
+            }
+
+            .btn-success:hover,
+            .btn-success.active,
+            .btn-success:active {
+                background: #198754 !important;
+                color: #fff !important;
+                border: 1.5px solid #198754 !important;
+            }
+
+            [data-bs-theme="dark"] .btn-success {
+                background: transparent;
+                color: #20c997;
+                border: 1.5px solid #20c997;
+            }
+
+            [data-bs-theme="dark"] .btn-success:hover,
+            [data-bs-theme="dark"] .btn-success.active,
+            [data-bs-theme="dark"] .btn-success:active {
+                background: #20c997 !important;
+                color: #0c1f1a !important;
+                border: 1.5px solid #20c997 !important;
+            }
+
+            /* btn-indigo (Revision) */
             .btn-indigo {
-                background-color: #6610f2;
-                color: #fff;
-                --btn-bg: #6610f2;
+                background: transparent;
+                color: #fd7e14;
+                border: 1.5px solid #fd7e14;
             }
 
-            .btn-indigo:hover {
-                background-color: #520dc2;
-                color: #fff;
-                --btn-bg: #520dc2;
+            .btn-indigo:hover,
+            .btn-indigo.active,
+            .btn-indigo:active {
+                background: #fd7e14 !important;
+                color: #fff !important;
+                border: 1.5px solid #fd7e14 !important;
             }
 
-            .btn-indigo.active {
-                background-color: #6610f2;
-                /* Warna latar belakang saat aktif */
-                color: #fff;
-                /* Warna teks saat aktif */
-                border-color: #6610f2;
-                /* Warna border saat aktif */
+            [data-bs-theme="dark"] .btn-indigo {
+                background: transparent;
+                color: #ff922b;
+                border: 1.5px solid #ff922b;
+            }
+
+            [data-bs-theme="dark"] .btn-indigo:hover,
+            [data-bs-theme="dark"] .btn-indigo.active,
+            [data-bs-theme="dark"] .btn-indigo:active {
+                background: #ff922b !important;
+                color: #1a0d02 !important;
+                border: 1.5px solid #ff922b !important;
+            }
+
+            /* This Week button - outline saat tidak aktif */
+            .btn.bg-danger-subtle {
+                background: transparent !important;
+                color: #721c24 !important;
+                border: 1.5px solid #dc3545 !important;
+                font-weight: 600 !important;
+            }
+
+            /* Fill saat hover/active */
+            .btn.bg-danger-subtle:hover,
+            .btn.bg-danger-subtle.active,
+            .btn.bg-danger-subtle:active {
+                background-color: #f8d7da !important;
+                color: #721c24 !important;
+                border: 1.5px solid #920000 !important;
+            }
+
+            /* Dark mode */
+            [data-bs-theme="dark"] .btn.bg-danger-subtle {
+                background: transparent !important;
+                color: #f8d7da !important;
+                border: 1.5px solid #ff6b7a !important;
+            }
+
+            [data-bs-theme="dark"] .btn.bg-danger-subtle:hover,
+            [data-bs-theme="dark"] .btn.bg-danger-subtle.active,
+            [data-bs-theme="dark"] .btn.bg-danger-subtle:active {
+                background-color: #58151c !important;
+                color: #f8d7da !important;
+                border: 1.5px solid #ff6b7a !important;
+            }
+
+            .btn-primary-custom {
+                background: #B6E388;
+                border-color: #B6E388;
+                color: #333333;
+                font-weight: 500;
+                border-radius: 25px;
+            }
+
+            .btn-primary-custom:hover {
+                background: #80C904;
+                border-color: #B6E388;
+                color: #ffffff;
             }
 
             .search-filter {
                 display: flex;
                 justify-content: space-between;
-                margin-bottom: 20px;
                 gap: 10px;
             }
 
             .card-grid {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                justify-content: flex-start;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 1rem;
+                justify-content: center;
+                padding: 0;
+            }
+
+            .card {
+                background: #ffffff;
+                border-radius: 15px;
+                border: 1px solid #e2e8f0;
+                overflow: hidden;
+                position: relative;
             }
 
             .card:hover {
-                border-color: rgb(179, 179, 179);
+                border: 1px solid #B6E388;
+                transform: scale(1.05) !important;
+                z-index: 10;
             }
-
-            /* .card img {
-        width: 100%;
-        height: 150px;
-        object-fit: cover;
-    } */
 
             .card img {
                 width: 100%;
-                /* Pastikan gambar memenuhi lebar card */
-                height: 150px;
-                /* Tetapkan tinggi tetap */
+                height: 180px;
                 object-fit: contain;
-                /* Pastikan gambar terlihat sepenuhnya tanpa terpotong */
-                background-color: #f8f8f8;
-                /* Tambahkan latar belakang untuk area kosong */
-                border-radius: 4px;
-                /* Tambahkan border radius untuk estetika */
+                background-color: #f8f9fa;
             }
 
             .card-body {
-                padding: 10px;
+                padding: 0.5rem;
+                background: #ffffff;
+                color: var(--bs-body-color);
+            }
+
+            /* Project title - Simplified */
+            .card-body strong {
+                color: var(--bs-body-color);
+                font-size: 16px;
+            }
+
+            .card-body strong:hover {
+                color: #80C904 !important;
+            }
+
+            /* Card text elements */
+            .card-body p {
+                color: var(--bs-body-color);
+                font-size: 14px;
+                margin-top: 8px;
+                line-height: 1.5;
+            }
+
+            /* Deadline text */
+            .deadline {
+                font-size: 13px;
+                color: var(--bs-secondary-color);
+                margin: 3px 0;
+                font-weight: 500;
+                display: inline-block;
+            }
+
+            /* Green accent untuk material image container */
+            .card:hover strong {
+                color: #80C904 !important;
+            }
+
+            [data-bs-theme="dark"] .card:hover strong {
+                color: #80C904 !important;
+            }
+
+            /* Pagination styling */
+            .pagination .page-link {
+                color: #B6E388;
+                border-color: #e2e8f0;
+                background-color: #ffffff;
+            }
+
+            .pagination .page-link:hover {
+                color: #80C904;
+                background-color: #f8fafc;
+                border-color: #B6E388;
+            }
+
+            .pagination .page-item.active .page-link {
+                background-color: #B6E388;
+                border-color: #B6E388;
+                color: #333333;
+            }
+
+            .pagination .page-item.disabled .page-link {
+                color: #94a3b8;
+                background-color: #f8fafc;
+                border-color: #e2e8f0;
+            }
+
+            [data-bs-theme="dark"] .pagination .page-link {
+                color: #B6E388;
+                border-color: #374151;
+                background-color: #1f2937;
+            }
+
+            [data-bs-theme="dark"] .pagination .page-link:hover {
+                color: #80C904;
+                background-color: #374151;
+                border-color: #B6E388;
+            }
+
+            [data-bs-theme="dark"] .pagination .page-item.active .page-link {
+                background-color: #B6E388;
+                border-color: #B6E388;
+                color: #333333;
+            }
+
+            /* Performance optimized animations - Remove heavy effects */
+            .btn {
+                transition: color 0.1s ease-in-out, background-color 0.1s ease-in-out, border-color 0.1s ease-in-out;
+            }
+
+            .card {
+                transition: border-color 0.1s ease-in-out;
             }
 
             .status-label {
                 color: white;
-                padding: 4px 8px;
-                border-radius: 4px;
+                padding: 3px 6px;
+                border-radius: 15px;
                 font-size: 12px;
+                font-weight: 600;
                 display: inline-block;
-                margin-top: 5px;
+                margin: 2px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
             }
 
-            .deadline {
-                font-size: 12px;
-                color: #888;
-                margin-top: 2px;
+            .deadline-container {
+                display: flex;
+                gap: 1rem;
+                margin: 6px 0;
+                flex-wrap: wrap;
+            }
+
+            .this-week-badge {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(248, 215, 218, 0.7);
+                color: #b02a37;
+                border: 1px solid rgba(220, 53, 69, 0.5);
+                padding: 3px 6px;
+                border-radius: 15px;
+                font-size: 11px;
+                font-weight: 600;
+                z-index: 5;
+            }
+
+            [data-bs-theme="dark"] .this-week-badge {
+                background: rgba(44, 11, 14, 0.7);
+                color: #ea868f;
+                border: 1px solid rgba(132, 32, 41, 0.5);
             }
 
             /* Modal styles */
@@ -343,11 +790,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 object-fit: contain;
                 /* Menjaga gambar tetap proporsional */
                 border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             }
-
-            .modal-content,
-            .close {}
 
             .close {
                 position: absolute;
@@ -410,279 +853,879 @@ $username = $isLoggedIn ? $_SESSION : null;
                 display: inline-block;
             }
 
-            .btn.active {
-                outline: 2px solid var(--btn-bg, var(--bs-btn-bg));
-                /* Tambahkan outline */
-                outline-offset: 2px;
-                /* Berikan jarak antara outline dan elemen */
-            }
-
-            .card-body strong {
-                color: var(--bs-body-color);
-                /* Warna teks dinamis berdasarkan tema */
-                font-size: 16px;
-                cursor: pointer;
-            }
-
-            .card-body p {
-                color: var(--bs-body-color);
-                /* Warna teks dinamis berdasarkan tema */
-                font-size: 14px;
-                margin-top: 8px;
-                line-height: 1.5;
-            }
-
             p.text-center {
-                color: var(--bs-body-color);
-                /* Warna teks dinamis berdasarkan tema */
-                font-size: 16px;
-                margin-top: 20px;
+                color: #475569;
+                font-size: 18px;
+                margin-top: 2rem;
+                padding: 2rem;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                border: 1px solid rgba(226, 232, 240, 0.8);
             }
 
-            /* Pagination styling */
-            .pagination .page-link {
-                color: #6610f2;
-                border-color: #e2e8f0;
-                background-color: #ffffff;
+            /* Responsive improvements */
+            @media (max-width: 768px) {
+                .container-fluid {
+                    padding: 0.5rem;
+                }
+
+                .header-section,
+                .search-filter-combined {
+                    padding: 0.75rem;
+                }
+
+                .filters-container {
+                    justify-content: flex-start;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+
+                .filter-divider {
+                    display: none;
+                }
+
+                .card-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                    gap: 1rem;
+                }
+
+                .text-header {
+                    font-size: 1.5rem;
+                }
+
+                .deadline-container {
+                    flex-direction: column;
+                    gap: 0.25rem;
+                }
             }
 
-            .pagination .page-link:hover {
-                color: #520dc2;
-                background-color: #f8fafc;
-                border-color: #6610f2;
+            @media (max-width: 576px) {
+                .card-grid {
+                    grid-template-columns: 1fr;
+                    padding: 0.5rem 0;
+                }
+
+                .btn {
+                    font-size: 0.875rem;
+                    padding: 0.5rem 1rem;
+                }
+
+                .filter-group {
+                    justify-content: center;
+                    width: 100%;
+                }
+
+                /* Reset button mobile styling */
+                .btn-outline-secondary {
+                    font-size: 0.8rem;
+                    padding: 0.4rem 0.75rem;
+                    min-width: 120px;
+                }
             }
 
-            .pagination .page-item.active .page-link {
-                background-color: #6610f2;
-                border-color: #6610f2;
-                color: #ffffff;
+            /* Dark mode improvements */
+            [data-bs-theme="dark"] .header-section,
+            [data-bs-theme="dark"] .search-filter-combined {
+                background: rgba(30, 41, 59, 0.95);
+                border: 1px solid rgba(71, 85, 105, 0.5);
             }
 
-            .pagination .page-item.disabled .page-link {
-                color: #94a3b8;
-                background-color: #f8fafc;
-                border-color: #e2e8f0;
+            [data-bs-theme="dark"] .text-header {
+                color: #e2e8f0;
+            }
+
+            [data-bs-theme="dark"] footer {
+                background: rgba(30, 41, 59, 0.95);
+                color: #cbd5e1;
+                border-top: 1px solid rgba(71, 85, 105, 0.5);
+            }
+
+            [data-bs-theme="dark"] body {
+                background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+            }
+
+            [data-bs-theme="dark"] .filter-divider {
+                background: rgba(71, 85, 105, 0.5);
+            }
+
+            [data-bs-theme="dark"] p.text-center {
+                background: rgba(30, 41, 59, 0.95);
+                color: #cbd5e1;
+                border: 1px solid rgba(71, 85, 105, 0.5);
+            }
+
+            [data-bs-theme="dark"] footer a {
+                color: #B6E388 !important;
+            }
+
+            [data-bs-theme="dark"] .card {
+                background: rgba(33, 37, 41, 0.95);
+                border: 2px solid rgba(182, 227, 136, 0.4);
+            }
+
+            [data-bs-theme="dark"] .card:hover {
+                border-color: rgba(182, 227, 136, 0.8);
+            }
+
+            [data-bs-theme="dark"] .card-body {
+                background: rgba(33, 37, 41, 0.9);
+                color: #fff !important;
+            }
+
+            [data-bs-theme="dark"] .card-body strong:hover {
+                color: #80C904 !important;
+            }
+
+            [data-bs-theme="dark"] .card-body strong {
+                color: #fff !important;
+            }
+
+            [data-bs-theme="dark"] .card-body p {
+                color: #e9ecef;
+            }
+
+            [data-bs-theme="dark"] .deadline {
+                color: #ced4da !important;
+            }
+
+            [data-bs-theme="dark"] .card-body .deadline {
+                color: #ced4da !important;
+            }
+
+            [data-bs-theme="dark"] .form-control,
+            [data-bs-theme="dark"] .form-select {
+                background: rgba(33, 37, 41, 0.9) !important;
+                color: #fff !important;
+                border-color: rgba(255, 255, 255, 0.2) !important;
+            }
+
+            [data-bs-theme="dark"] .form-control:focus,
+            [data-bs-theme="dark"] .form-select:focus {
+                background: rgba(33, 37, 41, 1) !important;
+                color: #fff !important;
+                border-color: #B6E388 !important;
+                box-shadow: 0 0 0 rgba(182, 227, 136, 0) !important;
+            }
+
+            [data-bs-theme="dark"] .form-control::placeholder {
+                color: #adb5bd !important;
+            }
+
+            /* Ensure text in inputs is always visible */
+            .form-control {
+                color: var(--bs-body-color) !important;
+            }
+
+            .form-select {
+                color: var(--bs-body-color) !important;
+            }
+
+            [data-bs-theme="dark"] .input-group-text {
+                background: rgba(182, 227, 136, 0.9) !important;
+                color: #333333 !important;
+                border-color: rgba(182, 227, 136, 0.6) !important;
+            }
+
+            /* Dark mode untuk live search */
+            [data-bs-theme="dark"] #searchInput:focus {
+                box-shadow: 0 0 0 rgba(182, 227, 136, 0) !important;
+                border-color: #80C904 !important;
+            }
+
+            [data-bs-theme="dark"] #searchInput.typing {
+                border-color: #FFE600 !important;
+                box-shadow: 0 0 0px rgba(255, 230, 0, 0) !important;
+            }
+
+            /* Dark mode untuk no results */
+            [data-bs-theme="dark"] #noResults .alert {
+                background: linear-gradient(135deg, rgba(255, 230, 0, 0.2), rgba(255, 230, 0, 0.1)) !important;
+                border: 1px solid rgba(255, 230, 0, 0.5) !important;
+                color: #FFE600 !important;
+            }
+
+            [data-bs-theme="dark"] .project-card.search-highlight {
+                border-color: rgba(182, 227, 136, 0.8) !important;
+                /* box-shadow: 0 0px 0px rgba(182, 227, 136, 0) !important; */
+            }
+
+            /* Form improvements */
+            .form-control,
+            .form-select {
+                border-radius: 25px;
+                border: 1.5px solid rgba(226, 232, 240, 0.8);
+                background: rgba(255, 255, 255, 0.95);
+            }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #B6E388;
+                box-shadow: 0 0 0 rgba(182, 227, 136, 0);
+                background: rgba(255, 255, 255, 1);
+            }
+
+            /* Live search enhancements */
+            #searchInput {
+                transition: all 0.1s ease;
+            }
+
+            #searchInput:focus {
+                box-shadow: 0 0 0 rgba(182, 227, 136, 0);
+                border-color: #B6E388;
+            }
+
+            /* Search button loading state */
+            .btn-primary-custom {
+                transition: all 0.1s ease;
+            }
+
+            .btn-primary-custom .bi-hourglass-split {
+                animation: searchLoading 1s infinite ease-in-out;
+            }
+
+            /* Search input typing indicator */
+            #searchInput.typing {
+                border-color: #ffc107;
+                /* box-shadow: 0 0 0 rgba(255, 193, 7, 0); */
+            }
+
+            /* No results styling */
+            #noResults .alert {
+                background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+                border: 1px solid rgba(255, 193, 7, 0.3);
+                color: #f59e0b;
+                border-radius: 15px;
+            }
+
+            /* Highlight search matches */
+            .project-card.search-highlight {
+                border-color: rgba(182, 227, 136, 0.6) !important;
+            }
+
+            /* Combined search and filter section */
+            .search-filter-combined {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 15px;
+                padding: 1rem;
+                margin-bottom: 1.2rem;
+                border: 1px solid rgba(226, 232, 240, 0.8);
+            }
+
+            /* Dark mode toggle button improvements */
+            #toggleDarkMode {
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                border: 1.5px solid #B6E388;
+                background: rgba(255, 255, 255, 0.95);
+                color: #80C904;
+                transition: all 0.1s ease;
+            }
+
+            #toggleDarkMode:hover {
+                background: #B6E388;
+                color: #333333;
+                border-color: #80C904;
+                transform: scale(1.05);
+            }
+
+            [data-bs-theme="dark"] #toggleDarkMode {
+                border-color: #B6E388;
+                background: rgba(182, 227, 136, 0.2);
+                color: #80C904;
+            }
+
+            [data-bs-theme="dark"] #toggleDarkMode:hover {
+                background: #B6E388;
+                color: #333333;
+                border-color: #B6E388;
+            }
+
+            /* Fancybox Custom Styling */
+            .fancybox__backdrop {
+                background: rgba(0, 0, 0, 0.85) !important;
+            }
+
+            .fancybox__button {
+                color: #B6E388 !important;
+                transition: all 0.3s ease !important;
+                border-radius: 8px !important;
+            }
+
+            .fancybox__button:hover {
+                background: rgba(182, 227, 136, 0.2) !important;
+                transform: scale(1.1) !important;
+            }
+
+            .fancybox__infobar {
+                color: #B6E388 !important;
+                font-weight: 600 !important;
+                font-size: 14px !important;
+            }
+
+            .fancybox__content {
+                border-radius: 5px !important;
+                overflow: hidden !important;
+            }
+
+            .fancybox__caption {
+                font-weight: 600 !important;
+                text-align: center !important;
+                border-radius: 10px !important;
+                padding: 5px 10px !important;
+                backdrop-filter: blur(10px) !important;
+            }
+
+            /* Dark mode untuk Fancybox */
+            [data-bs-theme="dark"] .fancybox__button {
+                color: #B6E388 !important;
+            }
+
+            [data-bs-theme="dark"] .fancybox__button:hover {
+                background: rgba(182, 227, 136, 0.2) !important;
+            }
+
+            [data-bs-theme="dark"] .fancybox__infobar,
+            [data-bs-theme="dark"] .fancybox__caption {
+                color: #B6E388 !important;
+            }
+
+            .fancybox__slide .fancybox__image {
+                width: 100% !important;
+                height: auto !important;
+                max-width: 100vw !important;
+                max-height: 90vh !important;
+                object-fit: contain !important;
+                image-rendering: auto;
+            }
+
+            /* Gallery View Buttons Styling */
+            .btn-outline-green {
+                color: #B6E388 !important;
+                border-color: #B6E388 !important;
+                background: transparent !important;
+                border-radius: 8px !important;
+                transition: all 0.3s ease !important;
+                padding: 0.375rem 0.5rem !important;
+                font-size: 0.875rem !important;
+            }
+
+            .btn-outline-green:hover {
+                background-color: #B6E388 !important;
+                border-color: #B6E388 !important;
+                color: #333333 !important;
+            }
+
+            .btn-outline-green:focus {}
+
+            /* Gallery actions container */
+            .gallery-actions .btn {
+                width: 36px !important;
+                height: 36px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 !important;
+            }
+
+            /* Vertical divider */
+            .vr {
+                width: 1px !important;
+                background: rgba(182, 227, 136, 0.3) !important;
+                opacity: 1 !important;
+            }
+
+            /* Dark mode untuk gallery buttons */
+            [data-bs-theme="dark"] .btn-outline-green {
+                color: #80C904 !important;
+                border-color: #80C904 !important;
+            }
+
+            [data-bs-theme="dark"] .btn-outline-green:hover {
+                background-color: #80C904 !important;
+                border-color: #80C904 !important;
+                color: white !important;
+            }
+
+            [data-bs-theme="dark"] .vr {
+                background: rgba(128, 201, 4, 0.4) !important;
+            }
+
+            /* Responsive behavior untuk gallery buttons */
+            @media (max-width: 992px) {
+                .gallery-actions .btn {
+                    width: 32px !important;
+                    height: 32px !important;
+                    font-size: 0.8rem !important;
+                }
+
+                .vr {
+                    height: 24px !important;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .gallery-actions {
+                    order: -1;
+                    /* Pindah ke kiri pada mobile */
+                    margin-right: auto;
+                }
+
+                .gallery-actions .btn {
+                    width: 30px !important;
+                    height: 30px !important;
+                    font-size: 0.75rem !important;
+                }
+
+                .vr {
+                    height: 20px !important;
+                    margin: 0 8px !important;
+                }
+            }
+
+            @media (max-width: 576px) {
+                .header-section .d-flex {
+                    flex-wrap: wrap !important;
+                }
+
+                .gallery-actions {
+                    order: 1;
+                    margin-top: 10px;
+                    width: 100%;
+                    justify-content: center !important;
+                }
+
+                .vr {
+                    display: none !important;
+                }
+
+                .text-header {
+                    font-size: 1.25rem !important;
+                }
+            }
+
+            .btn-group .btn {
+                border-radius: 25px !important;
+                margin: 0 5px;
+                transition: all 0.3s ease;
+                font-weight: 500;
+            }
+
+            .btn-group .btn:first-child {
+                margin-left: 0;
+            }
+
+            .btn-group .btn:last-child {
+                margin-right: 0;
+            }
+
+            .btn-outline-primary:hover {
+                background-color: #B6E388;
+                border-color: #B6E388;
+                color: #333333;
+            }
+
+            .btn-outline-secondary:hover {
+                background-color: #6c757d;
+                border-color: #6c757d;
+                color: white;
+            }
+
+            /* Dark mode untuk gallery buttons */
+            [data-bs-theme="dark"] .btn-outline-primary {
+                color: #80C904;
+                border-color: #80C904;
+            }
+
+            [data-bs-theme="dark"] .btn-outline-primary:hover {
+                background-color: #80C904;
+                border-color: #80C904;
+                color: white;
+            }
+
+            /* Priority bullet colors */
+            .priority-urgent {
+                color: #dc3545 !important;
+                /* Red for Urgent */
+            }
+
+            .priority-high {
+                color: #FFE600 !important;
+                /* Yellow for High */
+            }
+
+            .priority-normal {
+                color: #007BFF !important;
+                /* Soft Blue for Normal */
+            }
+
+            .priority-low {
+                color: #6c757d !important;
+                /* Gray for Low */
             }
         </style>
     </head>
 
     <body>
         <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div class="d-flex align-items-center">
-                    <!-- Logo CCM -->
-                    <a href="index.php">
-                        <img src="uploads/ccm.png" alt="CCM Logo" style="width: 50px; height: 50px; margin-right: 5px;">
-                    </a>
-                    <h3 class="fw-bold text-header mb-0">Costume Project List</h3>
-                </div>
-                <!-- Tombol Login atau Dashboard -->
-                <div>
-                    <button id="toggleDarkMode" class="btn btn-outline-secondary">
-                        <i class="bi bi-moon"></i>
-                    </button>
-                    <?php if ($isLoggedIn): ?>
-                    <a href="costume_admin.php" class="btn btn-primary">
-                        Dashboard
-                    </a>
-                    <?php else: ?>
-                    <a href="login.php" class="btn btn-secondary">
-                        Login
-                    </a>
-                    <?php endif; ?>
+            <div class="header-section">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <!-- Logo dengan purple accent -->
+                        <div class="logo-container me-3">
+                            <a href="index.php">
+                                <img src="uploads/ccm.png" alt="CCM Logo"
+                                    style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(218, 246, 92, 0.2);">
+                            </a>
+                        </div>
+                        <h3 class="fw-bold text-header mb-0">Costume Project List</h3>
+                    </div>
+
+                    <!-- Gallery View Buttons - Compact -->
+                    <div class="d-flex align-items-center gap-2">
+                        <?php if (!empty($projects)): ?>
+                        <div class="gallery-actions d-flex gap-1">
+                            <button type="button" class="btn btn-sm btn-outline-green"
+                                onclick="viewAllProjectImages()"
+                                title="View All Project Images (<?= count($projects) ?> projects)"
+                                data-bs-toggle="tooltip" data-bs-placement="bottom">
+                                <i class="bi bi-images"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-green"
+                                onclick="viewAllMaterialImages()"
+                                title="View All Submission Notes (<?= count($projects) ?> images)"
+                                data-bs-toggle="tooltip" data-bs-placement="bottom">
+                                <i class="bi bi-file-earmark-image"></i>
+                            </button>
+                        </div>
+                        <div class="vr mx-2" style="height: 30px;"></div>
+                        <?php endif; ?>
+
+                        <!-- Tombol Login atau Dashboard -->
+                        <button id="toggleDarkMode" class="btn btn-outline-secondary">
+                            <i class="bi bi-moon"></i>
+                        </button>
+                        <?php if ($isLoggedIn): ?>
+                        <a href="costume_admin.php" class="btn btn-primary-custom">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                        <?php else: ?>
+                        <a href="login.php" class="btn btn-secondary">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                        </a>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
 
-            <form method="GET" class="row g-3 align-items-center mb-4">
-                <div class="col-md-4">
-                    <input type="text" name="search" class="form-control" placeholder="Search Project..."
-                        value="<?= htmlspecialchars($search) ?>">
+            <div class="search-filter-combined">
+                <!-- Search and Filters in one row -->
+                <div class="row g-3 align-items-center">
+                    <div class="col-lg-4 col-md-6">
+                        <!-- Real-time search input tanpa form -->
+                        <div class="input-group">
+                            <input type="text" id="searchInput" class="form-control"
+                                placeholder="Search Project..." value="<?= htmlspecialchars($search) ?>">
+                            <span class="input-group-text btn-primary-custom">
+                                <i class="bi bi-search"></i>
+                            </span>
+                        </div>
+                        <!-- Hidden form untuk maintain URL parameters saat menggunakan filter buttons -->
+                        <form method="GET" action="costume_index.php" id="filterForm" style="display: none;">
+                            <input type="hidden" name="project_status" id="hiddenStatus"
+                                value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
+                            <input type="hidden" name="priority" id="hiddenPriority"
+                                value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+                            <input type="hidden" name="this_week" id="hiddenThisWeek"
+                                value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
+                        </form>
+                    </div>
+                    <div class="col-lg-8 col-md-6">
+                        <div class="filters-container">
+                            <div class="filter-group">
+                                <form method="GET" action="costume_index.php">
+                                    <button type="submit" name="this_week" value="1"
+                                        class="btn fw-semibold text-danger-emphasis bg-danger-subtle border border-danger-subtle <?= isset($_GET['this_week']) && $_GET['this_week'] == '1' ? 'active' : '' ?>">
+                                        <i class="bi bi-calendar-week me-1"></i>This Week: <?= $this_week_count ?>
+                                    </button>
+                                    <input type="hidden" name="priority"
+                                        value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+                                    <input type="hidden" name="project_status"
+                                        value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
+                                    <input type="hidden" name="search"
+                                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                                </form>
+                            </div>
+
+                            <div class="filter-divider"></div>
+
+                            <div class="filter-group">
+                                <form method="GET" action="costume_index.php">
+                                    <button type="submit" name="project_status" value=""
+                                        class="btn btn-secondary <?= (!isset($_GET['project_status']) || $_GET['project_status'] === '') && !isset($_GET['this_week']) ? 'active' : '' ?>">
+                                        <i class="bi bi-collection me-1"></i>All:
+                                        <?= isset($total_projects) ? $total_projects : 0 ?>
+                                    </button>
+                                    <input type="hidden" name="priority"
+                                        value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+                                    <input type="hidden" name="search"
+                                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                                </form>
+
+                                <form method="GET" action="costume_index.php">
+                                    <button type="submit" name="project_status" value="Upcoming"
+                                        class="btn btn-info <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Upcoming' ? 'active' : '' ?>">
+                                        <i class="bi bi-clock me-1"></i>Upcoming:
+                                        <?= $status_counts['Upcoming'] ?? 0 ?>
+                                    </button>
+                                    <input type="hidden" name="priority"
+                                        value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+                                    <input type="hidden" name="search"
+                                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                                    <input type="hidden" name="this_week"
+                                        value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
+                                </form>
+
+                                <form method="GET" action="costume_index.php">
+                                    <button type="submit" name="project_status" value="In Progress"
+                                        class="btn btn-warning <?= isset($_GET['project_status']) && $_GET['project_status'] === 'In Progress' ? 'active' : '' ?>">
+                                        <i class="bi bi-gear me-1"></i>Progress:
+                                        <?= $status_counts['In Progress'] ?? 0 ?>
+                                    </button>
+                                    <input type="hidden" name="priority"
+                                        value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+                                    <input type="hidden" name="search"
+                                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                                    <input type="hidden" name="this_week"
+                                        value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
+                                </form>
+
+                                <form method="GET" action="costume_index.php">
+                                    <button type="submit" name="project_status" value="Revision"
+                                        class="btn btn-indigo <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Revision' ? 'active' : '' ?>">
+                                        <i class="bi bi-arrow-repeat me-1"></i>Revision:
+                                        <?= $status_counts['Revision'] ?? 0 ?>
+                                    </button>
+                                    <input type="hidden" name="priority"
+                                        value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+                                    <input type="hidden" name="search"
+                                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                                    <input type="hidden" name="this_week"
+                                        value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
+                                </form>
+
+                                <form method="GET" action="costume_index.php">
+                                    <button type="submit" name="project_status" value="Completed"
+                                        class="btn btn-success <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Completed' ? 'active' : '' ?>">
+                                        <i class="bi bi-check-circle me-1"></i>Done:
+                                        <?= $status_counts['Completed'] ?? 0 ?>
+                                    </button>
+                                    <input type="hidden" name="priority"
+                                        value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+                                    <input type="hidden" name="search"
+                                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                                </form>
+                            </div>
+
+                            <div class="filter-divider"></div>
+
+                            <div class="filter-group">
+                                <form method="GET" action="costume_index.php" class="d-flex align-items-center">
+                                    <div class="input-group">
+                                        <span class="input-group-text" id="priorityDropdownBtn"
+                                            style="background: linear-gradient(135deg, #B6E388, #80C904); color: #333333; border-color: #B6E388; cursor:pointer;">
+                                            <i class="bi bi-funnel"></i>
+                                        </span>
+                                        <select name="priority" class="form-select border-start-0"
+                                            id="prioritySelect" onchange="this.form.submit()">
+                                            <option value="">All Priority</option>
+                                            <option value="Urgent" class="priority-urgent"
+                                                <?= isset($_GET['priority']) && $_GET['priority'] === 'Urgent' ? 'selected' : '' ?>>
+                                                ● Urgent</option>
+                                            <option value="High" class="priority-high"
+                                                <?= isset($_GET['priority']) && $_GET['priority'] === 'High' ? 'selected' : '' ?>>
+                                                ● High</option>
+                                            <option value="Normal" class="priority-normal"
+                                                <?= isset($_GET['priority']) && $_GET['priority'] === 'Normal' ? 'selected' : '' ?>>
+                                                ● Normal</option>
+                                            <option value="Low" class="priority-low"
+                                                <?= isset($_GET['priority']) && $_GET['priority'] === 'Low' ? 'selected' : '' ?>>
+                                                ● Low</option>
+                                        </select>
+                                    </div>
+                                    <input type="hidden" name="project_status"
+                                        value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
+                                    <input type="hidden" name="search"
+                                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                                    <input type="hidden" name="this_week"
+                                        value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
+                                </form>
+                            </div>
+
+                            <div class="filter-group">
+                                <a href="costume_index.php" class="btn btn-outline-secondary"
+                                    title="Reset all filters">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-1">
-                    <button type="submit" class="btn btn-primary w-100">Search</button>
-                </div>
-            </form>
-            <div style="display: flex; gap: 20px;">
-                <form method="GET" action="costume_index.php">
-                    <button type="submit" name="this_week" value="1"
-                        class="btn fw-semibold text-danger-emphasis bg-danger-subtle border border-danger-subtle <?= isset($_GET['this_week']) && $_GET['this_week'] == '1' ? 'active' : '' ?>">
-                        This Week: <?= $this_week_count ?>
-                    </button>
-                </form>
-
-                <div style="border-left: 2px solid #ccc; height: 40px;"></div>
-
-                <form method="GET" action="costume_index.php">
-                    <button type="submit" name="project_status" value=""
-                        class="btn btn-secondary <?= !isset($_GET['project_status']) || $_GET['project_status'] === '' ? 'active' : '' ?>">
-                        All Project: <?= isset($total_projects) ? $total_projects : 0 ?>
-                    </button>
-                </form>
-                <form method="GET" action="costume_index.php">
-                    <button type="submit" name="project_status" value="Upcoming"
-                        class="btn btn-info <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Upcoming' ? 'active' : '' ?>">
-                        Upcoming: <?= $status_counts['Upcoming'] ?? 0 ?>
-                    </button>
-                    <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-                </form>
-                <form method="GET" action="costume_index.php">
-                    <button type="submit" name="project_status" value="In Progress"
-                        class="btn btn-warning <?= isset($_GET['project_status']) && $_GET['project_status'] === 'In Progress' ? 'active' : '' ?>">
-                        In Progress: <?= $status_counts['In Progress'] ?? 0 ?>
-                    </button>
-                    <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-                </form>
-                <form method="GET" action="costume_index.php">
-                    <button type="submit" name="project_status" value="Revision"
-                        class="btn btn-indigo <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Revision' ? 'active' : '' ?>">
-                        Revision: <?= $status_counts['Revision'] ?? 0 ?>
-                    </button>
-                    <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-                </form>
-                <form method="GET" action="costume_index.php">
-                    <button type="submit" name="project_status" value="Completed"
-                        class="btn btn-success <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Completed' ? 'active' : '' ?>">
-                        Completed: <?= $status_counts['Completed'] ?? 0 ?>
-                    </button>
-                    <input type="hidden" name="priority" value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-                </form>
-
-                <div style="border-left: 2px solid #ccc; height: 40px;"></div>
-
-                <form method="GET" action="costume_index.php" class="d-flex align-items-center">
-                    <select name="priority" class="form-select me-2" onchange="this.form.submit()">
-                        <option value="">Filter by Priority</option>
-                        <option value="Urgent"
-                            <?= isset($_GET['priority']) && $_GET['priority'] === 'Urgent' ? 'selected' : '' ?>>
-                            Urgent</option>
-                        <option value="High"
-                            <?= isset($_GET['priority']) && $_GET['priority'] === 'High' ? 'selected' : '' ?>>
-                            High</option>
-                        <option value="Normal"
-                            <?= isset($_GET['priority']) && $_GET['priority'] === 'Normal' ? 'selected' : '' ?>>
-                            Normal</option>
-                        <option value="Low"
-                            <?= isset($_GET['priority']) && $_GET['priority'] === 'Low' ? 'selected' : '' ?>>Low
-                        </option>
-                    </select>
-                    <input type="hidden" name="project_status"
-                        value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
-                </form>
             </div>
-            <br>
+
+            <!-- No Results Message -->
+            <div id="noResults" class="text-center" style="display: none;">
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-search me-2"></i>
+                    <strong>No results found</strong><br>
+                    <small>Try using different keywords or clear the search to see all projects.</small>
+                </div>
+            </div>
 
             <div class="card-grid">
                 <?php if (empty($projects)): ?>
                 <p class="text-center">No projects found for the selected filters.</p>
                 <?php else: ?>
-                <?php foreach ($projects as $row): ?>
-                <div class="card" style="width: 18.5rem; position: relative;">
+                <?php foreach ($projects as $index => $row): ?>
+                <div class="card project-card"
+                    data-project-name="<?= strtolower(htmlspecialchars($row['project_name'])) ?>"
+                    data-description="<?= strtolower(htmlspecialchars($row['description'])) ?>"
+                    data-status="<?= strtolower(htmlspecialchars($row['project_status'])) ?>"
+                    data-priority="<?= strtolower(htmlspecialchars($row['priority'])) ?>">
                     <?php if (isThisWeek($row['deadline'])): ?>
-                    <small class="fw-semibold text-danger-emphasis bg-danger-subtle">
-                        This Week!
-                    </small>
-                    <?php endif; ?>
-
-                    <?php
-                    // Parse project image (support both old and new format)
-                    $projectImages = parseImageData($row['project_image']);
-                    $firstProjectImage = !empty($projectImages) ? $projectImages[0] : null;
-                    ?>
-
-                    <?php if ($firstProjectImage): ?>
-                    <?php if (count($projectImages) > 1): ?>
-                    <!-- Multiple images - use gallery -->
-                    <div style="position: relative; cursor: pointer;"
-                        onclick="openProjectGallery(<?= htmlspecialchars(json_encode($projectImages)) ?>, 0)">
-                        <img src="uploads/projects/<?= htmlspecialchars($firstProjectImage) ?>"
-                            style="width: 100%; height: 200px; object-fit: contain;" alt="Project Image">
-                        <div
-                            style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-                            <i class="bi bi-images"></i> <?= count($projectImages) ?>
-                        </div>
-                    </div>
-                    <?php else: ?>
-                    <!-- Single image -->
-                    <img src="uploads/projects/<?= htmlspecialchars($firstProjectImage) ?>"
-                        style="cursor: pointer; width: 100%; height: 200px; object-fit: contain;" alt="Project Image"
-                        onclick="openModal(this.src)">
-                    <?php endif; ?>
-                    <?php else: ?>
-                    <div class="no-image-soft d-flex align-items-center justify-content-center"
-                        style="height: 200px; background: #f8f9fa;">
-                        <div class="text-center">
-                            <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
-                            <p class="text-muted mb-0 mt-2">No Image</p>
-                        </div>
+                    <div class="this-week-badge">
+                        <i class="bi bi-calendar-event me-1"></i>This Week!
                     </div>
                     <?php endif; ?>
 
+                    <?php 
+                    // Handle multiple project images
+                    $projectImages = [];
+                    if (!empty($row['project_image'])) {
+                        $decoded = json_decode($row['project_image'], true);
+                        $projectImages = is_array($decoded) ? $decoded : [$row['project_image']];
+                    }
+                    
+                    if (!empty($projectImages)): ?>
+                    <div class="position-relative">
+                        <?php foreach ($projectImages as $imgIndex => $image): ?>
+                        <a href="uploads/projects/<?= htmlspecialchars($image) ?>"
+                            data-fancybox="gallery-project-<?= $row['id'] ?>"
+                            data-caption="<?= htmlspecialchars($row['project_name']) ?> - Image <?= $imgIndex + 1 ?>"
+                            <?= $imgIndex === 0 ? '' : 'style="display:none;"' ?>>
+                            <?php if ($imgIndex === 0): ?>
+                            <img src="uploads/projects/<?= htmlspecialchars($image) ?>" style="cursor: pointer;"
+                                alt="No Image Project yet">
+                            <?php endif; ?>
+                        </a>
+                        <?php endforeach; ?>
+
+                        <?php if (count($projectImages) > 1): ?>
+                        <div class="position-absolute bottom-0 start-0 m-1">
+                            <span class="badge bg-dark bg-opacity-25 text-white"
+                                style="font-size: 0.65rem; padding: 2px 6px;">
+                                <i class="bi bi-images" style="font-size: 0.7rem;"></i> <?= count($projectImages) ?>
+                            </span>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php else: ?>
+                    <div class="text-center p-2 no-image-soft">
+                        <i class="bi bi-image"></i>
+                        <p>No Image Available</p>
+                    </div>
+                    <?php endif; ?>
                     <div class="card-body">
                         <?php if (!empty($row['subform_embed'])): ?>
-                        <strong style="cursor: pointer;"
+                        <strong style="cursor: pointer; font-size: 1.1rem; margin-bottom: 0.3rem; display: block;"
                             onclick="openGoogleSlideModal('<?= htmlspecialchars($row['subform_embed']) ?>')">
-                            <?= htmlspecialchars($row['project_name']) ?>
-                        </strong><br>
+                            <i class="bi bi-file-earmark-slides me-1"></i><?= htmlspecialchars($row['project_name']) ?>
+                        </strong>
                         <?php else: ?>
-                        <strong>
+                        <strong style="font-size: 1.1rem; margin-bottom: 0.3rem; display: block;">
                             <?= htmlspecialchars($row['project_name']) ?>
-                        </strong><br>
+                        </strong>
                         <?php endif; ?>
-                        <span class="status-label" style="<?= getStatusClass($row['project_status']) ?>">
-                            <?= htmlspecialchars($row['project_status']) ?>
-                        </span>
-                        <span class="status-label"
-                            style="<?= getPriorityClass($row['priority']) ?> margin-left: 5px;">
-                            P :
-                            <?= htmlspecialchars($row['priority']) ?>
-                        </span>
-                        <div class="deadline">Quantity: <?= htmlspecialchars($row['quantity']) ?></div>
-                        <?php if ($row['deadline']): ?>
-                        <div class="deadline">
-                            Deadline: <?= htmlspecialchars(Carbon::parse($row['deadline'])->format('d M Y')) ?>
+
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="status-label" style="<?= getStatusClass($row['project_status']) ?>">
+                                <?= htmlspecialchars($row['project_status']) ?>
+                            </span>
+                            <span class="status-label" style="<?= getPriorityClass($row['priority']) ?>">
+                                Priority: <?= htmlspecialchars($row['priority']) ?>
+                            </span>
                         </div>
-                        <?php endif; ?>
-                        <p style="margin-top: 8px; font-size: 14px;">
+
+                        <div class="deadline-container">
+                            <div class="deadline">
+                                <i class="bi bi-box me-1"></i>Quantity: <?= htmlspecialchars($row['quantity']) ?>
+                            </div>
+                            <?php if ($row['deadline']): ?>
+                            <div class="deadline">
+                                <i class="bi bi-calendar-check me-1"></i>Deadline:
+                                <?= htmlspecialchars(Carbon::parse($row['deadline'])->format('d M Y')) ?>
+                            </div>
+                            <?php else: ?>
+                            <div class="deadline">
+                                <i class="bi bi-calendar-x me-1"></i>Deadline: -
+                            </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Submission Note image dengan purple accent container -->
+                        <div class="material-container"
+                            style="margin-top: 8px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(139, 92, 246, 0.1); transition: border-color 0.1s ease;">
+
+                            <?php
+                            // Handle multiple submission note images
+                            $materialImages = [];
+                            if (!empty($row['material_image'])) {
+                                $decoded = json_decode($row['material_image'], true);
+                                $materialImages = is_array($decoded) ? $decoded : [$row['material_image']];
+                            }
+                            
+                            if (!empty($materialImages)): ?>
+                            <div class="position-relative">
+                                <?php foreach ($materialImages as $imgIndex => $image): ?>
+                                <a href="uploads/materials/<?= htmlspecialchars($image) ?>"
+                                    data-fancybox="gallery-material-<?= $row['id'] ?>"
+                                    data-caption="<?= htmlspecialchars($row['project_name']) ?> - Submission Note <?= $imgIndex + 1 ?>"
+                                    <?= $imgIndex === 0 ? '' : 'style="display:none;"' ?>>
+                                    <?php if ($imgIndex === 0): ?>
+                                    <img src="uploads/materials/<?= htmlspecialchars($image) ?>"
+                                        alt="No Submission Notes yet"
+                                        style="width: 100%; height: 150px; object-fit: contain; background-color: #f8f9fa; cursor: pointer;">
+                                    <?php endif; ?>
+                                </a>
+                                <?php endforeach; ?>
+
+                                <?php if (count($materialImages) > 1): ?>
+                                <div class="position-absolute bottom-0 start-0 m-1">
+                                    <span class="badge bg-dark bg-opacity-25 text-white"
+                                        style="font-size: 0.65rem; padding: 2px 6px;">
+                                        <i class="bi bi-images" style="font-size: 0.7rem;"></i>
+                                        <?= count($materialImages) ?>
+                                    </span>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                            <?php else: ?>
+                            <div class="text-center p-2 no-notes-soft">
+                                <i class="bi bi-file-earmark text-muted"></i>
+                                <p class="m-0">No Submission Notes yet</p>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <p style="margin: 6px 0 0 0; font-size: 14px; line-height: 1.4;">
                             <?= nl2br(htmlspecialchars($row['description'])) ?>
                         </p>
 
-                        <!-- Material Images Section -->
-                        <?php
-                        $materialImages = parseImageData($row['material_image']);
-                        $firstMaterialImage = !empty($materialImages) ? $materialImages[0] : null;
-                        ?>
-
-                        <?php if ($firstMaterialImage): ?>
-                        <?php if (count($materialImages) > 1): ?>
-                        <!-- Multiple material images - use gallery -->
-                        <div style="margin-top: 5px; position: relative; cursor: pointer;"
-                            onclick="openMaterialGallery(<?= htmlspecialchars(json_encode($materialImages)) ?>, 0)">
-                            <img src="uploads/materials/<?= htmlspecialchars($firstMaterialImage) ?>"
-                                alt="Submission Notes"
-                                style="width: 100%; height: 150px; object-fit: contain; border-radius: 4px;">
-                            <div
-                                style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-                                <i class="bi bi-images"></i> <?= count($materialImages) ?>
-                            </div>
-                        </div>
-                        <?php else: ?>
-                        <!-- Single material image -->
-                        <div style="margin-top: 5px; cursor: pointer;">
-                            <img src="uploads/materials/<?= htmlspecialchars($firstMaterialImage) ?>"
-                                alt="Submission Notes"
-                                style="width: 100%; height: 150px; object-fit: contain; border-radius: 4px;"
-                                onclick="openModal(this.src)">
-                        </div>
-                        <?php endif; ?>
-                        <?php else: ?>
-                        <div class="no-image-soft d-flex align-items-center justify-content-center"
-                            style="height: 150px; background: #f8f9fa; margin-top: 5px; border-radius: 4px;">
-                            <div class="text-center">
-                                <i class="bi bi-file-earmark text-muted" style="font-size: 1.5rem;"></i>
-                                <p class="text-muted mb-0 mt-1" style="font-size: 0.9rem;">No Submission Notes</p>
-                            </div>
-                        </div>
-                        <?php endif; ?>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -704,13 +1747,13 @@ $username = $isLoggedIn ? $_SESSION : null;
                     <!-- Previous button -->
                     <?php if ($currentPage > 1): ?>
                     <li class="page-item">
-                        <a class="page-link" href="?page=<?= $currentPage - 1 . $urlParams ?>">
+                        <a class="page-link" href="?page=<?= $currentPage - 1 . $urlParams ?>" aria-label="Previous">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
                     <?php else: ?>
                     <li class="page-item disabled">
-                        <span class="page-link">
+                        <span class="page-link" aria-label="Previous">
                             <i class="bi bi-chevron-left"></i>
                         </span>
                     </li>
@@ -752,13 +1795,13 @@ $username = $isLoggedIn ? $_SESSION : null;
                     <!-- Next button -->
                     <?php if ($currentPage < $totalPages): ?>
                     <li class="page-item">
-                        <a class="page-link" href="?page=<?= $currentPage + 1 . $urlParams ?>">
+                        <a class="page-link" href="?page=<?= $currentPage + 1 . $urlParams ?>" aria-label="Next">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>
                     <?php else: ?>
                     <li class="page-item disabled">
-                        <span class="page-link">
+                        <span class="page-link" aria-label="Next">
                             <i class="bi bi-chevron-right"></i>
                         </span>
                     </li>
@@ -766,18 +1809,36 @@ $username = $isLoggedIn ? $_SESSION : null;
                 </ul>
             </nav>
             <?php endif; ?>
-        </div>
-        <footer class="text-secondary text-center py-1 mt-4 rounded" style="background-color: rgba(0, 0, 0, 0.05);">
-            <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href=""
-                    style="text-decoration: none;">IT
-                    DCM</a></div>
-        </footer>
 
-        <!-- Modal for Images-->
-        <div id="imgModal" class="modal" onclick="closeModal()">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <img class="modal-content" id="modalImage" alt="Preview Image">
+            <!-- Hidden links for gallery view all -->
+            <?php if (!empty($projects)): ?>
+            <div id="hiddenGalleryLinks" style="display: none;">
+                <!-- All project images -->
+                <?php foreach ($projects as $index => $row): ?>
+                <?php 
+                    $projectImages = parseImageData($row['project_image']);
+                    foreach ($projectImages as $imgIndex => $image): ?>
+                <a href="uploads/projects/<?= htmlspecialchars($image) ?>" data-fancybox="all-projects"
+                    data-caption="<?= htmlspecialchars($row['project_name']) ?> - Project Image <?= $imgIndex + 1 ?>"></a>
+                <?php endforeach; ?>
+                <?php endforeach; ?>
+
+                <!-- All Submission Note images -->
+                <?php foreach ($projects as $index => $row): ?>
+                <?php 
+                    $materialImages = parseImageData($row['material_image']);
+                    foreach ($materialImages as $imgIndex => $image): ?>
+                <a href="uploads/materials/<?= htmlspecialchars($image) ?>" data-fancybox="all-materials"
+                    data-caption="<?= htmlspecialchars($row['project_name']) ?> - Submission Note <?= $imgIndex + 1 ?>"></a>
+                <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
         </div>
+        <footer class="text-center py-1">
+            <div class="mb-0">Create with ❤️ by <a class="fw-bold" href=""
+                    style="text-decoration: none; color: #B6E388;">IT DCM</a></div>
+        </footer>
 
         <!-- Modal for Google Slide -->
         <div class="modal fade" id="googleSlideModal" tabindex="-1" aria-labelledby="googleSlideModalLabel"
@@ -800,57 +1861,13 @@ $username = $isLoggedIn ? $_SESSION : null;
         </div>
 
         <script>
-            function openModal(src) {
-                const modal = document.getElementById("imgModal");
-                const modalImage = document.getElementById("modalImage");
-
-                modal.style.display = "block";
-                modalImage.src = src;
-            }
-
-            function closeModal() {
-                const modal = document.getElementById("imgModal");
-                modal.style.display = "none";
-            }
-
-            // Gallery functions for multiple images
-            function openProjectGallery(images, startIndex = 0) {
-                const galleryItems = images.map(image => ({
-                    src: `uploads/projects/${image}`,
-                    type: 'image'
-                }));
-
-                Fancybox.show(galleryItems, {
-                    startIndex: startIndex,
-                    groupAll: false,
-                    Thumbs: {
-                        showOnStart: false
-                    }
-                });
-            }
-
-            function openMaterialGallery(images, startIndex = 0) {
-                const galleryItems = images.map(image => ({
-                    src: `uploads/materials/${image}`,
-                    type: 'image'
-                }));
-
-                Fancybox.show(galleryItems, {
-                    startIndex: startIndex,
-                    groupAll: false,
-                    Thumbs: {
-                        showOnStart: false
-                    }
-                });
-            }
-
             function openGoogleSlideModal(embedLink) {
                 function isWebOS() {
                     const userAgent = navigator.userAgent.toLowerCase();
                     return userAgent.includes("webos") || userAgent.includes("smarttv");
                 }
 
-                // Jika bukan WebOS, tampilkan embed iframe
+                // If not WebOS, display embed iframe
                 const embedUrl = embedLink.replace('/edit', '/embed');
                 const iframe = document.getElementById('googleSlideIframe');
                 const fallbackLink = document.getElementById('fallbackLink');
@@ -859,7 +1876,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 iframe.src = embedUrl;
                 googleSlideLink.href = embedLink;
 
-                // Cek apakah iframe didukung
+                // Check if iframe is supported
                 iframe.onload = function() {
                     fallbackLink.style.display = 'none';
                 };
@@ -882,13 +1899,13 @@ $username = $isLoggedIn ? $_SESSION : null;
             const toggleDarkMode = document.getElementById('toggleDarkMode');
             const html = document.documentElement;
 
-            // Periksa preferensi dark mode dari localStorage
+            // Check dark mode preference from localStorage
             if (localStorage.getItem('theme') === 'dark') {
                 html.setAttribute('data-bs-theme', 'dark');
                 toggleDarkMode.innerHTML = '<i class="bi bi-sun"></i>';
             }
 
-            // Tambahkan event listener untuk tombol toggle
+            // Add event listener for toggle button
             toggleDarkMode.addEventListener('click', () => {
                 if (html.getAttribute('data-bs-theme') === 'dark') {
                     html.setAttribute('data-bs-theme', 'light');
@@ -902,8 +1919,244 @@ $username = $isLoggedIn ? $_SESSION : null;
             });
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <!-- Fancybox JavaScript -->
+        <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+        <script>
+            // Initialize Fancybox
+            Fancybox.bind("[data-fancybox]", {
+                // Configuration options
+                Toolbar: {
+                    display: {
+                        left: ["infobar"],
+                        middle: [
+                            "zoomIn",
+                            "zoomOut",
+                            "toggle1to1",
+                            "rotateCCW",
+                            "rotateCW",
+                            "flipX",
+                            "flipY",
+                        ],
+                        right: ["slideshow", "thumbs", "fullscreen", "close"],
+                    },
+                },
+                Thumbs: {
+                    autoStart: false,
+                    showOnStart: false,
+                    type: "classic",
+                },
+                Images: {
+                    zoom: true,
+                    protect: false,
+                    Panzoom: {
+                        maxScale: 3,
+                        step: 0.5,
+                    },
+                },
+                Carousel: {
+                    infinite: true,
+                    transition: "slide",
+                    preload: 3,
+                },
+                Slideshow: {
+                    autoStart: false,
+                    speed: 3000,
+                },
+                // Animation and UI
+                showClass: "f-fadeIn",
+                hideClass: "f-fadeOut",
+                animated: true,
+                dragToClose: true,
+                hideScrollbar: true,
+                // Custom styling
+                l10n: {
+                    CLOSE: "Close",
+                    NEXT: "Next",
+                    PREV: "Previous",
+                    MODAL: "Modal",
+                    ERROR: "Image could not be loaded",
+                    IMAGE_ERROR: "Image not found",
+                    ELEMENT_NOT_FOUND: "HTML element not found",
+                    AJAX_NOT_FOUND: "AJAX loading error: Not found",
+                    AJAX_FORBIDDEN: "AJAX loading error: Forbidden",
+                    IFRAME_ERROR: "Page loading error",
+                    TOGGLE_ZOOM: "Toggle zoom level",
+                    TOGGLE_THUMBS: "Toggle thumbnails",
+                    TOGGLE_SLIDESHOW: "Toggle slideshow",
+                    TOGGLE_FULLSCREEN: "Toggle fullscreen",
+                    DOWNLOAD: "Download"
+                },
+                // Event callbacks
+                on: {
+                    "Carousel.ready": (fancybox) => {
+                        // When carousel is ready
+                        console.log("Fancybox gallery ready");
+                    }
+                }
+            });
+
+            // Hapus efek hover untuk link gambar untuk mengoptimalkan performa
+            document.addEventListener('DOMContentLoaded', function() {
+                // Image hover effects dihapus untuk performa
+            });
+
+            // Function to view all project images
+            function viewAllProjectImages() {
+                const projectLinks = document.querySelectorAll('[data-fancybox="all-projects"]');
+                if (projectLinks.length > 0) {
+                    // Trigger fancybox on first link
+                    projectLinks[0].click();
+                } else {
+                    alert('No project images available');
+                }
+            }
+
+            // Function to view all material images
+            function viewAllMaterialImages() {
+                const materialLinks = document.querySelectorAll('[data-fancybox="all-materials"]');
+                if (materialLinks.length > 0) {
+                    // Trigger fancybox on first link
+                    materialLinks[0].click();
+                } else {
+                    alert('No submission notes images available');
+                }
+            }
+
+            // Initialize Bootstrap tooltips
+            document.addEventListener('DOMContentLoaded', function() {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+
+                // Live Search Functionality (like DataTables)
+                const searchInput = document.getElementById('searchInput');
+                const projectCards = document.querySelectorAll('.project-card');
+                const cardGrid = document.querySelector('.card-grid');
+                const noResults = document.getElementById('noResults');
+                const originalNoProjectsMessage = document.querySelector('.text-center');
+
+                let searchTimeout;
+
+                // Debounce function for smooth performance
+                function debounce(func, delay) {
+                    return function(args) {
+                        clearTimeout(searchTimeout);
+                        searchTimeout = setTimeout(() => func.apply(this, [args]), delay);
+                    };
+                }
+
+                // Function to perform real-time filtering
+                function performRealTimeFilter() {
+                    const searchValue = searchInput.value.toLowerCase().trim();
+                    let visibleCount = 0;
+                    const totalCards = projectCards.length;
+
+                    // Hide original "No projects found" message if exists
+                    if (originalNoProjectsMessage && totalCards > 0) {
+                        originalNoProjectsMessage.style.display = 'none';
+                    }
+
+                    projectCards.forEach(card => {
+                        const projectName = card.getAttribute('data-project-name') || '';
+                        const description = card.getAttribute('data-description') || '';
+                        const status = card.getAttribute('data-status') || '';
+                        const priority = card.getAttribute('data-priority') || '';
+
+                        // Combine all searchable text
+                        const searchableText = (projectName + ' ' + description + ' ' + status + ' ' + priority)
+                            .toLowerCase();
+
+                        const isMatch = searchValue === '' || searchableText.includes(searchValue);
+
+                        if (isMatch) {
+                            card.style.display = 'block';
+                            visibleCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+
+                    // Update search info and no results message
+                    updateSearchResults(searchValue, visibleCount, totalCards);
+                }
+
+                // Function to update search results info
+                function updateSearchResults(searchValue, visibleCount, totalCards) {
+                    if (searchValue === '') {
+                        // No search
+                        noResults.style.display = 'none';
+                    } else if (visibleCount === 0) {
+                        // No results
+                        noResults.style.display = 'block';
+                    } else {
+                        // Has results
+                        noResults.style.display = 'none';
+                    }
+                }
+
+                // Event listener for real-time search
+                if (searchInput && projectCards.length > 0) {
+                    const debouncedFilter = debounce(performRealTimeFilter,
+                        100); // 100ms delay untuk responsiveness lebih baik
+
+                    searchInput.addEventListener('input', function(e) {
+                        const searchButton = document.querySelector('.input-group-text');
+
+                        // Visual feedback while typing
+                        this.classList.add('typing');
+
+                        if (this.value.length > 0) {
+                            searchButton.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+                            searchButton.style.opacity = '0.8';
+                        } else {
+                            searchButton.innerHTML = '<i class="bi bi-search"></i>';
+                            searchButton.style.opacity = '1';
+                        }
+
+                        // Run filter with debounce
+                        debouncedFilter();
+
+                        // Remove typing class after delay
+                        setTimeout(() => {
+                            this.classList.remove('typing');
+                            searchButton.innerHTML = '<i class="bi bi-search"></i>';
+                            searchButton.style.opacity = '1';
+                        }, 300);
+                    });
+
+                    // Run initial filter if there's search value from URL
+                    if (searchInput.value.trim() !== '') {
+                        performRealTimeFilter();
+                    }
+
+                    // Add interactive placeholder
+                    const originalPlaceholder = searchInput.placeholder;
+                    searchInput.addEventListener('focus', function() {
+                        this.placeholder = 'Search Project...';
+                    });
+
+                    searchInput.addEventListener('blur', function() {
+                        if (this.value === '') {
+                            this.placeholder = originalPlaceholder;
+                        }
+                    });
+                }
+            });
+
+            document.getElementById('priorityDropdownBtn').addEventListener('click', function() {
+                document.getElementById('prioritySelect').focus();
+                // Untuk browser modern, ini akan membuka dropdown jika user menekan tombol panah bawah
+                // Untuk Chrome/Edge, bisa juga trigger event keydown:
+                const select = document.getElementById('prioritySelect');
+                const event = new KeyboardEvent('keydown', {
+                    key: 'ArrowDown',
+                    bubbles: true
+                });
+                select.dispatchEvent(event);
+            });
+        </script>
     </body>
 
 </html>

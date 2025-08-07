@@ -247,7 +247,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             /* Header improvements - Simplified */
             .header-section {
                 background: #ffffff;
-                border-radius: 8px;
+                border-radius: 15px;
                 padding: 0.8rem;
                 margin-bottom: 1.2rem;
                 border: 1px solid #e2e8f0;
@@ -332,7 +332,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             .search-section,
             .filters-section {
                 background: #ffffff;
-                border-radius: 8px;
+                border-radius: 15px;
                 padding: 1rem;
                 margin-bottom: 1.2rem;
                 border: 1px solid #e2e8f0;
@@ -405,7 +405,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-radius: 25px;
                 font-weight: 500;
                 border: 1px solid transparent;
-                transition: all 0.15s ease-in-out;
+                transition: all 0.1s ease-in-out;
             }
 
             /* btn-secondary (All) */
@@ -590,7 +590,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-color: #8b5cf6;
                 color: #fff;
                 font-weight: 500;
-                border-radius: 6px;
+                border-radius: 25px;
             }
 
             .btn-primary-custom:hover {
@@ -619,7 +619,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             .card {
                 background: #ffffff;
-                border-radius: 12px;
+                border-radius: 15px;
                 border: 1px solid #e2e8f0;
                 overflow: hidden;
                 position: relative;
@@ -794,12 +794,6 @@ $username = $isLoggedIn ? $_SESSION : null;
                 object-fit: contain;
                 /* Menjaga gambar tetap proporsional */
                 border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            }
-
-            .modal-content,
-            .close {
-                /* Removed animation */
             }
 
             .close {
@@ -869,10 +863,8 @@ $username = $isLoggedIn ? $_SESSION : null;
                 margin-top: 2rem;
                 padding: 2rem;
                 background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
                 border-radius: 15px;
                 border: 1px solid rgba(226, 232, 240, 0.8);
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             }
 
             /* Responsive improvements */
@@ -1058,7 +1050,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             [data-bs-theme="dark"] .project-card.search-highlight {
                 border-color: rgba(139, 92, 246, 0.8) !important;
-                box-shadow: 0 0px 0px rgba(138, 92, 246, 0) !important;
+                /* box-shadow: 0 0px 0px rgba(138, 92, 246, 0) !important; */
             }
 
             /* Form improvements */
@@ -1067,8 +1059,6 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-radius: 25px;
                 border: 1.5px solid rgba(226, 232, 240, 0.8);
                 background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                transition: all 0.3s ease;
             }
 
             .form-control:focus,
@@ -1090,7 +1080,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             /* Search button loading state */
             .btn-primary-custom {
-                transition: all 0.3s ease;
+                transition: all 0.1s ease;
             }
 
             .btn-primary-custom .bi-hourglass-split {
@@ -1100,7 +1090,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             /* Search input typing indicator */
             #searchInput.typing {
                 border-color: #ffc107;
-                box-shadow: 0 0 0 rgba(255, 193, 7, 0);
+                /* box-shadow: 0 0 0 rgba(255, 193, 7, 0); */
             }
 
             /* No results styling */
@@ -1138,15 +1128,14 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border: 0.5px solid #6c757d;
                 background: rgba(255, 255, 255, 0.95);
                 color: #6c757d;
-                transition: all 0.3s ease;
-                box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+                /* box-shadow: 0 0 0 rgba(0, 0, 0, 0); */
             }
 
             #toggleDarkMode:hover {
                 background: #6c757d9a;
                 color: white;
                 border-color: #6c757d;
-                box-shadow: 0 0px 0px rgba(0, 0, 0, 0);
+                /* box-shadow: 0 0px 0px rgba(0, 0, 0, 0); */
             }
 
             [data-bs-theme="dark"] #toggleDarkMode {
@@ -1362,6 +1351,27 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-color: #a78bfa;
                 color: white;
             }
+
+            /* Priority bullet colors */
+            .priority-urgent {
+                color: #dc3545 !important;
+                /* Red for Urgent */
+            }
+
+            .priority-high {
+                color: #ffc107 !important;
+                /* Yellow for High */
+            }
+
+            .priority-normal {
+                color: #0d6efd !important;
+                /* Blue for Normal */
+            }
+
+            .priority-low {
+                color: #6c757d !important;
+                /* Gray for Low */
+            }
         </style>
     </head>
 
@@ -1538,18 +1548,18 @@ $username = $isLoggedIn ? $_SESSION : null;
                                         <select name="priority" class="form-select border-start-0"
                                             id="prioritySelect" onchange="this.form.submit()">
                                             <option value="">All Priority</option>
-                                            <option value="Urgent"
+                                            <option value="Urgent" class="priority-urgent"
                                                 <?= isset($_GET['priority']) && $_GET['priority'] === 'Urgent' ? 'selected' : '' ?>>
-                                                🔴 Urgent</option>
-                                            <option value="High"
+                                                ● Urgent</option>
+                                            <option value="High" class="priority-high"
                                                 <?= isset($_GET['priority']) && $_GET['priority'] === 'High' ? 'selected' : '' ?>>
-                                                🟡 High</option>
-                                            <option value="Normal"
+                                                ● High</option>
+                                            <option value="Normal" class="priority-normal"
                                                 <?= isset($_GET['priority']) && $_GET['priority'] === 'Normal' ? 'selected' : '' ?>>
-                                                🔵 Normal</option>
-                                            <option value="Low"
+                                                ● Normal</option>
+                                            <option value="Low" class="priority-low"
                                                 <?= isset($_GET['priority']) && $_GET['priority'] === 'Low' ? 'selected' : '' ?>>
-                                                ⚪ Low</option>
+                                                ● Low</option>
                                         </select>
                                     </div>
                                     <input type="hidden" name="project_status"
@@ -1673,7 +1683,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
                         <!-- Submission Note image dengan purple accent container -->
                         <div class="material-container"
-                            style="margin-top: 8px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(139, 92, 246, 0.1); transition: border-color 0.3s ease;">
+                            style="margin-top: 8px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(139, 92, 246, 0.1); transition: border-color 0.1s ease;">
 
                             <?php
                             // Handle multiple submission note images
