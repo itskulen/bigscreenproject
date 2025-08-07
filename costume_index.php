@@ -117,7 +117,7 @@ $this_week_count = $stmt->fetchColumn();
 function getStatusClass($status)
 {
     switch (strtolower($status)) {
-        case 'upcoming':
+        case 'sample':
             return 'background-color: #31D2F2;'; // blue
         case 'in progress':
             return 'background-color: #FFCA2C;'; // yellow
@@ -148,13 +148,13 @@ function getPriorityClass($priority)
 
 // Count projects by status for category (optimized with GROUP BY)
 $status_counts = [
-    'Upcoming' => 0,
+    'Sample' => 0,
     'Completed' => 0,
     'In Progress' => 0,
     'Revision' => 0,
 ];
 
-$sql = "SELECT project_status, COUNT(*) as count FROM gallery WHERE category = 'costume' AND project_status IN ('Upcoming', 'Completed', 'In Progress', 'Revision')";
+$sql = "SELECT project_status, COUNT(*) as count FROM gallery WHERE category = 'costume' AND project_status IN ('Sample', 'Completed', 'In Progress', 'Revision')";
 $params = [];
 
 // Add priority filter if exists
@@ -371,6 +371,44 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: white;
             }
 
+            /* Reset button custom styling */
+            .btn-reset-custom {
+                background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+                color: #80C904;
+                font-weight: 600;
+                padding: 0.5rem 1rem;
+                border-radius: 50%;
+                font-size: 0.875rem;
+                transition: all 0.1s ease;
+                display: flex;
+                align-items: center;
+                text-decoration: none;
+            }
+
+            .btn-reset-custom:hover {
+                background: #80C904;
+                color: #ffffff;
+                text-decoration: none;
+            }
+
+            .btn-reset-custom:focus {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(128, 201, 4, 0.2);
+            }
+
+            /* Dark mode untuk reset button */
+            [data-bs-theme="dark"] .btn-reset-custom {
+                background: linear-gradient(135deg, #374151, #4b5563);
+                border-color: #B6E388;
+                color: #B6E388;
+            }
+
+            [data-bs-theme="dark"] .btn-reset-custom:hover {
+                background: linear-gradient(135deg, #B6E388, #80C904);
+                border-color: #80C904;
+                color: #333333;
+            }
+
             .filter-divider {
                 width: 2px;
                 height: 30px;
@@ -439,7 +477,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border: 1.5px solid #a7adc3 !important;
             }
 
-            /* btn-info (Upcoming) */
+            /* btn-info (Sample) */
             .btn-info {
                 background: transparent;
                 color: #0dcaf0;
@@ -1486,10 +1524,10 @@ $username = $isLoggedIn ? $_SESSION : null;
                                 </form>
 
                                 <form method="GET" action="costume_index.php">
-                                    <button type="submit" name="project_status" value="Upcoming"
-                                        class="btn btn-info <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Upcoming' ? 'active' : '' ?>">
-                                        <i class="bi bi-clock me-1"></i>Upcoming:
-                                        <?= $status_counts['Upcoming'] ?? 0 ?>
+                                    <button type="submit" name="project_status" value="Sample"
+                                        class="btn btn-info <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Sample' ? 'active' : '' ?>">
+                                        <i class="bi bi-palette me-1"></i>Sample:
+                                        <?= $status_counts['Sample'] ?? 0 ?>
                                     </button>
                                     <input type="hidden" name="priority"
                                         value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
@@ -1576,9 +1614,8 @@ $username = $isLoggedIn ? $_SESSION : null;
                             </div>
 
                             <div class="filter-group">
-                                <a href="costume_index.php" class="btn btn-outline-secondary"
-                                    title="Reset all filters">
-                                    <i class="bi bi-arrow-clockwise me-1"></i>
+                                <a href="costume_index.php" class="btn btn-reset-custom" title="Reset all filters">
+                                    <i class="bi bi-arrow-clockwise"></i>
                                 </a>
                             </div>
                         </div>

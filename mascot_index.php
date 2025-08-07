@@ -370,6 +370,45 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: white;
             }
 
+            /* Reset button custom styling for mascot */
+            .btn-reset-custom {
+                background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+                color: #8b5cf6;
+                font-weight: 600;
+                padding: 0.5rem 1rem;
+                border-radius: 25px;
+                font-size: 0.875rem;
+                transition: all 0.1s ease;
+                display: flex;
+                align-items: center;
+                text-decoration: none;
+            }
+
+            .btn-reset-custom:hover {
+                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                border-color: #7c3aed;
+                color: #ffffff;
+                text-decoration: none;
+            }
+
+            .btn-reset-custom:focus {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+            }
+
+            /* Dark mode untuk reset button */
+            [data-bs-theme="dark"] .btn-reset-custom {
+                background: linear-gradient(135deg, #374151, #4b5563);
+                border-color: #a78bfa;
+                color: #a78bfa;
+            }
+
+            [data-bs-theme="dark"] .btn-reset-custom:hover {
+                background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+                border-color: #8b5cf6;
+                color: #ffffff;
+            }
+
             .filter-divider {
                 width: 2px;
                 height: 30px;
@@ -1572,9 +1611,8 @@ $username = $isLoggedIn ? $_SESSION : null;
                             </div>
 
                             <div class="filter-group">
-                                <a href="mascot_index.php" class="btn btn-outline-secondary"
-                                    title="Reset all filters">
-                                    <i class="bi bi-arrow-clockwise me-1"></i>
+                                <a href="mascot_index.php" class="btn btn-reset-custom" title="Reset all filters">
+                                    <i class="bi bi-arrow-clockwise"></i>
                                 </a>
                             </div>
                         </div>

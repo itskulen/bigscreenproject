@@ -762,9 +762,9 @@ $result = $pdo->query($sql);
                                 <select class="form-select" name="project_status" id="project_status"
                                     aria-label="Default select example" required>
                                     <option value="">Select Status</option>
-                                    <option value="Upcoming"
-                                        <?= isset($old['project_status']) && $old['project_status'] == 'Upcoming' ? 'selected' : '' ?>>
-                                        Upcoming</option>
+                                    <option value="Sample"
+                                        <?= isset($old['project_status']) && $old['project_status'] == 'Sample' ? 'selected' : '' ?>>
+                                        Sample</option>
                                     <option value="In Progress"
                                         <?= isset($old['project_status']) && $old['project_status'] == 'In Progress' ? 'selected' : '' ?>>
                                         In Progress</option>
@@ -897,9 +897,9 @@ $result = $pdo->query($sql);
                                 <td>
                                     <select class="form-select"
                                         onchange="updateStatus(<?= $row['id'] ?>, this.value, 'costume')">
-                                        <option value="Upcoming"
-                                            <?= $row['project_status'] === 'Upcoming' ? 'selected' : '' ?>>
-                                            Upcoming
+                                        <option value="Sample"
+                                            <?= $row['project_status'] === 'Sample' ? 'selected' : '' ?>>
+                                            Sample
                                         </option>
                                         <option value="In Progress"
                                             <?= $row['project_status'] === 'In Progress' ? 'selected' : '' ?>>In
