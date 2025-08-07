@@ -24,8 +24,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         exit();
     } else {
-        $error = 'Invalid username or password!';
+        $_SESSION['login_error'] = 'Invalid username or password!';
+        header('Location: login.php');
+        exit();
     }
+}
+
+// Ambil error dari session dan hapus setelah diambil
+$error = '';
+if (isset($_SESSION['login_error'])) {
+    $error = $_SESSION['login_error'];
+    unset($_SESSION['login_error']);
 }
 ?>
 <!DOCTYPE html>
@@ -40,25 +49,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
         <style>
             body {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
                 min-height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             }
 
             .login-container {
-                background: #fff;
-                padding: 36px 32px 28px 32px;
-                border-radius: 18px;
-                box-shadow: 0 8px 32px rgba(139, 92, 246, 0.10), 0 1.5px 8px rgba(0, 0, 0, 0.06);
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                padding: 40px 35px 35px 35px;
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
                 width: 100%;
-                max-width: 370px;
+                max-width: 400px;
                 position: relative;
-                animation: fadeIn 0.7s;
+                animation: fadeInUp 0.8s ease-out;
             }
 
-            @keyframes fadeIn {
+            @keyframes fadeInUp {
                 from {
                     opacity: 0;
                     transform: translateY(30px);
@@ -66,73 +77,148 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 to {
                     opacity: 1;
-                    transform: none;
+                    transform: translateY(0);
                 }
             }
 
             .login-container h2 {
-                margin-bottom: 18px;
+                margin-bottom: 25px;
                 text-align: center;
                 font-weight: 700;
-                color: #7c3aed;
-                letter-spacing: 1px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                letter-spacing: 0.5px;
+                font-size: 1.8rem;
             }
 
             .form-label {
-                font-weight: 500;
-                color: #6b7280;
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 8px;
             }
 
             .input-group-text {
-                background: #f3f4f6;
-                border: none;
-                color: #7c3aed;
+                background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+                border: 1px solid #d1d5db;
+                color: #6b7280;
+            }
+
+            .input-group .form-control {
+                border-color: #d1d5db;
+                padding: 12px 15px;
+                font-size: 0.95rem;
+            }
+
+            .input-group .form-control:not(:first-child) {
+                border-left: none;
+            }
+
+            .input-group .form-control:not(:last-child) {
+                border-right: none;
+            }
+
+            .input-group:focus-within .input-group-text,
+            .input-group:focus-within .form-control {
+                border-color: #667eea;
+                box-shadow: none;
+            }
+
+            .input-group:focus-within {
+                box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+                border-radius: 0.375rem;
             }
 
             .form-control:focus {
-                border-color: #8b5cf6;
-                box-shadow: 0 0 0 2px #a78bfa33;
+                border-color: #667eea;
+                box-shadow: none;
             }
 
             .btn-primary {
-                background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+                background: linear-gradient(135deg, #667eea, #764ba2);
                 border: none;
                 font-weight: 600;
                 letter-spacing: 0.5px;
-                transition: background 0.2s;
+                padding: 12px;
+                border-radius: 10px;
+                transition: all 0.1s ease;
+                font-size: 1rem;
             }
 
             .btn-primary:hover {
-                background: linear-gradient(90deg, #7c3aed, #8b5cf6);
+                background: linear-gradient(135deg, #5a67d8, #6b46c1);
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
             }
 
             .show-password {
                 cursor: pointer;
-                color: #a78bfa;
-                font-size: 1.2em;
+                color: #6b7280;
+                font-size: 1.1em;
+                transition: color 0.1s ease;
+                background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+                border: 1px solid #d1d5db;
+            }
+
+            .show-password:hover {
+                color: #667eea;
             }
 
             .error {
-                color: #dc3545;
-                font-size: 0.97em;
+                background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+                border: 1px solid rgba(239, 68, 68, 0.2);
+                color: #dc2626;
+                font-size: 0.9rem;
                 text-align: center;
-                margin-bottom: 10px;
+                margin-bottom: 15px;
                 margin-top: -5px;
+                padding: 10px;
+                border-radius: 8px;
+                font-weight: 500;
+            }
+
+            .back-link {
+                text-align: center;
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(0, 0, 0, 0.1);
+            }
+
+            .back-link a {
+                color: #6b7280;
+                text-decoration: none;
+                font-weight: 500;
+                transition: color 0.1s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .back-link a:hover {
+                color: #667eea;
             }
 
             @media (max-width: 500px) {
                 .login-container {
-                    padding: 22px 8px 18px 8px;
+                    padding: 30px 25px 25px 25px;
+                    margin: 20px;
+                }
+
+                .login-container h2 {
+                    font-size: 1.6rem;
                 }
             }
         </style>
     </head>
 
     <body>
-        <div class="login-container shadow">
-            <h2><i class="bi bi-person-circle me-2"></i>Login Admin</h2>
+        <div class="login-container">
+            <h2><i class="bi bi-shield-check me-2"></i>Admin Portal</h2>
             <?php if (!empty($error)) : ?>
-            <div class="error"><?= $error ?></div>
+            <div class="error">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                <?= $error ?>
+            </div>
             <?php endif; ?>
             <form method="POST" autocomplete="off">
                 <div class="mb-3">
@@ -154,8 +240,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </span>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 mt-2">Login</button>
+                <button type="submit" class="btn btn-primary w-100 mt-3">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>
+                    Login
+                </button>
             </form>
+
+            <div class="back-link">
+                <a href="index.php">
+                    <i class="bi bi-arrow-left"></i>
+                    Back to Home
+                </a>
+            </div>
         </div>
         <script>
             function togglePassword() {
