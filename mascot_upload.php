@@ -2,6 +2,11 @@
 session_start();
 include 'db.php';
 
+function sanitizeFileName($filename)
+{
+    return preg_replace('/[^a-zA-Z0-9.-]/', '_', basename($filename));
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Ambil semua input
     $projectName = trim($_POST['project_name'] ?? '');
@@ -51,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_FILES['project_image']) && !empty($_FILES['project_image']['name'][0])) {
         foreach ($_FILES['project_image']['name'] as $i => $name) {
             if ($_FILES['project_image']['error'][$i] === UPLOAD_ERR_OK) {
-                $projectImage = uniqid() . '_' . basename($name);
+                $projectImage = uniqid() . '_' . sanitizeFileName($name);
                 if (move_uploaded_file($_FILES['project_image']['tmp_name'][$i], "uploads/projects/$projectImage")) {
                     $projectImages[] = $projectImage;
                 }
@@ -64,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_FILES['material_image']) && !empty($_FILES['material_image']['name'][0])) {
         foreach ($_FILES['material_image']['name'] as $i => $name) {
             if ($_FILES['material_image']['error'][$i] === UPLOAD_ERR_OK) {
-                $materialImage = uniqid() . '_' . basename($name);
+                $materialImage = uniqid() . '_' . sanitizeFileName($name);
                 if (move_uploaded_file($_FILES['material_image']['tmp_name'][$i], "uploads/materials/$materialImage")) {
                     $materialImages[] = $materialImage;
                 }

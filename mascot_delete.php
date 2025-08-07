@@ -1,16 +1,25 @@
 <?php
 include 'db.php';
+include 'middleware.php';
 session_start();
 
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
+if (!isset($_GET['id'])) {
+    ErrorHandler::handleInvalidParameter('id', 'missing');
+}
 
-    // Ambil nama file gambar dulu supaya bisa dihapus dari folder
-    $stmt = $pdo->prepare('SELECT project_image, material_image FROM gallery WHERE id = ?');
-    $stmt->execute([$id]);
-    $data = $stmt->fetch();
+$id = validateId($_GET['id']);
 
-    if ($data) {
+// Ambil nama file gambar dulu supaya bisa dihapus dari folder
+$stmt = $pdo->prepare('SELECT project_image, material_image FROM gallery WHERE id = ? AND category = "mascot"');
+$stmt->execute([$id]);
+$data = $stmt->fetch();
+
+if (!$data) {
+    $_SESSION['message'] = 'Data not found.';
+    $_SESSION['message_type'] = 'error';
+    header('Location: mascot_admin.php#alertMessage');
+    exit();
+}
         // Hapus file project images (support both old and new format)
         if (!empty($data['project_image'])) {
             $projectImages = json_decode($data['project_image'], true);
@@ -51,13 +60,13 @@ if (isset($_GET['id'])) {
         header('Location: mascot_admin.php#alertMessage');
         exit();
     } else {
-        $_SESSION['message'] = 'Data not found.';
+        $_SESSION['message'] = 'Failed to delete project.';
         $_SESSION['message_type'] = 'error';
         header('Location: mascot_admin.php#alertMessage');
         exit();
     }
 } else {
-    $_SESSION['message'] = 'Invalid ID.';
+    $_SESSION['message'] = 'Failed to delete project.';
     $_SESSION['message_type'] = 'error';
     header('Location: mascot_admin.php#alertMessage');
     exit();
