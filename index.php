@@ -65,7 +65,7 @@
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
-                margin: 20px 0 10px 0;
+                margin: 0px 0 10px 0;
             }
 
             .subtitle {
@@ -170,10 +170,6 @@
 
     <body>
         <div class="main-container">
-            <div class="logo-section">
-                <img src="uploads/ccm.png" alt="CCM Logo">
-            </div>
-
             <h1 class="title">TvScreen Project Hub</h1>
             <p class="subtitle">Choose your project department to get started</p>
 
