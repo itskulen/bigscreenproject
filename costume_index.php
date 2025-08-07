@@ -1426,7 +1426,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                         <div class="logo-container me-3">
                             <a href="index.php">
                                 <img src="uploads/ccm.png" alt="CCM Logo"
-                                    style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(129, 201, 4, 0.5);">
+                                    style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(129, 201, 4, 0.5);" loading="lazy">
                             </a>
                         </div>
                         <h3 class="fw-bold text-header mb-0">Costume Project List</h3>
@@ -1665,7 +1665,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                             <?= $imgIndex === 0 ? '' : 'style="display:none;"' ?>>
                             <?php if ($imgIndex === 0): ?>
                             <img src="uploads/projects/<?= htmlspecialchars($image) ?>" style="cursor: pointer;"
-                                alt="No Image Project yet">
+                                alt="No Image Project yet" loading="lazy">
                             <?php endif; ?>
                         </a>
                         <?php endforeach; ?>
@@ -1744,7 +1744,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                                     <?php if ($imgIndex === 0): ?>
                                     <img src="uploads/materials/<?= htmlspecialchars($image) ?>"
                                         alt="No Submission Notes yet"
-                                        style="width: 100%; height: 150px; object-fit: contain; background-color: #f8f9fa; cursor: pointer;">
+                                        style="width: 100%; height: 150px; object-fit: contain; background-color: #f8f9fa; cursor: pointer;" loading="lazy">
                                     <?php endif; ?>
                                 </a>
                                 <?php endforeach; ?>

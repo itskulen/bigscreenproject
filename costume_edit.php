@@ -557,7 +557,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             foreach ($projectImages as $index => $image): ?>
                                 <div class="image-preview-item">
                                     <img src="uploads/projects/<?= htmlspecialchars($image) ?>" width="120"
-                                        class="border rounded">
+                                        class="border rounded" loading="lazy">
                                     <span class="badge"><?= $index + 1 ?></span>
                                 </div>
                                 <?php endforeach; ?>
@@ -594,7 +594,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             foreach ($materialImages as $index => $image): ?>
                                 <div class="image-preview-item">
                                     <img src="uploads/materials/<?= htmlspecialchars($image) ?>" width="120"
-                                        class="border rounded">
+                                        class="border rounded" loading="lazy">
                                     <span class="badge"><?= $index + 1 ?></span>
                                 </div>
                                 <?php endforeach; ?>
