@@ -28,15 +28,15 @@ $result = $pdo->query($sql);
         <style>
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background: linear-gradient(135deg, #FDFDFD 0%, #B6E388 100%);
+                background: #FFFFF6;
                 min-height: 100vh;
                 margin: 0;
                 padding: 0;
             }
 
             .main-container {
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(20px);
+                background: rgba(255, 255, 246, 0.95);
+                backdrop-filter: blur(10px);
                 border-radius: 15px;
                 box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
                 margin: 15px;
@@ -47,7 +47,7 @@ $result = $pdo->query($sql);
             }
 
             .header-section {
-                background: linear-gradient(135deg, #B6E388, #80C904);
+                background: linear-gradient(135deg, #C2E598, #C4E696);
                 color: white;
                 padding: 15px 20px;
                 border-radius: 12px;
@@ -71,8 +71,8 @@ $result = $pdo->query($sql);
             .btn-modern {
                 border-radius: 20px;
                 font-weight: 500;
-                transition: all 0.3s ease;
-                box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+                transition: all 0.1s ease;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
                 border: none;
                 padding: 8px 16px;
                 font-size: 14px;
@@ -80,7 +80,7 @@ $result = $pdo->query($sql);
 
             .btn-modern:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             }
 
             .btn-modern.btn-danger {
@@ -96,7 +96,7 @@ $result = $pdo->query($sql);
                 padding: 20px;
                 border-radius: 12px;
                 margin-bottom: 20px;
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
                 border: 1px solid rgba(182, 227, 136, 0.1);
             }
 
@@ -108,14 +108,14 @@ $result = $pdo->query($sql);
             .form-select {
                 border-radius: 10px;
                 border: 2px solid #e9ecef;
-                transition: all 0.3s ease;
+                transition: all 0.1s ease;
                 background: rgba(255, 255, 255, 0.9);
             }
 
             .form-control:focus,
             .form-select:focus {
                 border-color: #B6E388;
-                box-shadow: 0 0 0 3px rgba(182, 227, 136, 0.1);
+                box-shadow: 0 0 0 2px rgba(182, 227, 136, 0.1);
                 background: white;
             }
 
@@ -134,7 +134,7 @@ $result = $pdo->query($sql);
                 margin-bottom: 6px;
                 cursor: pointer;
                 border-radius: 12px;
-                transition: all 0.3s ease;
+                transition: all 0.1s ease;
                 position: relative;
                 overflow: hidden;
             }
@@ -186,15 +186,15 @@ $result = $pdo->query($sql);
                 border-radius: 20px;
                 font-weight: 600;
                 font-size: 15px;
-                transition: all 0.3s ease;
-                box-shadow: 0 8px 25px rgba(182, 227, 136, 0.3);
+                transition: all 0.1s ease;
+                box-shadow: 0 4px 20px rgba(182, 227, 136, 0.3);
                 width: 100%;
             }
 
             .btn-upload:hover {
                 transform: translateY(-1px);
                 color: white;
-                box-shadow: 0 12px 35px rgba(182, 227, 136, 0.4);
+                box-shadow: 0 9px 27px rgba(182, 227, 136, 0.4);
                 background: linear-gradient(135deg, #80C904, #60A600);
             }
 
@@ -202,7 +202,7 @@ $result = $pdo->query($sql);
                 background: rgba(255, 255, 255, 0.9);
                 padding: 20px;
                 border-radius: 12px;
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
                 border: 1px solid rgba(182, 227, 136, 0.1);
             }
 
@@ -235,7 +235,7 @@ $result = $pdo->query($sql);
 
             .dataTables_filter input:focus {
                 border-color: #B6E388 !important;
-                box-shadow: 0 0 0 3px rgba(182, 227, 136, 0.1) !important;
+                box-shadow: 0 0 0 2px rgba(182, 227, 136, 0.1) !important;
             }
 
             .dataTables_length select {
@@ -249,7 +249,7 @@ $result = $pdo->query($sql);
                 border-radius: 10px;
                 overflow-x: auto;
                 overflow-y: visible;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
                 max-width: 100%;
                 -webkit-overflow-scrolling: touch;
             }
@@ -293,7 +293,7 @@ $result = $pdo->query($sql);
 
             .table tbody tr:hover {
                 background-color: rgba(139, 92, 246, 0.05);
-                transition: all 0.2s ease;
+                transition: all 0.1s ease;
             }
 
             .table .form-select {
@@ -309,12 +309,12 @@ $result = $pdo->query($sql);
                 font-weight: 500;
                 padding: 4px 10px;
                 font-size: 11px;
-                transition: all 0.2s ease;
+                transition: all 0.1s ease;
             }
 
             .btn-sm:hover {
                 transform: translateY(-1px);
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
             }
 
             /* Floating buttons styling */
@@ -335,8 +335,8 @@ $result = $pdo->query($sql);
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-                transition: all 0.3s ease;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                transition: all 0.1s ease;
                 border: none;
                 cursor: pointer;
                 text-decoration: none;
@@ -348,7 +348,7 @@ $result = $pdo->query($sql);
 
             .floating-btn:hover {
                 transform: translateY(-3px) scale(1.1);
-                box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
+                box-shadow: 0 9px 27px rgba(16, 185, 129, 0.4);
                 color: white;
                 text-decoration: none;
             }
@@ -364,8 +364,8 @@ $result = $pdo->query($sql);
                 border-radius: 50%;
                 width: 40px;
                 height: 40px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                transition: all 0.3s ease;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                transition: all 0.1s ease;
                 background: linear-gradient(135deg, #B6E388, #80C904);
                 border: none;
                 color: #333333;
@@ -389,8 +389,8 @@ $result = $pdo->query($sql);
                 border-radius: 50%;
                 width: 40px;
                 height: 40px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                transition: all 0.3s ease;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                transition: all 0.1s ease;
                 background: linear-gradient(135deg, #FFE600, #E6CC00);
                 border: none;
                 color: #333333;
@@ -398,7 +398,7 @@ $result = $pdo->query($sql);
 
             #scrollToTopBtn:hover {
                 transform: translateY(-3px) scale(1.1);
-                box-shadow: 0 12px 35px rgba(255, 230, 0, 0.4);
+                box-shadow: 0 9px 27px rgba(255, 230, 0, 0.4);
                 background: linear-gradient(135deg, #E6CC00, #CDB300);
             }
 
@@ -471,7 +471,7 @@ $result = $pdo->query($sql);
             }
 
             .image-gallery img {
-                transition: transform 0.2s ease;
+                transition: transform 0.1s ease;
                 border: 2px solid transparent;
             }
 
@@ -493,9 +493,9 @@ $result = $pdo->query($sql);
                 line-height: 1;
                 min-width: 18px;
                 text-align: center;
-                backdrop-filter: blur(4px);
+                backdrop-filter: blur(2px);
                 border: 1px solid rgba(255, 255, 255, 0.2);
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
                 z-index: 2;
             }
 
@@ -1033,8 +1033,7 @@ $result = $pdo->query($sql);
 
         <footer class="text-secondary text-center py-1 mt-4" style="background-color: rgba(0, 0, 0, 0.05);">
             <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href=""
-                    style="text-decoration: none;">IT
-                    DCM</a></div>
+                    style="text-decoration: none; color: #333333;">IT DCM</a></div>
         </footer>
 
         <!-- jQuery (Required for DataTables) -->

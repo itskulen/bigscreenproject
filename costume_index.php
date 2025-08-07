@@ -227,7 +227,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: #333333;
                 padding: 0;
                 margin: 0;
-                background: #FDFDFD;
+                background: #FFFFF6;
                 min-height: 100vh;
             }
 
@@ -246,11 +246,11 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             /* Header improvements - Simplified */
             .header-section {
-                background: linear-gradient(135deg, #B6E388, #80C904);
+                background: #ffffff;
                 border-radius: 15px;
                 padding: 0.8rem;
                 margin-bottom: 1.2rem;
-                border: 1px solid #B6E388;
+                border: 2px solid rgba(181, 227, 136, 0.6);
             }
 
             /* Green accent border - Simplified */
@@ -261,13 +261,14 @@ $username = $isLoggedIn ? $_SESSION : null;
                 left: 0;
                 right: 0;
                 height: 4px;
-                background: #80C904;
+                background: linear-gradient(135deg, #C2E598, #C4E696);
             }
 
             /* Green accent for title - Simplified */
             .text-header {
-                color: #333333;
-                font-weight: 600;
+                color: #2D5016;
+                font-weight: 700;
+                text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
             }
 
             /* Dark mode for header - Simplified */
@@ -277,7 +278,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             [data-bs-theme="dark"] .header-section::before {
-                background: #80C904;
+                background: linear-gradient(135deg, #C2E598, #C4E696);
             }
 
             [data-bs-theme="dark"] .text-header {
@@ -335,7 +336,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-radius: 15px;
                 padding: 1rem;
                 margin-bottom: 1.2rem;
-                border: 1px solid #e2e8f0;
+                border: 1px solid #B6E388;
             }
 
             .filters-container {
@@ -379,7 +380,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             footer {
                 margin-top: auto;
-                background: #ffffff;
+                background: linear-gradient(135deg, #C2E598, #C4E696);
                 text-align: center;
                 padding: 1rem;
                 color: #475569;
@@ -388,7 +389,8 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             /* Green accents for small elements */
             .green-accent {
-                background: linear-gradient(135deg, #B6E388, #80C904) !important;
+                background: linear-gradient(135deg, #C2E598, #C4E696);
+                !important;
                 color: white !important;
             }
 
@@ -586,16 +588,16 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             .btn-primary-custom {
-                background: #B6E388;
-                border-color: #B6E388;
-                color: #333333;
+                background: #80C904;
+                border-color: #80C904;
+                color: #ffffff;
                 font-weight: 500;
                 border-radius: 25px;
             }
 
             .btn-primary-custom:hover {
-                background: #80C904;
-                border-color: #B6E388;
+                background: #6BA003;
+                border-color: #6BA003;
                 color: #ffffff;
             }
 
@@ -614,7 +616,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             }
 
             .card {
-                background: #ffffff;
+                background: #D1F2FB;
                 border-radius: 15px;
                 border: 1px solid #e2e8f0;
                 overflow: hidden;
@@ -631,12 +633,12 @@ $username = $isLoggedIn ? $_SESSION : null;
                 width: 100%;
                 height: 180px;
                 object-fit: contain;
-                background-color: #f8f9fa;
+                background-color: #ecf7fa;
             }
 
             .card-body {
                 padding: 0.5rem;
-                background: #ffffff;
+                background: #D1F2FB;
                 color: var(--bs-body-color);
             }
 
@@ -669,7 +671,8 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             /* Green accent untuk material image container */
             .card:hover strong {
-                color: #80C904 !important;
+                color: #01222B !important;
+                scale: 1.02;
             }
 
             [data-bs-theme="dark"] .card:hover strong {
@@ -1053,7 +1056,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             .form-control,
             .form-select {
                 border-radius: 25px;
-                border: 1.5px solid rgba(226, 232, 240, 0.8);
+                border: 1.5px solid rgb(226, 232, 240);
                 background: rgba(255, 255, 255, 0.95);
             }
 
@@ -1109,7 +1112,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-radius: 15px;
                 padding: 1rem;
                 margin-bottom: 1.2rem;
-                border: 1px solid rgba(226, 232, 240, 0.8);
+                border: 1px solid rgba(181, 227, 136, 0.6);
             }
 
             /* Dark mode toggle button improvements */
@@ -1121,7 +1124,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 align-items: center;
                 justify-content: center;
                 padding: 0;
-                border: 1.5px solid #B6E388;
+                border: 1.5px solid #80C904;
                 background: rgba(255, 255, 255, 0.95);
                 color: #80C904;
                 transition: all 0.1s ease;
@@ -1206,19 +1209,23 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             /* Gallery View Buttons Styling */
             .btn-outline-green {
-                color: #B6E388 !important;
-                border-color: #B6E388 !important;
-                background: transparent !important;
+                color: #80C904 !important;
+                border-color: #80C904 !important;
+                background: rgba(255, 255, 255, 0.9) !important;
                 border-radius: 8px !important;
-                transition: all 0.3s ease !important;
+                transition: all 0.1s ease !important;
                 padding: 0.375rem 0.5rem !important;
                 font-size: 0.875rem !important;
+                border-width: 1px !important;
+                box-shadow: 0 2px 4px rgba(128, 201, 4, 0.2);
             }
 
             .btn-outline-green:hover {
-                background-color: #B6E388 !important;
-                border-color: #B6E388 !important;
-                color: #333333 !important;
+                background-color: #80C904 !important;
+                border-color: #80C904 !important;
+                color: #ffffff !important;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(128, 201, 4, 0.3);
             }
 
             .btn-outline-green:focus {}
@@ -1236,20 +1243,21 @@ $username = $isLoggedIn ? $_SESSION : null;
             /* Vertical divider */
             .vr {
                 width: 1px !important;
-                background: rgba(182, 227, 136, 0.3) !important;
+                background: #80C904 !important;
                 opacity: 1 !important;
             }
 
             /* Dark mode untuk gallery buttons */
             [data-bs-theme="dark"] .btn-outline-green {
-                color: #80C904 !important;
-                border-color: #80C904 !important;
+                color: #B6E388 !important;
+                border-color: #B6E388 !important;
+                background: rgba(30, 41, 59, 0.8) !important;
             }
 
             [data-bs-theme="dark"] .btn-outline-green:hover {
-                background-color: #80C904 !important;
-                border-color: #80C904 !important;
-                color: white !important;
+                background-color: #B6E388 !important;
+                border-color: #B6E388 !important;
+                color: #333333 !important;
             }
 
             [data-bs-theme="dark"] .vr {
@@ -1284,7 +1292,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
                 .vr {
                     height: 20px !important;
-                    margin: 0 8px !important;
+                    margin: 8 8px !important;
                 }
             }
 
@@ -1380,7 +1388,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                         <div class="logo-container me-3">
                             <a href="index.php">
                                 <img src="uploads/ccm.png" alt="CCM Logo"
-                                    style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(218, 246, 92, 0.2);">
+                                    style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(129, 201, 4, 0.5);">
                             </a>
                         </div>
                         <h3 class="fw-bold text-header mb-0">Costume Project List</h3>
@@ -1403,7 +1411,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                                 <i class="bi bi-file-earmark-image"></i>
                             </button>
                         </div>
-                        <div class="vr mx-2" style="height: 30px;"></div>
+                        <div class="vr m-2" style="height: 30px;"></div>
                         <?php endif; ?>
 
                         <!-- Tombol Login atau Dashboard -->
@@ -1538,7 +1546,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                                 <form method="GET" action="costume_index.php" class="d-flex align-items-center">
                                     <div class="input-group">
                                         <span class="input-group-text" id="priorityDropdownBtn"
-                                            style="background: linear-gradient(135deg, #B6E388, #80C904); color: #333333; border-color: #B6E388; cursor:pointer;">
+                                            style="background: #80C904; color: #FFFFF6; border-color: #B6E388; cursor:pointer;">
                                             <i class="bi bi-funnel"></i>
                                         </span>
                                         <select name="priority" class="form-select border-start-0"
@@ -1837,7 +1845,7 @@ $username = $isLoggedIn ? $_SESSION : null;
         </div>
         <footer class="text-center py-1">
             <div class="mb-0">Create with ❤️ by <a class="fw-bold" href=""
-                    style="text-decoration: none; color: #B6E388;">IT DCM</a></div>
+                    style="text-decoration: none; color: #333333;">IT DCM</a></div>
         </footer>
 
         <!-- Modal for Google Slide -->

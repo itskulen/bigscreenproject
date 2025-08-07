@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <style>
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background: linear-gradient(135deg, #FDFDFD 0%, #B6E388 100%);
+                background: #FFFFF6;
                 min-height: 100vh;
                 margin: 0;
                 padding: 20px;
@@ -127,9 +127,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             .main-container {
                 background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(20px);
+                backdrop-filter: blur(10px);
                 border-radius: 15px;
-                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 7px 25px rgba(0, 0, 0, 0.1);
                 padding: 0;
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 overflow: hidden;
@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             .header-section {
-                background: linear-gradient(135deg, #B6E388, #80C904);
+                background: linear-gradient(135deg, #C2E598, #C4E696);
                 color: white;
                 padding: 20px;
                 text-align: center;
@@ -156,24 +156,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             .floating-btn {
-                background: rgba(255, 255, 255, 0.15);
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                color: white;
+                background: #80C904;
+                color: #ffffff;
                 padding: 8px 12px;
                 border-radius: 8px;
                 text-decoration: none;
                 font-size: 0.9rem;
-                transition: all 0.3s ease;
-                backdrop-filter: blur(10px);
                 display: flex;
                 align-items: center;
                 gap: 5px;
+                font-weight: 500;
             }
 
             .floating-btn:hover {
-                background: rgba(255, 255, 255, 0.25);
-                transform: translateY(-2px);
-                color: white;
+                background: #6BA003;
+                color: #ffffff;
                 text-decoration: none;
             }
 
@@ -273,14 +270,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 border: 2px solid #e9ecef;
                 padding: 12px 16px;
                 font-size: 14px;
-                transition: all 0.3s ease;
+                transition: all 0.1s ease;
                 background: rgba(255, 255, 255, 0.9);
             }
 
             .form-control:focus,
             .form-select:focus {
                 border-color: #B6E388;
-                box-shadow: 0 0 0 3px rgba(182, 227, 136, 0.1);
+                box-shadow: 0 0 0 2px rgba(182, 227, 136, 0.1);
                 background: white;
                 transform: translateY(-1px);
             }
@@ -299,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             .current-images-section .form-label {
-                color: #B6E388;
+                color: #80C904;
                 font-weight: 700;
                 margin-bottom: 15px;
             }
@@ -314,20 +311,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 position: relative;
                 border-radius: 12px;
                 overflow: hidden;
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                transition: all 0.1s ease;
                 background: white;
                 padding: 5px;
             }
 
             .image-preview-item:hover {
                 transform: translateY(-5px) scale(1.05);
-                box-shadow: 0 15px 35px rgba(182, 227, 136, 0.2);
+                box-shadow: 0 10px 25px rgba(182, 227, 136, 0.2);
             }
 
             .image-preview-item img {
                 border-radius: 8px;
-                transition: all 0.3s ease;
+                transition: all 0.1s ease;
             }
 
             .image-preview-item .badge {
@@ -340,7 +337,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 padding: 4px 8px;
                 border-radius: 6px;
                 font-size: 12px;
-                box-shadow: 0 4px 10px rgba(182, 227, 136, 0.3);
+                box-shadow: 0 2px 4px rgba(182, 227, 136, 0.3);
             }
 
             .btn-group-modern {
@@ -354,8 +351,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             .btn-modern {
                 border-radius: 25px;
                 font-weight: 600;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                transition: all 0.1s ease;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
                 border: none;
                 padding: 12px 30px;
                 font-size: 16px;
@@ -363,17 +360,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             .btn-modern:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             }
 
             .btn-modern.btn-primary {
-                background: linear-gradient(135deg, #B6E388, #80C904);
-                color: #333333;
+                background: #80C904;
+                color: #FFFFF5;
             }
 
             .btn-modern.btn-primary:hover {
-                background: linear-gradient(135deg, #80C904, #60A600);
+                background: #6BA003;
             }
 
             .btn-modern.btn-secondary {
@@ -618,9 +614,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </div>
         <footer class="text-secondary text-center py-1 mt-4" style="background-color: rgba(0, 0, 0, 0.05);">
-            <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href=""
-                    style="text-decoration: none;">IT
-                    DCM</a></div>
+            <div class="mb-0">Create with ❤️ by <a class="text-primary fw-bold" href="#"
+                    style="text-decoration: none; color: #333333;">IT DCM</a></div>
         </footer>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script>
