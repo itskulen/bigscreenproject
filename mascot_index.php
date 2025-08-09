@@ -595,7 +595,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             /* This Week button - outline saat tidak aktif */
             .btn.bg-danger-subtle {
                 background: transparent !important;
-                color: #721c24 !important;
+                color: #b02a37 !important;
                 border: 1.5px solid #dc3545 !important;
                 font-weight: 600 !important;
             }
@@ -605,7 +605,7 @@ $username = $isLoggedIn ? $_SESSION : null;
             .btn.bg-danger-subtle.active,
             .btn.bg-danger-subtle:active {
                 background-color: #f8d7da !important;
-                color: #721c24 !important;
+                color: #b02a37 !important;
                 border: 1.5px solid #920000 !important;
             }
 
@@ -668,6 +668,39 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border: 1px solid #8b5cf6;
                 transform: scale(1.05) !important;
                 z-index: 10;
+            }
+
+            /* Simple red accent for urgent priority cards */
+            .card.priority-urgent::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: rgba(220, 53, 70, 0.7);
+                z-index: 2;
+            }
+
+            /* Simple red accent for this week deadline cards */
+            .card.deadline-this-week::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: rgba(114, 28, 37, 0.7);
+                z-index: 2;
+            }
+
+            /* Both conditions - corner accent */
+            .card.priority-urgent.deadline-this-week::before {
+                background: linear-gradient(90deg, rgba(220, 53, 70, 0.7) 0%, rgba(114, 28, 37, 0.7) 100%);
+            }
+
+            .card.priority-urgent.deadline-this-week::after {
+                display: none;
             }
 
             .card img {
@@ -1008,6 +1041,19 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             [data-bs-theme="dark"] .card:hover {
                 border-color: rgba(139, 92, 246, 0.8);
+            }
+
+            /* Dark mode untuk accent indicators */
+            [data-bs-theme="dark"] .card.priority-urgent::before {
+                background: #ff6b6b;
+            }
+
+            [data-bs-theme="dark"] .card.deadline-this-week::after {
+                background: #ffa726;
+            }
+
+            [data-bs-theme="dark"] .card.priority-urgent.deadline-this-week::before {
+                background: linear-gradient(90deg, #ff6b6b 0%, #ffa726 100%);
             }
 
             [data-bs-theme="dark"] .card-body {
@@ -1423,7 +1469,8 @@ $username = $isLoggedIn ? $_SESSION : null;
                         <div class="logo-container me-3">
                             <a href="index.php">
                                 <img src="uploads/me.png" alt="ME Logo"
-                                    style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(139, 92, 246, 0.2);" loading="lazy">
+                                    style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(139, 92, 246, 0.2);"
+                                    loading="lazy">
                             </a>
                         </div>
                         <h3 class="fw-bold text-header mb-0">Mascot Project List</h3>
@@ -1634,7 +1681,17 @@ $username = $isLoggedIn ? $_SESSION : null;
                 <p class="text-center">No projects found for the selected filters.</p>
                 <?php else: ?>
                 <?php foreach ($projects as $index => $row): ?>
-                <div class="card project-card"
+                <?php
+                // Tentukan kelas CSS berdasarkan kondisi
+                $cardClasses = ['card', 'project-card'];
+                if (strtolower($row['priority']) === 'urgent') {
+                    $cardClasses[] = 'priority-urgent';
+                }
+                if (isThisWeek($row['deadline'])) {
+                    $cardClasses[] = 'deadline-this-week';
+                }
+                ?>
+                <div class="<?= implode(' ', $cardClasses) ?>"
                     data-project-name="<?= strtolower(htmlspecialchars($row['project_name'])) ?>"
                     data-description="<?= strtolower(htmlspecialchars($row['description'])) ?>"
                     data-status="<?= strtolower(htmlspecialchars($row['project_status'])) ?>"
@@ -1741,7 +1798,8 @@ $username = $isLoggedIn ? $_SESSION : null;
                                     <?php if ($imgIndex === 0): ?>
                                     <img src="uploads/materials/<?= htmlspecialchars($image) ?>"
                                         alt="No Submission Notes yet"
-                                        style="width: 100%; height: 150px; object-fit: contain; background-color: #f8f9fa; cursor: pointer;" loading="lazy">
+                                        style="width: 100%; height: 150px; object-fit: contain; background-color: #f8f9fa; cursor: pointer;"
+                                        loading="lazy">
                                     <?php endif; ?>
                                 </a>
                                 <?php endforeach; ?>
