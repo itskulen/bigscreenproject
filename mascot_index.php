@@ -423,6 +423,8 @@ $username = $isLoggedIn ? $_SESSION : null;
                 padding: 1rem;
                 color: #475569;
                 border-top: 1px solid #e2e8f0;
+                font-size: 0.8rem;
+                font-weight: 400;
             }
 
             /* Purple accents for small elements */
@@ -1257,7 +1259,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-radius: 15px;
                 padding: 1rem;
                 margin-bottom: 1.2rem;
-                border: 1px solid rgba(226, 232, 240, 0.8);
+                border: 1px solid rgba(235, 240, 226, 0.8);
             }
 
             /* Dark mode toggle button improvements */

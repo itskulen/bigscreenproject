@@ -250,7 +250,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-radius: 15px;
                 padding: 0.8rem;
                 margin-bottom: 1.2rem;
-                border: 2px solid rgba(181, 227, 136, 0.6);
+                border: 1px solid #e2e8f0;
             }
 
             /* Green accent border - Simplified */
@@ -418,11 +418,12 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             footer {
                 margin-top: auto;
-                background: linear-gradient(135deg, #C2E598, #C4E696);
+                background: #f6ffec;
                 text-align: center;
                 padding: 1rem;
                 color: #475569;
-                border-top: 1px solid #e2e8f0;
+                font-size: 0.8rem;
+                font-weight: 400;
             }
 
             /* Green accents for small elements */
@@ -1209,7 +1210,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-radius: 15px;
                 padding: 1rem;
                 margin-bottom: 1.2rem;
-                border: 1px solid rgba(181, 227, 136, 0.6);
+                border: 1px solid rgba(226, 232, 240, 0.8);
             }
 
             /* Dark mode toggle button improvements */
@@ -1480,8 +1481,10 @@ $username = $isLoggedIn ? $_SESSION : null;
                 bottom: 5px;
                 right: 5px;
                 z-index: 100;
-                width: 60px;
-                height: 60px;
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                overflow: hidden;
             }
 
             .celebration-float img {
