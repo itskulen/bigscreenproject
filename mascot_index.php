@@ -752,6 +752,50 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: #b190fd !important;
             }
 
+            /* Real-time Clock Styling - Compact button-like design */
+            .realtime-clock-btn {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                padding: 0.375rem 0.75rem;
+                background: rgba(139, 92, 246, 0.1);
+                border: 1px solid rgba(139, 92, 246, 0.3);
+                border-radius: 8px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                color: #8b5cf6;
+                min-width: 120px;
+                height: 36px;
+                text-align: center;
+                line-height: 1.1;
+                gap: 0.25rem;
+                white-space: nowrap;
+            }
+
+            /* Pastikan semua child elements memiliki font-size yang sama */
+            .realtime-clock-btn span,
+            .realtime-clock-btn .date-small {
+                font-size: 0.75rem !important;
+                font-weight: 600;
+                line-height: 1.1;
+            }
+
+            .date-small {
+                color: #94a3b8;
+            }
+
+            /* Dark mode untuk compact clock */
+            [data-bs-theme="dark"] .realtime-clock-btn {
+                background: rgba(139, 92, 246, 0.15);
+                border: 1px solid rgba(139, 92, 246, 0.4);
+                color: #c4b5fd;
+            }
+
+            [data-bs-theme="dark"] .date-small {
+                color: #94a3b8;
+            }
+
             /* Pagination styling */
             .pagination .page-link {
                 color: #8b5cf6;
@@ -948,6 +992,21 @@ $username = $isLoggedIn ? $_SESSION : null;
                 .header-section,
                 .search-filter-combined {
                     padding: 0.75rem;
+                }
+
+                .header-section .d-flex {
+                    flex-direction: column;
+                    gap: 0.75rem;
+                }
+
+                .realtime-clock-btn {
+                    font-size: 0.7rem;
+                    min-width: 70px;
+                    height: 32px;
+                }
+
+                .realtime-clock-btn .date-small {
+                    font-size: 0.6rem;
                 }
 
                 .filters-container {
@@ -1476,8 +1535,16 @@ $username = $isLoggedIn ? $_SESSION : null;
                         <h3 class="fw-bold text-header mb-0">Mascot Project List</h3>
                     </div>
 
-                    <!-- Gallery View Buttons - Compact -->
+                    <!-- Right side: Clock + Gallery Buttons + Actions -->
                     <div class="d-flex align-items-center gap-2">
+                        <!-- Real-time Clock - Compact button style -->
+                        <div class="realtime-clock-btn">
+                            <i class="bi bi-clock"></i>
+                            <span id="timeText">--:--:--</span>
+                            <span>WIB</span>
+                            <span class="date-small" id="dateText">-- --- ----</span>
+                        </div>
+
                         <?php if (!empty($projects)): ?>
                         <div class="gallery-actions d-flex gap-1">
                             <button type="button" class="btn btn-sm btn-outline-purple"
@@ -2256,6 +2323,43 @@ $username = $isLoggedIn ? $_SESSION : null;
                 });
                 select.dispatchEvent(event);
             });
+
+            // Real-time Clock - WIB Timezone
+            function updateClock() {
+                const now = new Date();
+
+                // WIB adalah UTC+7
+                const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+
+                // Format waktu HH:MM:SS
+                const timeString = wibTime.toLocaleTimeString('en-US', {
+                    timeZone: 'UTC',
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                // Format tanggal - Day, DD MMM YYYY (English UK format)
+                const dateString = wibTime.toLocaleDateString('en-GB', {
+                    timeZone: 'UTC',
+                    weekday: 'short',
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+
+                // Update elemen
+                const timeElement = document.getElementById('timeText');
+                const dateElement = document.getElementById('dateText');
+
+                if (timeElement) timeElement.textContent = timeString;
+                if (dateElement) dateElement.textContent = dateString;
+            }
+
+            // Update setiap detik
+            updateClock();
+            setInterval(updateClock, 1000);
         </script>
     </body>
 

@@ -717,6 +717,50 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: #80C904 !important;
             }
 
+            /* Real-time Clock Styling - Compact button-like design */
+            .realtime-clock-btn {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                padding: 0.375rem 0.75rem;
+                background: rgba(182, 227, 136, 0.1);
+                border: 1px solid rgba(182, 227, 136, 0.3);
+                border-radius: 8px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                color: #80C904;
+                min-width: 120px;
+                height: 36px;
+                text-align: center;
+                line-height: 1.1;
+                gap: 0.25rem;
+                white-space: nowrap;
+            }
+
+            /* Pastikan semua child elements memiliki font-size yang sama */
+            .realtime-clock-btn span,
+            .realtime-clock-btn .date-small {
+                font-size: 0.75rem !important;
+                font-weight: 600;
+                line-height: 1.1;
+            }
+
+            .date-small {
+                color: #94a3b8;
+            }
+
+            /* Dark mode untuk compact clock */
+            [data-bs-theme="dark"] .realtime-clock-btn {
+                background: rgba(182, 227, 136, 0.15);
+                border: 1px solid rgba(182, 227, 136, 0.4);
+                color: #B6E388;
+            }
+
+            [data-bs-theme="dark"] .date-small {
+                color: #94a3b8;
+            }
+
             /* Pagination styling */
             .pagination .page-link {
                 color: #B6E388;
@@ -913,6 +957,21 @@ $username = $isLoggedIn ? $_SESSION : null;
                 .header-section,
                 .search-filter-combined {
                     padding: 0.75rem;
+                }
+
+                .header-section .d-flex {
+                    flex-direction: column;
+                    gap: 0.75rem;
+                }
+
+                .realtime-clock-btn {
+                    font-size: 0.7rem;
+                    min-width: 70px;
+                    height: 32px;
+                }
+
+                .realtime-clock-btn .date-small {
+                    font-size: 0.6rem;
                 }
 
                 .filters-container {
@@ -1422,18 +1481,27 @@ $username = $isLoggedIn ? $_SESSION : null;
             <div class="header-section">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
-                        <!-- Logo dengan purple accent -->
+                        <!-- Logo dengan green accent -->
                         <div class="logo-container me-3">
                             <a href="index.php">
                                 <img src="uploads/ccm.png" alt="CCM Logo"
-                                    style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(129, 201, 4, 0.5);" loading="lazy">
+                                    style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(129, 201, 4, 0.5);"
+                                    loading="lazy">
                             </a>
                         </div>
                         <h3 class="fw-bold text-header mb-0">Costume Project List</h3>
                     </div>
 
-                    <!-- Gallery View Buttons - Compact -->
+                    <!-- Right side: Clock + Gallery Buttons + Actions -->
                     <div class="d-flex align-items-center gap-2">
+                        <!-- Real-time Clock - Compact button style -->
+                        <div class="realtime-clock-btn">
+                            <i class="bi bi-clock"></i>
+                            <span id="timeText">--:--:--</span>
+                            <span>WIB</span>
+                            <span class="date-small" id="dateText">-- --- ----</span>
+                        </div>
+
                         <?php if (!empty($projects)): ?>
                         <div class="gallery-actions d-flex gap-1">
                             <button type="button" class="btn btn-sm btn-outline-green"
@@ -1744,7 +1812,8 @@ $username = $isLoggedIn ? $_SESSION : null;
                                     <?php if ($imgIndex === 0): ?>
                                     <img src="uploads/materials/<?= htmlspecialchars($image) ?>"
                                         alt="No Submission Notes yet"
-                                        style="width: 100%; height: 150px; object-fit: contain; background-color: #f8f9fa; cursor: pointer;" loading="lazy">
+                                        style="width: 100%; height: 150px; object-fit: contain; background-color: #f8f9fa; cursor: pointer;"
+                                        loading="lazy">
                                     <?php endif; ?>
                                 </a>
                                 <?php endforeach; ?>
@@ -2201,6 +2270,43 @@ $username = $isLoggedIn ? $_SESSION : null;
                 });
                 select.dispatchEvent(event);
             });
+
+            // Real-time Clock - WIB Timezone
+            function updateClock() {
+                const now = new Date();
+
+                // WIB adalah UTC+7
+                const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+
+                // Format waktu HH:MM:SS
+                const timeString = wibTime.toLocaleTimeString('id-ID', {
+                    timeZone: 'UTC',
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                // Format tanggal - Day, DD MMM YYYY (English UK format)
+                const dateString = wibTime.toLocaleDateString('en-GB', {
+                    timeZone: 'UTC',
+                    weekday: 'short',
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+
+                // Update elemen
+                const timeElement = document.getElementById('timeText');
+                const dateElement = document.getElementById('dateText');
+
+                if (timeElement) timeElement.textContent = timeString;
+                if (dateElement) dateElement.textContent = dateString;
+            }
+
+            // Update setiap detik
+            updateClock();
+            setInterval(updateClock, 1000);
         </script>
     </body>
 
