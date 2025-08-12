@@ -1516,6 +1516,44 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: #6c757d !important;
                 /* Gray for Low */
             }
+
+            /* Celebration Float GIF */
+            .celebration-float {
+                position: fixed;
+                bottom: 5px;
+                right: 5px;
+                z-index: 100;
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                overflow: hidden;
+            }
+
+            .celebration-float img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 50%;
+            }
+
+            /* Responsive behavior */
+            @media (max-width: 768px) {
+                .celebration-float {
+                    width: 50px;
+                    height: 50px;
+                    bottom: 15px;
+                    right: 15px;
+                }
+            }
+
+            @media (max-width: 576px) {
+                .celebration-float {
+                    width: 45px;
+                    height: 45px;
+                    bottom: 10px;
+                    right: 10px;
+                }
+            }
         </style>
     </head>
 
@@ -2361,6 +2399,11 @@ $username = $isLoggedIn ? $_SESSION : null;
             updateClock();
             setInterval(updateClock, 1000);
         </script>
+
+        <!-- Celebration Float GIF -->
+        <div class="celebration-float">
+            <img src="uploads/celebration.gif" alt="Celebration" loading="lazy">
+        </div>
     </body>
 
 </html>

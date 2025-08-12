@@ -1473,6 +1473,42 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: #6c757d !important;
                 /* Gray for Low */
             }
+
+            /* Celebration Float GIF */
+            .celebration-float {
+                position: fixed;
+                bottom: 5px;
+                right: 5px;
+                z-index: 100;
+                width: 60px;
+                height: 60px;
+            }
+
+            .celebration-float img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 50%;
+            }
+
+            /* Responsive behavior */
+            @media (max-width: 768px) {
+                .celebration-float {
+                    width: 50px;
+                    height: 50px;
+                    bottom: 15px;
+                    right: 15px;
+                }
+            }
+
+            @media (max-width: 576px) {
+                .celebration-float {
+                    width: 45px;
+                    height: 45px;
+                    bottom: 10px;
+                    right: 10px;
+                }
+            }
         </style>
     </head>
 
@@ -1949,6 +1985,12 @@ $username = $isLoggedIn ? $_SESSION : null;
             </div>
             <?php endif; ?>
         </div>
+
+        <!-- Celebration GIF Float -->
+        <div class="celebration-float">
+            <img src="uploads/celebration.gif" alt="Celebration" loading="lazy">
+        </div>
+
         <footer class="text-center py-1">
             <div class="mb-0">Create with ❤️ by <a class="fw-bold" href=""
                     style="text-decoration: none; color: #333333;">IT DCM</a></div>
