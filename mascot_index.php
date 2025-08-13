@@ -290,6 +290,22 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border: 1px solid #475569;
             }
 
+            .no-image-soft {
+                height: 180px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .no-notes-soft {
+                height: 150px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
             .no-image-soft,
             .no-notes-soft {
                 background: #f8f9fa !important;
