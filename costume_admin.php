@@ -296,6 +296,43 @@ $result = $pdo->query($sql);
                 transition: all 0.1s ease;
             }
 
+            .table th,
+            .table td {
+                padding: 8px 4px;
+                font-size: 14px;
+            }
+
+            .table th:nth-child(1),
+            /* Project Name */
+            .table td:nth-child(1) {
+                max-width: 120px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .table th:nth-child(2),
+            /* Status */
+            .table td:nth-child(2),
+            .table th:nth-child(3),
+            /* Priority */
+            .table td:nth-child(3),
+            .table th:nth-child(4),
+            /* Quantity */
+            .table td:nth-child(4) {
+                max-width: 80px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .table td.truncate-description {
+                max-width: 180px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
             .table .form-select {
                 border: 1px solid #d1d5db;
                 border-radius: 6px;
@@ -954,7 +991,9 @@ $result = $pdo->query($sql);
                                     <span class="text-muted">No Link</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= nl2br(htmlspecialchars($row['description'])) ?></td>
+                                <td class="truncate-description" title="<?= htmlspecialchars($row['description']) ?>">
+                                    <?= htmlspecialchars($row['description']) ?>
+                                </td>
                                 <td><?= !empty($row['deadline']) ? htmlspecialchars($row['deadline']) : '-' ?></td>
                                 <td>
                                     <a href="costume_edit.php?id=<?= $row['id'] ?>"

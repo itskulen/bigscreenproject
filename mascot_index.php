@@ -59,7 +59,7 @@ if (!empty($_GET['priority'])) {
     $params[] = $_GET['priority'];
 }
 
-$sql .= ' ORDER BY createAt DESC LIMIT ' . $itemsPerPage . ' OFFSET ' . $offset;
+$sql .= ' ORDER BY (deadline IS NULL), deadline ASC, createAt DESC LIMIT ' . $itemsPerPage . ' OFFSET ' . $offset;
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
@@ -741,8 +741,24 @@ $username = $isLoggedIn ? $_SESSION : null;
                 font-size: 13px;
                 color: var(--bs-secondary-color);
                 margin: 3px 0;
-                font-weight: 500;
                 display: inline-block;
+            }
+
+            .quantity {
+                font-size: 13px;
+                color: var(--bs-secondary-color);
+                margin: 3px 0;
+                display: inline-block;
+            }
+
+            .deadline-date,
+            .quantity-number {
+                font-weight: bold;
+            }
+
+            .deadline span:first-child,
+            .quantity span:first-child {
+                font-weight: 500;
             }
 
             /* Purple accent untuk material image container */
@@ -1134,11 +1150,11 @@ $username = $isLoggedIn ? $_SESSION : null;
                 color: #e9ecef;
             }
 
-            [data-bs-theme="dark"] .deadline {
+            [data-bs-theme="dark"] .deadline .quantity-number {
                 color: #ced4da !important;
             }
 
-            [data-bs-theme="dark"] .card-body .deadline {
+            [data-bs-theme="dark"] .card-body .deadline .quantity-number {
                 color: #ced4da !important;
             }
 
@@ -1868,19 +1884,26 @@ $username = $isLoggedIn ? $_SESSION : null;
                         </div>
 
                         <div class="deadline-container">
-                            <div class="deadline">
-                                <i class="bi bi-box me-1"></i>Quantity: <?= htmlspecialchars($row['quantity']) ?>
-                            </div>
                             <?php if ($row['deadline']): ?>
                             <div class="deadline">
-                                <i class="bi bi-calendar-check me-1"></i>Deadline:
-                                <?= htmlspecialchars(Carbon::parse($row['deadline'])->format('d M Y')) ?>
+                                <i class="bi bi-calendar-check"></i>
+                                <span style="font-weight:500;">Deadline:</span>
+                                <span class="deadline-date" style="font-weight:bold;">
+                                    <?= htmlspecialchars(Carbon::parse($row['deadline'])->format('d M Y')) ?>
+                                </span>
                             </div>
                             <?php else: ?>
-                            <div class="deadline">
+                            <div class="deadline" style="font-weight:500;">
                                 <i class="bi bi-calendar-x me-1"></i>Deadline: -
                             </div>
                             <?php endif; ?>
+                            <div class="quantity">
+                                <i class="bi bi-box"></i>
+                                <span style="font-weight:500;">Quantity:</span>
+                                <span class="quantity-number" style="font-weight:bold;">
+                                    <?= htmlspecialchars($row['quantity']) ?>
+                                </span>
+                            </div>
                         </div>
 
                         <!-- Submission Note image dengan purple accent container -->
