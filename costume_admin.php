@@ -28,7 +28,7 @@ $result = $pdo->query($sql);
         <style>
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background: #FFFFF6;
+                background: #D1F2FB;
                 min-height: 100vh;
                 margin: 0;
                 padding: 0;
@@ -57,9 +57,10 @@ $result = $pdo->query($sql);
 
             .header-section h2 {
                 margin: 0;
-                font-weight: 600;
+                font-weight: 650;
                 font-size: 1.5rem;
-                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+                color: #2D5016;
+                text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
             }
 
             .top-buttons {
@@ -72,7 +73,6 @@ $result = $pdo->query($sql);
                 border-radius: 20px;
                 font-weight: 500;
                 transition: all 0.1s ease;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
                 border: none;
                 padding: 8px 16px;
                 font-size: 14px;

@@ -309,7 +309,7 @@ $username = $isLoggedIn ? $_SESSION : null;
 
             .no-image-soft,
             .no-notes-soft {
-                background: #f8f9fa !important;
+                background: #ecf7fa !important;
                 color: #6c757d !important;
                 border: none !important;
                 font-size: 0.97rem;
@@ -1890,7 +1890,7 @@ $username = $isLoggedIn ? $_SESSION : null;
                                     <?php if ($imgIndex === 0): ?>
                                     <img src="uploads/materials/<?= htmlspecialchars($image) ?>"
                                         alt="No Submission Notes yet"
-                                        style="width: 100%; height: 150px; object-fit: contain; background-color: #f8f9fa; cursor: pointer;"
+                                        style="width: 100%; height: 150px; object-fit: contain; background-color: #ecf7fa; cursor: pointer;"
                                         loading="lazy">
                                     <?php endif; ?>
                                 </a>

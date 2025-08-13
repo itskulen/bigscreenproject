@@ -712,6 +712,14 @@ $username = $isLoggedIn ? $_SESSION : null;
                 z-index: 2;
             }
 
+            .card.deadline-this-week .deadline-date {
+                color: #dc3545 !important;
+                font-weight: bold;
+                background: rgba(220, 53, 70, 0.08);
+                padding: 2px 4px;
+                border-radius: 6px;
+            }
+
             /* Both conditions - corner accent */
             .card.priority-urgent.deadline-this-week::before {
                 background: linear-gradient(90deg, rgba(220, 53, 70, 0.7) 0%, rgba(114, 28, 37, 0.7) 100%);
