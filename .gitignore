@@ -2,6 +2,10 @@
 config.php
 db.php
 
+# Ignore log files
+*.md
+*.log
+
 # Ignore uploads folder
 uploads/
 
