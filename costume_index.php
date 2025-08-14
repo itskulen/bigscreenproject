@@ -715,6 +715,46 @@ $username = $isLoggedIn ? $_SESSION : null;
                 line-height: 1.5;
             }
 
+            .card.priority-urgent::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: rgba(220, 53, 70, 0.7);
+                z-index: 2;
+            }
+
+            /* Simple red accent for this week deadline cards */
+            .card.deadline-this-week::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: rgba(114, 28, 37, 0.7);
+                z-index: 2;
+            }
+
+            .card.deadline-this-week .deadline-date {
+                color: #dc3545 !important;
+                font-weight: bold;
+                background: rgba(220, 53, 70, 0.08);
+                padding: 2px 4px;
+                border-radius: 6px;
+            }
+
+            /* Both conditions - corner accent */
+            .card.priority-urgent.deadline-this-week::before {
+                background: linear-gradient(90deg, rgba(220, 53, 70, 0.7) 0%, rgba(114, 28, 37, 0.7) 100%);
+            }
+
+            .card.priority-urgent.deadline-this-week::after {
+                display: none;
+            }
+
             /* Deadline text */
             .deadline {
                 font-size: 13px;
@@ -1776,7 +1816,17 @@ $username = $isLoggedIn ? $_SESSION : null;
                 <p class="text-center">No projects found for the selected filters.</p>
                 <?php else: ?>
                 <?php foreach ($projects as $index => $row): ?>
-                <div class="card project-card"
+                <?php
+                // Tentukan kelas CSS berdasarkan kondisi
+                $cardClasses = ['card', 'project-card'];
+                if (strtolower($row['priority']) === 'urgent') {
+                    $cardClasses[] = 'priority-urgent';
+                }
+                if (isThisWeek($row['deadline'])) {
+                    $cardClasses[] = 'deadline-this-week';
+                }
+                ?>
+                <div class="<?= implode(' ', $cardClasses) ?>"
                     data-project-name="<?= strtolower(htmlspecialchars($row['project_name'])) ?>"
                     data-description="<?= strtolower(htmlspecialchars($row['description'])) ?>"
                     data-status="<?= strtolower(htmlspecialchars($row['project_status'])) ?>"
