@@ -3,7 +3,15 @@ include 'db.php';
 
 function sanitizeFileName($filename)
 {
-    return preg_replace('/[^a-zA-Z0-9.-]/', '_', basename($filename));
+    // Remove extension
+    $extension = pathinfo($filename, PATHINFO_EXTENSION);
+    $name = pathinfo($filename, PATHINFO_FILENAME);
+
+    // Clean filename - remove special characters and limit length
+    $clean = preg_replace('/[^a-zA-Z0-9]/', '_', $name);
+    $clean = substr($clean, 0, 20); // Limit to 20 characters
+
+    return $clean . '.' . $extension;
 }
 
 $id = $_POST['id'];
@@ -53,7 +61,11 @@ if (isset($_FILES['project_image']) && !empty($_FILES['project_image']['name'][0
     $projectImages = []; // Replace all existing images
     for ($i = 0; $i < count($_FILES['project_image']['name']); $i++) {
         if ($_FILES['project_image']['error'][$i] === UPLOAD_ERR_OK) {
-            $projectImage = sanitizeFileName($_FILES['project_image']['name'][$i]);
+            // Generate shorter filename: timestamp + sanitized name
+            $timestamp = time() . substr(microtime(), 2, 3);
+            $cleanName = sanitizeFileName($_FILES['project_image']['name'][$i]);
+            $projectImage = $timestamp . '_' . $cleanName;
+
             if (move_uploaded_file($_FILES['project_image']['tmp_name'][$i], "uploads/projects/$projectImage")) {
                 $projectImages[] = $projectImage;
             }
@@ -65,7 +77,11 @@ if (isset($_FILES['material_image']) && !empty($_FILES['material_image']['name']
     $materialImages = []; // Replace all existing images
     for ($i = 0; $i < count($_FILES['material_image']['name']); $i++) {
         if ($_FILES['material_image']['error'][$i] === UPLOAD_ERR_OK) {
-            $materialImage = sanitizeFileName($_FILES['material_image']['name'][$i]);
+            // Generate shorter filename: timestamp + sanitized name
+            $timestamp = time() . substr(microtime(), 2, 3);
+            $cleanName = sanitizeFileName($_FILES['material_image']['name'][$i]);
+            $materialImage = $timestamp . '_' . $cleanName;
+
             if (move_uploaded_file($_FILES['material_image']['tmp_name'][$i], "uploads/materials/$materialImage")) {
                 $materialImages[] = $materialImage;
             }
