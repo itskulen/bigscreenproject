@@ -642,6 +642,45 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border: 1.5px solid #ff6b7a !important;
             }
 
+            .badge-type-inline {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                color: #fff;
+                padding: 3px 10px;
+                border-radius: 15px;
+                font-size: 12px;
+                font-weight: 600;
+                margin: 2px 2px 2px 0;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                line-height: 1.2;
+                vertical-align: middle;
+            }
+
+            .badge-type-compressed {
+                background: rgba(16, 185, 129, 0.13);
+                color: #10b981;
+                border-color: rgba(16, 185, 129, 0.25);
+            }
+
+            .badge-type-inflatable {
+                background: rgba(59, 130, 246, 0.13);
+                color: #3b82f6;
+                border-color: rgba(59, 130, 246, 0.25);
+            }
+
+            .badge-type-statue {
+                background: rgba(245, 158, 11, 0.13);
+                color: #f59e0b;
+                border-color: rgba(245, 158, 11, 0.25);
+            }
+
+            .card.project-card {
+                position: relative;
+                /* agar badge absolute bisa muncul */
+            }
+
             .btn-primary-custom {
                 background: #8b5cf6;
                 border-color: #8b5cf6;
@@ -1843,6 +1882,23 @@ $username = $isLoggedIn ? $_SESSION : null;
                     data-description="<?= strtolower(htmlspecialchars($row['description'])) ?>"
                     data-status="<?= strtolower(htmlspecialchars($row['project_status'])) ?>"
                     data-priority="<?= strtolower(htmlspecialchars($row['priority'])) ?>">
+                    <?php
+                    $type = strtolower($row['type'] ?? '');
+                    $typeLabel = '';
+                    $typeClass = '';
+                    if ($type === 'compressed foam') {
+                        $typeLabel = 'Compressed Foam';
+                        $typeClass = 'badge-type-compressed';
+                    } elseif ($type === 'inflatable') {
+                        $typeLabel = 'Inflatable';
+                        $typeClass = 'badge-type-inflatable';
+                    } elseif ($type === 'statue') {
+                        $typeLabel = 'Statue';
+                        $typeClass = 'badge-type-statue';
+                    }
+                    if ($typeLabel):
+                    ?>
+                    <?php endif; ?>
                     <?php if (isThisWeek($row['deadline'])): ?>
                     <div class="this-week-badge">
                         <i class="bi bi-calendar-event me-1"></i>This Week!
@@ -1899,6 +1955,11 @@ $username = $isLoggedIn ? $_SESSION : null;
                         <?php endif; ?>
 
                         <div class="d-flex flex-wrap gap-1">
+                            <?php if ($typeLabel): ?>
+                            <span class="badge badge-type-inline <?= $typeClass ?>">
+                                <i class="bi bi-tag"></i><?= $typeLabel ?>
+                            </span>
+                            <?php endif; ?>
                             <span class="status-label" style="<?= getStatusClass($row['project_status']) ?>">
                                 <?= htmlspecialchars($row['project_status']) ?>
                             </span>

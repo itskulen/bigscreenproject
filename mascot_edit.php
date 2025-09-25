@@ -20,6 +20,7 @@ if (!$data) {
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $projectName = $_POST['project_name'];
+    $type = $_POST['type'] ?? null;
     $subformEmbed = $_POST['subform_embed'] ?? null;
     $projectStatus = $_POST['project_status'];
     $priority = $_POST['priority'];
@@ -83,8 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
     }
 
-    $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, priority = ?, quantity = ?, description = ?, deadline = ?, project_image = ?, material_image = ?, subform_embed = ? WHERE id = ? AND category = 'mascot'");
-    $update->execute([$projectName, $projectStatus, $priority, $quantity, $description, $deadline, $projectImagesJson, $materialImagesJson, $subformEmbed, $id]);
+    $update = $pdo->prepare("UPDATE gallery SET project_name = ?, project_status = ?, priority = ?, quantity = ?, description = ?, deadline = ?, project_image = ?, material_image = ?, type = ?, subform_embed = ? WHERE id = ? AND category = 'mascot'");
+    $update->execute([$projectName, $projectStatus, $priority, $quantity, $description, $deadline, $projectImagesJson, $materialImagesJson, $type, $subformEmbed, $id]);
 
     echo "<!DOCTYPE html>
     <html>
@@ -472,6 +473,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <textarea name="subform_embed" id="subform_embed" class="form-control" placeholder="Enter Submission Form Embed Link"><?= htmlspecialchars($data['subform_embed'] ?? '') ?></textarea>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Mascot Category</label>
+                        <select class="form-select" id="type" name="type" required>
+                            <option value="">Select Category</option>
+                            <option value="compressed foam"
+                                <?= ($data['type'] ?? '') == 'compressed foam' ? 'selected' : '' ?>>Compressed
+                                Foam</option>
+                            <option value="inflatable" <?= ($data['type'] ?? '') == 'inflatable' ? 'selected' : '' ?>>
+                                Inflatable
+                            </option>
+                            <option value="statue" <?= ($data['type'] ?? '') == 'statue' ? 'selected' : '' ?>>
+                                Statue</option>
+                        </select>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -541,8 +557,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <label for="project_image" class="form-label">
                             <i class="bi bi-images me-2"></i>Project Images
                         </label>
-                        <input type="file" name="project_image[]" id="project_image" class="form-control" multiple
-                            accept="image/*">
+                        <input type="file" name="project_image[]" id="project_image" class="form-control"
+                            multiple accept="image/*">
                         <div class="file-info">
                             <i class="bi bi-info-circle me-1"></i>
                             Select multiple images to replace all existing project images

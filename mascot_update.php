@@ -20,6 +20,7 @@ $subformEmbed = trim($_POST['subform_embed']);
 $subformEmbed = $subformEmbed === '' ? null : htmlspecialchars($subformEmbed); // Konversi string kosong ke NULL
 $deadline = htmlspecialchars(trim($_POST['deadline']));
 $priority = htmlspecialchars(trim($_POST['priority']));
+$type = trim($_POST['type'] ?? '');
 $quantity = isset($_POST['quantity']) && is_numeric($_POST['quantity']) && $_POST['quantity'] > 0 ? $_POST['quantity'] : 1; // Default ke 1 jika tidak valid
 
 // Debugging untuk memastikan nilai deadline dikirim
@@ -94,10 +95,10 @@ $projectImagesJson = !empty($projectImages) ? json_encode($projectImages) : null
 $materialImagesJson = !empty($materialImages) ? json_encode($materialImages) : null;
 
 $sql = "UPDATE gallery
-        SET project_image = ?, material_image = ?, description = ?, deadline = ?, quantity = ?, priority = ?, subform_embed = ?
+        SET project_image = ?, material_image = ?, description = ?, deadline = ?, quantity = ?, priority = ?, subform_embed = ?, type = ?
         WHERE id = ?";
 $stmt = $pdo->prepare($sql);
-$stmt->execute([$projectImagesJson, $materialImagesJson, $desc, $deadline, $quantity, $priority, $subformEmbed, $id]);
+$stmt->execute([$projectImagesJson, $materialImagesJson, $desc, $deadline, $quantity, $priority, $subformEmbed, $type, $id]);
 
 // Feedback untuk pengguna
 if ($stmt->rowCount() > 0) {

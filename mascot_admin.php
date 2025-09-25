@@ -792,6 +792,22 @@ $result = $pdo->query($sql);
                             placeholder="Link Example: https://docs.google.com/presentation/d/e/2PACX-.../edit"><?= htmlspecialchars($old['subform_embed'] ?? '') ?></textarea>
                     </div>
 
+                    <div class="form-group">
+                        <label for="type" class="form-label">Mascot Category</label>
+                        <select class="form-select" id="type" name="type" required>
+                            <option value="">Select Category</option>
+                            <option value="compressed foam"
+                                <?= isset($old['type']) && $old['type'] == 'compressed foam' ? 'selected' : '' ?>>
+                                Compressed Foam</option>
+                            <option value="inflatable"
+                                <?= isset($old['type']) && $old['type'] == 'inflatable' ? 'selected' : '' ?>>
+                                Inflatable</option>
+                            <option value="statue"
+                                <?= isset($old['type']) && $old['type'] == 'statue' ? 'selected' : '' ?>>
+                                Statue</option>
+                        </select>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -913,6 +929,7 @@ $result = $pdo->query($sql);
                         <thead>
                             <tr>
                                 <th>Project Name</th>
+                                <th>Category</th>
                                 <th>Status</th>
                                 <th>Priority</th>
                                 <th>Quantity</th>
@@ -926,11 +943,12 @@ $result = $pdo->query($sql);
                         </thead>
                         <tbody>
                             <?php
-                $stmt = $pdo->query("SELECT * FROM gallery WHERE category = 'mascot' ORDER BY id DESC");
-                while ($row = $stmt->fetch()):
-                ?>
+                            $stmt = $pdo->query("SELECT * FROM gallery WHERE category = 'mascot' ORDER BY id DESC");
+                            while ($row = $stmt->fetch()):
+                            ?>
                             <tr>
                                 <td><?= htmlspecialchars($row['project_name']) ?></td>
+                                <td><?= htmlspecialchars($row['type'] ?? '-') ?></td>
                                 <td>
                                     <select class="form-select"
                                         onchange="updateStatus(<?= $row['id'] ?>, this.value, 'mascot')">

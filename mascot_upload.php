@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = trim($_POST['description'] ?? '');
     $deadline = trim($_POST['deadline'] ?? '');
     $subformEmbed = trim($_POST['subform_embed'] ?? '');
+    $type = trim($_POST['type'] ?? '');
 
     // Simpan data lama agar form tidak kosong saat error
     $_SESSION['old'] = $_POST;
@@ -49,6 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if ($subformEmbed !== '' && !filter_var($subformEmbed, FILTER_VALIDATE_URL)) {
         $errors[] = 'Invalid Google Slide URL.';
+    }
+    if ($type === '') {
+        $errors[] = 'Category is required.';
     }
 
     // Jika ada error, tampilkan alert di atas form
@@ -102,10 +106,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     error_log('Mascot Upload Debug - Material Images JSON length: ' . strlen($materialImagesJson ?? ''));
 
     $stmt = $pdo->prepare("INSERT INTO gallery
-    (project_name, project_status, priority, quantity, project_image, material_image, description, deadline, category, subform_embed)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'mascot', ?)");
-    $success = $stmt->execute([$projectName, $projectStatus, $priority, $quantity, $projectImagesJson, $materialImagesJson, $description, $deadline === '' ? null : $deadline, $subformEmbed]);
-
+    (project_name, project_status, priority, quantity, project_image, material_image, description, deadline, category, type, subform_embed)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'mascot', ?, ?)");
+    $success = $stmt->execute([$projectName, $projectStatus, $priority, $quantity, $projectImagesJson, $materialImagesJson, $description, $deadline === '' ? null : $deadline, $type, $subformEmbed]);
     // Hapus data lama dari session jika sukses
     unset($_SESSION['old']);
 
