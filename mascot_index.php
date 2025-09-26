@@ -684,6 +684,13 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-color: rgba(245, 158, 11, 0.25);
             }
 
+            .badge-type-abs {
+                background: rgba(59, 130, 246, 0.13);
+                /* Biru, atau ganti sesuai keinginan */
+                color: #0ea5e9;
+                border-color: rgba(59, 130, 246, 0.25);
+            }
+
             .card.project-card {
                 position: relative;
                 /* agar badge absolute bisa muncul */
@@ -1815,6 +1822,8 @@ $username = $isLoggedIn ? $_SESSION : null;
                                         <select name="type" class="form-select" id="typeSelect"
                                             onchange="this.form.submit()">
                                             <option value="">All Category</option>
+                                            <option value="abs"
+                                                <?= ($_GET['type'] ?? '') == 'abs' ? 'selected' : '' ?>>ABS</option>
                                             <option value="compressed foam"
                                                 <?= ($_GET['type'] ?? '') == 'compressed foam' ? 'selected' : '' ?>>
                                                 Compressed Foam
@@ -1966,6 +1975,9 @@ $username = $isLoggedIn ? $_SESSION : null;
                     } elseif ($type === 'statue') {
                         $typeLabel = 'Statue';
                         $typeClass = 'badge-type-statue';
+                    } elseif ($type === 'abs') {
+                        $typeLabel = 'ABS';
+                        $typeClass = 'badge-type-abs';
                     }
                     if ($typeLabel):
                     ?>

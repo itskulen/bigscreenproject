@@ -477,6 +477,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <label for="type" class="form-label">Mascot Category</label>
                         <select class="form-select" id="type" name="type" required>
                             <option value="">Select Category</option>
+                            <option value="abs" <?= ($data['type'] ?? '') == 'abs' ? 'selected' : '' ?>>ABS</option>
                             <option value="compressed foam"
                                 <?= ($data['type'] ?? '') == 'compressed foam' ? 'selected' : '' ?>>Compressed
                                 Foam</option>

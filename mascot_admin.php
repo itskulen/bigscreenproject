@@ -796,6 +796,8 @@ $result = $pdo->query($sql);
                         <label for="type" class="form-label">Mascot Category</label>
                         <select class="form-select" id="type" name="type" required>
                             <option value="">Select Category</option>
+                            <option value="abs"
+                                <?= isset($old['type']) && $old['type'] == 'abs' ? 'selected' : '' ?>>ABS</option>
                             <option value="compressed foam"
                                 <?= isset($old['type']) && $old['type'] == 'compressed foam' ? 'selected' : '' ?>>
                                 Compressed Foam</option>
@@ -947,8 +949,18 @@ $result = $pdo->query($sql);
                             while ($row = $stmt->fetch()):
                             ?>
                             <tr>
-                                <td title="<?= htmlspecialchars($row['project_name']) ?>"><?= htmlspecialchars($row['project_name']) ?></td>
-                                <td title="<?= htmlspecialchars($row['type'] ?? '-') ?>"><?= htmlspecialchars($row['type'] ?? '-') ?></td>
+                                <td title="<?= htmlspecialchars($row['project_name']) ?>">
+                                    <?= htmlspecialchars($row['project_name']) ?></td>
+                                <td title="<?= htmlspecialchars($row['type'] ?? '-') ?>">
+                                    <?php
+                                    $type = $row['type'] ?? '-';
+                                    if (strtolower($type) === 'abs') {
+                                        echo 'ABS';
+                                    } else {
+                                        echo ucwords($type);
+                                    }
+                                    ?>
+                                </td>
                                 <td>
                                     <select class="form-select"
                                         onchange="updateStatus(<?= $row['id'] ?>, this.value, 'mascot')">
@@ -1010,7 +1022,12 @@ $result = $pdo->query($sql);
                                     <?php endif; ?>
                                 </td>
                                 <td class="truncate-description" title="<?= htmlspecialchars($row['description']) ?>">
-                                    <?= htmlspecialchars($row['description']) ?>
+                                    <span tabindex="0" class="description-popover" data-bs-toggle="popover"
+                                        data-bs-trigger="focus" data-bs-placement="auto" data-bs-html="true"
+                                        data-bs-content="<?= htmlspecialchars(nl2br($row['description'])) ?>"
+                                        style="cursor:pointer; text-decoration:none;">
+                                        <?= htmlspecialchars(mb_strimwidth($row['description'], 0, 40, '...')) ?>
+                                    </span>
                                 </td>
                                 <td><?= !empty($row['deadline']) ? htmlspecialchars($row['deadline']) : '-' ?></td>
                                 <td>
@@ -1199,6 +1216,17 @@ $result = $pdo->query($sql);
             // Event listener untuk Submission Notes
             document.getElementById('material_image').addEventListener('change', function() {
                 previewMultipleImages(this, 'material_image_preview');
+            });
+
+            // Initialize Bootstrap Popover
+            document.addEventListener('DOMContentLoaded', function() {
+                var popoverTriggerList = [].slice.call(document.querySelectorAll('.description-popover'));
+                popoverTriggerList.forEach(function(popoverTriggerEl) {
+                    new bootstrap.Popover(popoverTriggerEl, {
+                        container: 'body',
+                        sanitize: false // agar HTML (nl2br) bisa tampil
+                    });
+                });
             });
 
             function updateStatus(id, status, category) {
