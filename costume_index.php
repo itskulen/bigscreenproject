@@ -11,11 +11,6 @@ use Carbon\Carbon;
 $search = $_GET['search'] ?? '';
 $filter = $_GET['project_status'] ?? '';
 
-// Pagination settings
-$itemsPerPage = 18; // Optimized: Menampilkan 18 item per halaman untuk performa lebih baik
-$currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-$offset = ($currentPage - 1) * $itemsPerPage;
-
 function isThisWeek($deadline)
 {
     if (empty($deadline)) {
@@ -59,11 +54,19 @@ if (!empty($_GET['priority'])) {
     $params[] = $_GET['priority'];
 }
 
-$sql .= ' ORDER BY (deadline IS NULL), deadline ASC, createAt DESC LIMIT ' . $itemsPerPage . ' OFFSET ' . $offset;
+$sql .= ' ORDER BY (deadline IS NULL), deadline ASC, createAt DESC';
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
-$projects = $stmt->fetchAll();
+$allProjects = $stmt->fetchAll();
+$totalProjects = count($allProjects);
+
+// Pagination settings
+$itemsPerPage = 18;
+$currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$offset = ($currentPage - 1) * $itemsPerPage;
+$projects = array_slice($allProjects, $offset, $itemsPerPage);
+$totalPages = ceil($totalProjects / $itemsPerPage);
 
 // Count total projects for pagination
 $countSql = "SELECT COUNT(*) FROM gallery WHERE category = 'costume' AND project_status != 'archived' AND project_name LIKE ?";
@@ -1654,21 +1657,23 @@ $username = $isLoggedIn ? $_SESSION : null;
                     <div class="col-lg-4 col-md-6">
                         <!-- Real-time search input tanpa form -->
                         <div class="input-group">
-                            <input type="text" id="searchInput" class="form-control"
-                                placeholder="Search Project..." value="<?= htmlspecialchars($search) ?>">
-                            <span class="input-group-text btn-primary-custom">
-                                <i class="bi bi-search"></i>
-                            </span>
+                            <form method="GET" action="costume_index.php" class="w-100">
+                                <div class="input-group">
+                                    <input type="text" name="search" id="searchInput" class="form-control"
+                                        placeholder="Search Project..." value="<?= htmlspecialchars($search) ?>">
+                                    <button class="input-group-text btn-primary-custom" type="submit">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                                <!-- Hidden filter fields jika perlu -->
+                                <input type="hidden" name="project_status"
+                                    value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
+                                <input type="hidden" name="priority"
+                                    value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+                                <input type="hidden" name="this_week"
+                                    value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
+                            </form>
                         </div>
-                        <!-- Hidden form untuk maintain URL parameters saat menggunakan filter buttons -->
-                        <form method="GET" action="costume_index.php" id="filterForm" style="display: none;">
-                            <input type="hidden" name="project_status" id="hiddenStatus"
-                                value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
-                            <input type="hidden" name="priority" id="hiddenPriority"
-                                value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-                            <input type="hidden" name="this_week" id="hiddenThisWeek"
-                                value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
-                        </form>
                     </div>
                     <div class="col-lg-8 col-md-6">
                         <div class="filters-container">
@@ -2279,8 +2284,6 @@ $username = $isLoggedIn ? $_SESSION : null;
                 });
 
                 // Live Search Functionality (like DataTables)
-                const searchInput = document.getElementById('searchInput');
-                const projectCards = document.querySelectorAll('.project-card');
                 const cardGrid = document.querySelector('.card-grid');
                 const noResults = document.getElementById('noResults');
                 const originalNoProjectsMessage = document.querySelector('.text-center');

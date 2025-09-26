@@ -11,11 +11,6 @@ use Carbon\Carbon;
 $search = $_GET['search'] ?? '';
 $filter = $_GET['project_status'] ?? '';
 
-// Pagination settings
-$itemsPerPage = 18; // Optimized: Menampilkan 18 item per halaman untuk performa lebih baik
-$currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-$offset = ($currentPage - 1) * $itemsPerPage;
-
 function isThisWeek($deadline)
 {
     if (empty($deadline)) {
@@ -59,11 +54,24 @@ if (!empty($_GET['priority'])) {
     $params[] = $_GET['priority'];
 }
 
-$sql .= ' ORDER BY (deadline IS NULL), deadline ASC, createAt DESC LIMIT ' . $itemsPerPage . ' OFFSET ' . $offset;
+if (!empty($_GET['type'])) {
+    $sql .= ' AND type = ?';
+    $params[] = $_GET['type'];
+}
+
+$sql .= ' ORDER BY (deadline IS NULL), deadline ASC, createAt DESC';
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
-$projects = $stmt->fetchAll();
+$allProjects = $stmt->fetchAll();
+$totalProjects = count($allProjects);
+
+// Pagination settings
+$itemsPerPage = 18;
+$currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$offset = ($currentPage - 1) * $itemsPerPage;
+$projects = array_slice($allProjects, $offset, $itemsPerPage);
+$totalPages = ceil($totalProjects / $itemsPerPage);
 
 // Count total projects for pagination
 $countSql = "SELECT COUNT(*) FROM gallery WHERE category = 'mascot' AND project_status != 'archived' AND project_name LIKE ?";
@@ -1293,6 +1301,61 @@ $username = $isLoggedIn ? $_SESSION : null;
                 background: rgba(255, 255, 255, 1);
             }
 
+            .filter-group .form-select {
+                border-radius: 18px;
+                background: linear-gradient(135deg, #f3f4f6 80%, #ede9fe 100%);
+                color: #4b5563;
+                font-weight: 600;
+                font-size: 15px;
+                padding: 8px 18px 8px 38px;
+                box-shadow: 0 2px 8px rgba(139, 92, 246, 0.07);
+                transition: border-color 0.2s, box-shadow 0.2s;
+                min-width: 150px;
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg fill='none' stroke='%238b5cf6' stroke-width='2' viewBox='0 0 24 24' %3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 1.2rem center;
+                background-size: 1.2em;
+            }
+
+            .filter-group .form-select:focus {
+                border-color: #7c3aed;
+                box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.13);
+                background: #fff;
+                color: #3b0764;
+            }
+
+            .filter-group .input-group-text {
+                border-radius: 18px 0 0 18px;
+                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                color: #fff;
+                border: none;
+                font-weight: 700;
+                font-size: 1.1rem;
+                padding-left: 16px;
+                padding-right: 12px;
+            }
+
+            .filter-group .input-group {
+                box-shadow: 0 2px 8px rgba(139, 92, 246, 0.06);
+                border-radius: 18px;
+                overflow: hidden;
+            }
+
+            @media (max-width: 576px) {
+                .filter-group .form-select {
+                    font-size: 14px;
+                    min-width: 110px;
+                    padding-left: 34px;
+                }
+
+                .filter-group .input-group-text {
+                    font-size: 1rem;
+                    padding-left: 10px;
+                    padding-right: 8px;
+                }
+            }
+
             /* Live search enhancements */
             #searchInput {
                 transition: all 0.1s ease;
@@ -1703,27 +1766,28 @@ $username = $isLoggedIn ? $_SESSION : null;
                 <!-- Search and Filters in one row -->
                 <div class="row g-3 align-items-center">
                     <div class="col-lg-4 col-md-6">
-                        <!-- Real-time search input tanpa form -->
-                        <div class="input-group">
-                            <input type="text" id="searchInput" class="form-control"
-                                placeholder="Search Project..." value="<?= htmlspecialchars($search) ?>">
-                            <span class="input-group-text btn-primary-custom">
-                                <i class="bi bi-search"></i>
-                            </span>
-                        </div>
-                        <!-- Hidden form untuk maintain URL parameters saat menggunakan filter buttons -->
-                        <form method="GET" action="mascot_index.php" id="filterForm" style="display: none;">
-                            <input type="hidden" name="project_status" id="hiddenStatus"
+                        <form method="get" action="mascot_index.php" id="searchForm" class="w-100">
+                            <div class="input-group">
+                                <input type="text" name="search" id="searchInput" class="form-control"
+                                    placeholder="Search Project..." value="<?= htmlspecialchars($search) ?>">
+                                <button class="input-group-text btn-primary-custom" type="submit">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                            <!-- Hidden filter fields jika perlu -->
+                            <input type="hidden" name="project_status"
                                 value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
-                            <input type="hidden" name="priority" id="hiddenPriority"
+                            <input type="hidden" name="priority"
                                 value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-                            <input type="hidden" name="this_week" id="hiddenThisWeek"
+                            <input type="hidden" name="type"
+                                value="<?= htmlspecialchars($_GET['type'] ?? '') ?>">
+                            <input type="hidden" name="this_week"
                                 value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
                         </form>
                     </div>
                     <div class="col-lg-8 col-md-6">
                         <div class="filters-container">
-                            <div class="filter-group">
+                            <div class="filter-group" title="Projects with deadlines this week">
                                 <form method="GET" action="mascot_index.php">
                                     <button type="submit" name="this_week" value="1"
                                         class="btn fw-semibold text-danger-emphasis bg-danger-subtle border border-danger-subtle <?= isset($_GET['this_week']) && $_GET['this_week'] == '1' ? 'active' : '' ?>">
@@ -1731,6 +1795,8 @@ $username = $isLoggedIn ? $_SESSION : null;
                                     </button>
                                     <input type="hidden" name="priority"
                                         value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+                                    <input type="hidden" name="type"
+                                        value="<?= htmlspecialchars($_GET['type'] ?? '') ?>">
                                     <input type="hidden" name="project_status"
                                         value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
                                     <input type="hidden" name="search"
@@ -1740,98 +1806,103 @@ $username = $isLoggedIn ? $_SESSION : null;
 
                             <div class="filter-divider"></div>
 
-                            <div class="filter-group">
-                                <form method="GET" action="mascot_index.php">
-                                    <button type="submit" name="project_status" value=""
-                                        class="btn btn-secondary <?= (!isset($_GET['project_status']) || $_GET['project_status'] === '') && !isset($_GET['this_week']) ? 'active' : '' ?>">
-                                        <i class="bi bi-collection me-1"></i>All:
-                                        <?= isset($total_projects) ? $total_projects : 0 ?>
-                                    </button>
+                            <div class="filter-group" title="Filter by category">
+                                <form method="GET" action="mascot_index.php" class="d-flex align-items-center">
+                                    <div class="input-group">
+                                        <span class="input-group-text" id="typeDropdownBtn">
+                                            <i class="bi bi-tags"></i>
+                                        </span>
+                                        <select name="type" class="form-select" id="typeSelect"
+                                            onchange="this.form.submit()">
+                                            <option value="">All Category</option>
+                                            <option value="compressed foam"
+                                                <?= ($_GET['type'] ?? '') == 'compressed foam' ? 'selected' : '' ?>>
+                                                Compressed Foam
+                                            </option>
+                                            <option value="inflatable"
+                                                <?= ($_GET['type'] ?? '') == 'inflatable' ? 'selected' : '' ?>>
+                                                Inflatable
+                                            </option>
+                                            <option value="statue"
+                                                <?= ($_GET['type'] ?? '') == 'statue' ? 'selected' : '' ?>>
+                                                Statue
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <!-- Hidden fields -->
                                     <input type="hidden" name="priority"
                                         value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-                                    <input type="hidden" name="search"
-                                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
-                                </form>
-
-                                <form method="GET" action="mascot_index.php">
-                                    <button type="submit" name="project_status" value="Upcoming"
-                                        class="btn btn-info <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Upcoming' ? 'active' : '' ?>">
-                                        <i class="bi bi-clock me-1"></i>Upcoming:
-                                        <?= $status_counts['Upcoming'] ?? 0 ?>
-                                    </button>
-                                    <input type="hidden" name="priority"
-                                        value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-                                    <input type="hidden" name="search"
-                                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
-                                    <input type="hidden" name="this_week"
-                                        value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
-                                </form>
-
-                                <form method="GET" action="mascot_index.php">
-                                    <button type="submit" name="project_status" value="In Progress"
-                                        class="btn btn-warning <?= isset($_GET['project_status']) && $_GET['project_status'] === 'In Progress' ? 'active' : '' ?>">
-                                        <i class="bi bi-gear me-1"></i>Progress:
-                                        <?= $status_counts['In Progress'] ?? 0 ?>
-                                    </button>
-                                    <input type="hidden" name="priority"
-                                        value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+                                    <input type="hidden" name="project_status"
+                                        value="<?= htmlspecialchars($_GET['project_status'] ?? '') ?>">
                                     <input type="hidden" name="search"
                                         value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
                                     <input type="hidden" name="this_week"
                                         value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
-                                </form>
-
-                                <form method="GET" action="mascot_index.php">
-                                    <button type="submit" name="project_status" value="Revision"
-                                        class="btn btn-indigo <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Revision' ? 'active' : '' ?>">
-                                        <i class="bi bi-arrow-repeat me-1"></i>Revision:
-                                        <?= $status_counts['Revision'] ?? 0 ?>
-                                    </button>
-                                    <input type="hidden" name="priority"
-                                        value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-                                    <input type="hidden" name="search"
-                                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
-                                    <input type="hidden" name="this_week"
-                                        value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
-                                </form>
-
-                                <form method="GET" action="mascot_index.php">
-                                    <button type="submit" name="project_status" value="Completed"
-                                        class="btn btn-success <?= isset($_GET['project_status']) && $_GET['project_status'] === 'Completed' ? 'active' : '' ?>">
-                                        <i class="bi bi-check-circle me-1"></i>Done:
-                                        <?= $status_counts['Completed'] ?? 0 ?>
-                                    </button>
-                                    <input type="hidden" name="priority"
-                                        value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
-                                    <input type="hidden" name="search"
-                                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
                                 </form>
                             </div>
 
-                            <div class="filter-divider"></div>
+                            <!-- Filter by Status -->
+                            <div class="filter-group" title="Filter by status">
+                                <form method="GET" action="mascot_index.php" class="d-flex align-items-center">
+                                    <div class="input-group">
+                                        <span class="input-group-text" id="statusDropdownBtn">
+                                            <i class="bi bi-flag"></i>
+                                        </span>
+                                        <select name="project_status" class="form-select" id="statusSelect"
+                                            onchange="this.form.submit()">
+                                            <option value="">All Status (<?= $total_projects ?>)</option>
+                                            <option value="Upcoming"
+                                                <?= ($_GET['project_status'] ?? '') == 'Upcoming' ? 'selected' : '' ?>>
+                                                Upcoming (<?= $status_counts['Upcoming'] ?? 0 ?>)
+                                            </option>
+                                            <option value="In Progress"
+                                                <?= ($_GET['project_status'] ?? '') == 'In Progress' ? 'selected' : '' ?>>
+                                                In Progress (<?= $status_counts['In Progress'] ?? 0 ?>)
+                                            </option>
+                                            <option value="Revision"
+                                                <?= ($_GET['project_status'] ?? '') == 'Revision' ? 'selected' : '' ?>>
+                                                Revision (<?= $status_counts['Revision'] ?? 0 ?>)
+                                            </option>
+                                            <option value="Completed"
+                                                <?= ($_GET['project_status'] ?? '') == 'Completed' ? 'selected' : '' ?>>
+                                                Completed (<?= $status_counts['Completed'] ?? 0 ?>)
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <!-- Hidden fields -->
+                                    <input type="hidden" name="priority"
+                                        value="<?= htmlspecialchars($_GET['priority'] ?? '') ?>">
+                                    <input type="hidden" name="type"
+                                        value="<?= htmlspecialchars($_GET['type'] ?? '') ?>">
+                                    <input type="hidden" name="search"
+                                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                                    <input type="hidden" name="this_week"
+                                        value="<?= htmlspecialchars($_GET['this_week'] ?? '') ?>">
+                                </form>
+                            </div>
 
-                            <div class="filter-group">
+                            <div class="filter-group" title="Filter by priority">
                                 <form method="GET" action="mascot_index.php" class="d-flex align-items-center">
                                     <div class="input-group">
                                         <span class="input-group-text" id="priorityDropdownBtn"
                                             style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border-color: #8b5cf6; cursor:pointer;">
-                                            <i class="bi bi-funnel"></i>
+                                            <i class="bi bi-lightning-charge"></i>
                                         </span>
                                         <select name="priority" class="form-select border-start-0"
                                             id="prioritySelect" onchange="this.form.submit()">
                                             <option value="">All Priority</option>
                                             <option value="Urgent" class="priority-urgent"
                                                 <?= isset($_GET['priority']) && $_GET['priority'] === 'Urgent' ? 'selected' : '' ?>>
-                                                ● Urgent</option>
+                                                Urgent</option>
                                             <option value="High" class="priority-high"
                                                 <?= isset($_GET['priority']) && $_GET['priority'] === 'High' ? 'selected' : '' ?>>
-                                                ● High</option>
+                                                High</option>
                                             <option value="Normal" class="priority-normal"
                                                 <?= isset($_GET['priority']) && $_GET['priority'] === 'Normal' ? 'selected' : '' ?>>
-                                                ● Normal</option>
+                                                Normal</option>
                                             <option value="Low" class="priority-low"
                                                 <?= isset($_GET['priority']) && $_GET['priority'] === 'Low' ? 'selected' : '' ?>>
-                                                ● Low</option>
+                                                Low</option>
                                         </select>
                                     </div>
                                     <input type="hidden" name="project_status"
@@ -2055,7 +2126,8 @@ $username = $isLoggedIn ? $_SESSION : null;
             $statusParam = !empty($_GET['project_status']) ? '&project_status=' . urlencode($_GET['project_status']) : '';
             $priorityParam = !empty($_GET['priority']) ? '&priority=' . urlencode($_GET['priority']) : '';
             $weekParam = !empty($_GET['this_week']) ? '&this_week=1' : '';
-            $urlParams = $searchParam . $statusParam . $priorityParam . $weekParam;
+            $typeParam = !empty($_GET['type']) ? '&type=' . urlencode($_GET['type']) : '';
+            $urlParams = $searchParam . $statusParam . $priorityParam . $typeParam . $weekParam;
             ?>
             <nav aria-label="Page navigation" class="mt-4">
                 <ul class="pagination justify-content-center">
@@ -2346,8 +2418,6 @@ $username = $isLoggedIn ? $_SESSION : null;
                 });
 
                 // Live Search Functionality (like DataTables)
-                const searchInput = document.getElementById('searchInput');
-                const projectCards = document.querySelectorAll('.project-card');
                 const cardGrid = document.querySelector('.card-grid');
                 const noResults = document.getElementById('noResults');
                 const originalNoProjectsMessage = document.querySelector('.text-center');
@@ -2458,6 +2528,28 @@ $username = $isLoggedIn ? $_SESSION : null;
                         }
                     });
                 }
+            });
+
+            document.getElementById('typeDropdownBtn').addEventListener('click', function() {
+                const select = document.getElementById('typeSelect');
+                select.focus();
+                // Untuk browser modern, trigger dropdown
+                const event = new KeyboardEvent('keydown', {
+                    key: 'ArrowDown',
+                    bubbles: true
+                });
+                select.dispatchEvent(event);
+            });
+
+            document.getElementById('statusDropdownBtn').addEventListener('click', function() {
+                const select = document.getElementById('statusSelect');
+                select.focus();
+                // Untuk browser modern, trigger dropdown
+                const event = new KeyboardEvent('keydown', {
+                    key: 'ArrowDown',
+                    bubbles: true
+                });
+                select.dispatchEvent(event);
             });
 
             document.getElementById('priorityDropdownBtn').addEventListener('click', function() {

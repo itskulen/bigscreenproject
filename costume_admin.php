@@ -930,7 +930,7 @@ $result = $pdo->query($sql);
                 while ($row = $stmt->fetch()):
                 ?>
                             <tr>
-                                <td><?= htmlspecialchars($row['project_name']) ?></td>
+                                <td title="<?= htmlspecialchars($row['project_name']) ?>"><?= htmlspecialchars($row['project_name']) ?></td>
                                 <td>
                                     <select class="form-select"
                                         onchange="updateStatus(<?= $row['id'] ?>, this.value, 'costume')">
@@ -1255,7 +1255,7 @@ $result = $pdo->query($sql);
                     ordering: true,
                     info: true,
                     lengthChange: true,
-                    pageLength: 25,
+                    pageLength: 10,
                     order: [
                         [9, 'desc']
                     ],
