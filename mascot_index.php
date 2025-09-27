@@ -666,6 +666,12 @@ $username = $isLoggedIn ? $_SESSION : null;
                 vertical-align: middle;
             }
 
+            .badge-type-abs {
+                background: rgba(156, 39, 176, 0.13);
+                color: #9c27b0;
+                border-color: rgba(156, 39, 176, 0.25);
+            }
+
             .badge-type-compressed {
                 background: rgba(16, 185, 129, 0.13);
                 color: #10b981;
@@ -678,17 +684,17 @@ $username = $isLoggedIn ? $_SESSION : null;
                 border-color: rgba(59, 130, 246, 0.25);
             }
 
-            .badge-type-statue {
-                background: rgba(245, 158, 11, 0.13);
-                color: #f59e0b;
-                border-color: rgba(245, 158, 11, 0.25);
+            .badge-type-props {
+                background: rgba(251, 146, 60, 0.13);
+                color: #fb923c;
+                border-color: rgba(251, 146, 60, 0.25);
             }
 
-            .badge-type-abs {
-                background: rgba(59, 130, 246, 0.13);
-                /* Biru, atau ganti sesuai keinginan */
-                color: #0ea5e9;
-                border-color: rgba(59, 130, 246, 0.25);
+            .badge-type-statue {
+                background: rgba(236, 72, 153, 0.13);
+                /* Pink */
+                color: #ec4899;
+                border-color: rgba(236, 72, 153, 0.25);
             }
 
             .card.project-card {
@@ -1832,6 +1838,10 @@ $username = $isLoggedIn ? $_SESSION : null;
                                                 <?= ($_GET['type'] ?? '') == 'inflatable' ? 'selected' : '' ?>>
                                                 Inflatable
                                             </option>
+                                            <option value="props"
+                                                <?= ($_GET['type'] ?? '') == 'props' ? 'selected' : '' ?>>
+                                                Props
+                                            </option>
                                             <option value="statue"
                                                 <?= ($_GET['type'] ?? '') == 'statue' ? 'selected' : '' ?>>
                                                 Statue
@@ -1978,6 +1988,9 @@ $username = $isLoggedIn ? $_SESSION : null;
                     } elseif ($type === 'abs') {
                         $typeLabel = 'ABS';
                         $typeClass = 'badge-type-abs';
+                    } elseif ($type === 'props') {
+                        $typeLabel = 'Props';
+                        $typeClass = 'badge-type-props';
                     }
                     if ($typeLabel):
                     ?>

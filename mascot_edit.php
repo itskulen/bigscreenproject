@@ -484,6 +484,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <option value="inflatable" <?= ($data['type'] ?? '') == 'inflatable' ? 'selected' : '' ?>>
                                 Inflatable
                             </option>
+                            <option value="props" <?= ($data['type'] ?? '') == 'props' ? 'selected' : '' ?>>
+                                Props</option>
                             <option value="statue" <?= ($data['type'] ?? '') == 'statue' ? 'selected' : '' ?>>
                                 Statue</option>
                         </select>

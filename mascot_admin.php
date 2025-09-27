@@ -804,6 +804,9 @@ $result = $pdo->query($sql);
                             <option value="inflatable"
                                 <?= isset($old['type']) && $old['type'] == 'inflatable' ? 'selected' : '' ?>>
                                 Inflatable</option>
+                            <option value="props"
+                                <?= isset($old['type']) && $old['type'] == 'props' ? 'selected' : '' ?>>
+                                Props</option>
                             <option value="statue"
                                 <?= isset($old['type']) && $old['type'] == 'statue' ? 'selected' : '' ?>>
                                 Statue</option>
